@@ -20,6 +20,10 @@
 - Routing Table для автоматического выбора skill'ов по контексту (TASK-002)
 - Ретроспективный docworkflow: backlog, completion report (TASK-002)
 
+### Removed
+- _docker: правила `no-new-privileges`, `cap_drop: ALL`, `read_only: true` — ломали nginx/postgres через запрет `setgid()` (TASK-005)
+- _docker: упоминание "security hardening" из описания skill'а (TASK-005)
+
 ### Fixed
 - Pipeline: железные правила для Lead — запрет подмены агентов и переопределения severity (TASK-003)
 - Pipeline: gate-чеклисты между фазами 3.5→4, 5→6 и в Phase 8 (TASK-003)
