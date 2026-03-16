@@ -80,11 +80,18 @@ Task description: `$ARGUMENTS`
 
 ## Phase 3.5: PLAN REVIEW
 
+> **MANDATORY** — этот шаг нельзя пропустить или заменить собственной оценкой Lead.
+
 1. Launch **py-quality** agent in read-only plan review mode:
    - Prompt: "Review this feature plan for quality concerns. Check: Does the proposed architecture violate DRY, SRP, SOLID? Are abstractions and layers correct? Is error handling planned? Do names follow conventions? Any scalability issues? Plan file: docs/plans/PLAN-NNN-{name}.md"
 2. Present py-quality's findings to the user
 3. **Wait for user approval** before proceeding to Phase 4
-   - Ask: "Plan created and reviewed. Proceed with implementation? (any changes needed?)"
+   - Ask: "Plan created and reviewed by py-quality. Proceed with implementation? (any changes needed?)"
+
+### Gate 3.5 → 4 (проверь перед переходом к Phase 4):
+- [ ] py-quality агент был запущен (не подменён оценкой Lead)
+- [ ] Результаты py-quality показаны пользователю
+- [ ] Пользователь явно подтвердил переход
 
 ---
 
@@ -108,7 +115,10 @@ Task description: `$ARGUMENTS`
 
 ## Phase 5: QUALITY GATE
 
-Launch 3 agents **in parallel**:
+> **CRITICAL**: В этой фазе запускаются ровно **3 агента** в одном сообщении. Все три ОБЯЗАТЕЛЬНЫ.
+> Перед отправкой сообщения — убедись что в нём **3 вызова Agent tool**. Если меньше — СТОП, добавь недостающих.
+
+Launch **exactly 3** agents in a **single message** (all 3 Agent tool calls in one response):
 
 ### Agent 1: py-quality
 - Prompt: "Review these files for code quality: {list of created/modified files}. Apply 17 quality principles, check error handling, linters compliance, logging. Report format: Status (PASS/WARN/FAIL), Findings with severity, file:line, fix suggestions."
@@ -119,7 +129,7 @@ Launch 3 agents **in parallel**:
 ### Agent 3: py-test-writer
 - Prompt: "Write tests for these files: {list of created/modified files}. Read _testing skill first. Follow AAA pattern, fixtures in conftest.py, coverage target ≥90%. Create test files, run pytest."
 
-After all 3 agents complete:
+After **all 3** agents complete:
 1. Consolidate results into a summary table:
    ```
    | Agent          | Status | Blockers | Warnings |
@@ -130,15 +140,24 @@ After all 3 agents complete:
    ```
 2. Present to user: "Quality Gate results. What would you like to fix?"
 
+### Gate 5 → 6 (проверь перед переходом к Phase 6):
+- [ ] py-quality завершён, результат получен
+- [ ] py-security завершён, результат получен
+- [ ] py-test-writer завершён, тесты написаны и запущены
+- [ ] Сводная таблица показана пользователю
+
 ---
 
-## Phase 6: FIX (optional)
+## Phase 6: FIX
 
-If Quality Gate found issues:
-1. Fix BLOCKER/CRITICAL issues first
-2. Fix WARNING issues if user agrees
-3. Run a mini quality check on fixed files only (re-launch relevant agent)
-4. Skip this phase entirely if all agents returned PASS
+> **BLOCKER/CRITICAL — исправляются ВСЕГДА.** Lead не может переопределить severity, назначенную агентом.
+> Если Lead считает что BLOCKER не применим — он ОБЯЗАН спросить пользователя, а не пропускать молча.
+
+1. **BLOCKER/CRITICAL** — исправить все. Это не optional. Пропуск BLOCKER = провал пайплайна.
+2. **WARNING** — показать пользователю, исправить если пользователь согласен.
+3. **INFO** — на усмотрение Lead, не требует действий.
+4. После исправлений — запустить mini quality check (re-launch relevant agent) на изменённых файлах.
+5. Skip this phase entirely **only if** all 3 agents returned PASS with zero BLOCKERs.
 
 ---
 
@@ -157,14 +176,19 @@ Output: list of documentation artifacts created
 
 ## Phase 8: COMMIT
 
-1. Verify docworkflow checklist:
+1. Verify **full pipeline** checklist (каждый пункт проверяется, результат выводится пользователю):
    - [ ] Task in backlog (TASK-NNN)
    - [ ] Plan in docs/plans/
+   - [ ] Plan reviewed by py-quality agent (Phase 3.5)
    - [ ] ADR in docs/adr/ (if applicable)
+   - [ ] Quality Gate: all 3 agents ran (py-quality, py-security, py-test-writer)
+   - [ ] Quality Gate: zero unresolved BLOCKERs
+   - [ ] Tests exist and pass
    - [ ] CHANGELOG.md updated
    - [ ] Completion Report in docs/reports/
-2. Stage all relevant files
-3. Create commit with format:
+2. **If any checkbox is unchecked — STOP.** Вернуться к соответствующей фазе и доделать.
+3. Stage all relevant files
+4. Create commit with format:
    ```
    TASK-NNN: <type>: <short description>
 
@@ -183,6 +207,16 @@ Output: list of documentation artifacts created
 ---
 
 ## Rules for Lead
+
+### Железные правила (нарушение = провал пайплайна)
+
+- **Никогда не подменяй агента собственным суждением.** Если пайплайн говорит "запусти агента" — запусти агента. Lead не является заменой py-quality, py-security или py-test-writer.
+- **Никогда не переопределяй severity.** Если агент сказал BLOCKER — это BLOCKER. Lead не может понизить до WARNING или пропустить.
+- **Никогда не пропускай фазу молча.** Если фаза кажется избыточной — спроси пользователя. Не принимай решение о пропуске самостоятельно.
+- **Phase 5 = ровно 3 агента.** Не 2, не 1. Проверь количество Agent tool calls перед отправкой.
+- **Gate-чеклисты обязательны.** Перед переходом к следующей фазе — проверь gate текущей. Не прошёл gate — не переходи.
+
+### Операционные правила
 
 - **Always read skill SKILL.md** before applying its standards — skills evolve, don't rely on cached knowledge
 - **Parallel agents**: launch independent agents together (e.g., Phase 5: all 3 simultaneously)

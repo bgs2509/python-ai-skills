@@ -20,6 +20,12 @@
 - Routing Table для автоматического выбора skill'ов по контексту (TASK-002)
 - Ретроспективный docworkflow: backlog, completion report (TASK-002)
 
+### Fixed
+- Pipeline: железные правила для Lead — запрет подмены агентов и переопределения severity (TASK-003)
+- Pipeline: gate-чеклисты между фазами 3.5→4, 5→6 и в Phase 8 (TASK-003)
+- Pipeline: Phase 5 требует ровно 3 агента в одном сообщении (TASK-003)
+- Pipeline: Phase 6 — BLOCKER/CRITICAL исправляются всегда, не optional (TASK-003)
+
 ### Changed
 - Все 26 .md файлов реорганизованы из плоской структуры в skill-папки (TASK-001)
 - Все 15 skill'ов переименованы с префиксом `_` (TASK-001)
