@@ -2,6 +2,7 @@
 
 **Дата:** 2026-03-15
 **Контекст:** Выбор архитектуры для переиспользования стандартов python-ai-skills в 10-20+ проектах через Claude Code Skills.
+**Статус:** РЕАЛИЗОВАНО 2026-03-16 (15 skill'ов, 26 reference-файлов, symlinks в ~/.claude/skills/).
 
 ## Суть подхода
 
@@ -172,7 +173,7 @@ description: Помогает с качеством кода
 | SKILL.md body (краткая версия) | 30-50 | ~300-500 |
 | reference.md (полная версия) | 150-500 | ~1,500-5,000 |
 
-### Сценарий: 10 core skills, сессия 20 сообщений
+### Сценарий: 15 skill'ов (реализовано), сессия 20 сообщений
 
 **Ревью кода (5 запросов) — нужны 3 skill'а с деталями:**
 - Descriptions всех: 1,000 токенов (загружены всегда)
@@ -365,45 +366,102 @@ Subagent **может** читать reference.md через Read — подде
 Репозиторий `~/python-ai-skills/` — единый источник истины для всех skill'ов. Деплой в `~/.claude/skills/` через symlinks.
 
 ```
-~/python-ai-skills/                    # Git-репо (источник истины)
-├── quality-cascade/
-│   ├── SKILL.md                       # 17 принципов — краткий чек-лист (40 строк)
-│   └── reference.md                   # Полные принципы + антипаттерны + примеры
+~/python-ai-skills/                    # Git-репо (источник истины) — РЕАЛИЗОВАНО 2026-03-16
+├── quality-cascade/                   # context: fork, agent: Explore
+│   ├── SKILL.md                       # 17 принципов — краткий чек-лист
+│   └── reference/
+│       ├── quality-cascade.md         # Полные принципы с антипаттернами
+│       ├── code-standards.md          # Типизация, docstrings, метрики
+│       └── naming.md                  # Конвенции именования
 │
 ├── error-handling/
-│   ├── SKILL.md                       # Иерархия исключений, retry — кратко (30 строк)
-│   └── reference.md                   # Маппинг HTTP ↔ исключения, шаблоны
+│   ├── SKILL.md                       # Иерархия исключений, retry
+│   └── reference.md                   # Полный маппинг HTTP ↔ исключения
 │
 ├── security/
-│   ├── SKILL.md                       # OWASP Top 10 — чек-лист (30 строк)
+│   ├── SKILL.md                       # OWASP Top 10 + обязательные правила
 │   └── reference/
-│       ├── auth.md                    # Аутентификация
-│       ├── injection.md               # Injection-атаки
-│       └── validation.md              # Валидация входных данных
+│       ├── security.md                # Полные правила безопасности
+│       └── secrets-management.md      # Pydantic Settings, .env.example, ротация
 │
 ├── logging/
-│   ├── SKILL.md                       # Log-Driven Design — принципы (30 строк)
-│   └── reference.md                   # AI-Readable Logging, structured logging
+│   ├── SKILL.md                       # Log-Driven Design, ключевые принципы
+│   └── reference.md                   # AI-Readable Logging, structlog конфиг
 │
 ├── testing/
-│   ├── SKILL.md                       # 3 уровня тестов, покрытие (30 строк)
+│   ├── SKILL.md                       # 3 уровня тестов, покрытие ≥90%
 │   └── reference.md                   # AAA-паттерн, фикстуры, моки
 │
+├── database/
+│   ├── SKILL.md                       # Repository-паттерн, ключевые правила
+│   └── reference.md                   # Alembic, транзакции, N+1, connection pooling
+│
+├── architecture/
+│   ├── SKILL.md                       # DDD + Hexagonal, выбор монолит/микросервисы
+│   └── reference/
+│       ├── ddd.md                     # Слои, сущности, Value Objects
+│       ├── hexagonal.md               # Порты, адаптеры, DI
+│       ├── monolith.md                # Модульные границы, shared database
+│       └── microservices.md           # Изоляция, коммуникация, трейсинг
+│
+├── linters/
+│   ├── SKILL.md                       # Ruff, Mypy, Bandit, pre-commit
+│   └── reference/
+│       ├── linters.md                 # Полная конфигурация инструментов
+│       └── ci-cd.md                   # CI pipeline, coverage gate
+│
+├── docker/
+│   ├── SKILL.md                       # Multi-stage, security, health checks
+│   └── reference/
+│       ├── docker.md                  # Dockerfile, Compose, .dockerignore
+│       └── production.md              # Graceful shutdown, мониторинг
+│
+├── http-clients/
+│   ├── SKILL.md                       # httpx, timeout, Circuit Breaker
+│   └── reference.md                   # Retry, логирование, обработка ошибок
+│
+├── caching/
+│   ├── SKILL.md                       # Redis, TTL, graceful degradation
+│   └── reference.md                   # Паттерны, инвалидация, именование
+│
+├── workflow/
+│   ├── SKILL.md                       # Пайплайн 6 этапов, чеклист
+│   └── reference/
+│       ├── workflow.md                # Полный пайплайн документации
+│       ├── backlog.md                 # Шаблон задачи TASK-NNN
+│       ├── planning.md                # Формат планов
+│       └── git-conventions.md         # Формат коммитов
+│
 ├── create-adr/
-│   └── SKILL.md                       # Генератор ADR (disable-model-invocation: true)
+│   ├── SKILL.md                       # Шаблон ADR, правила создания
+│   └── reference.md                   # Полный шаблон и статусы
 │
 ├── completion-report/
-│   └── SKILL.md                       # Генератор completion report
+│   ├── SKILL.md                       # Шаблон отчёта, правила
+│   └── reference.md                   # Полный шаблон с метриками
 │
-└── init-project/
-    └── SKILL.md                       # Инициализация .claude/ для нового проекта
+├── init-project/
+│   └── SKILL.md                       # Интерактивная инициализация (disable-model-invocation)
+│
+├── docs/
+│   └── 2026-03-15-skills-file-convention-architecture.md
+│
+├── CLAUDE.md                          # Каталог skill'ов + workflow (v3.0)
+└── CHANGELOG.md
 
-~/.claude/skills/                      # Symlinks (деплой)
+~/.claude/skills/                      # Symlinks (деплой) — СОЗДАНО 2026-03-16
 ├── quality-cascade → ~/python-ai-skills/quality-cascade
 ├── error-handling → ~/python-ai-skills/error-handling
 ├── security → ~/python-ai-skills/security
 ├── logging → ~/python-ai-skills/logging
 ├── testing → ~/python-ai-skills/testing
+├── database → ~/python-ai-skills/database
+├── architecture → ~/python-ai-skills/architecture
+├── linters → ~/python-ai-skills/linters
+├── docker → ~/python-ai-skills/docker
+├── http-clients → ~/python-ai-skills/http-clients
+├── caching → ~/python-ai-skills/caching
+├── workflow → ~/python-ai-skills/workflow
 ├── create-adr → ~/python-ai-skills/create-adr
 ├── completion-report → ~/python-ai-skills/completion-report
 └── init-project → ~/python-ai-skills/init-project
