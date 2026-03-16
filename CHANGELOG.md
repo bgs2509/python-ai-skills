@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### Changed
+- Миграция на Claude Code Skills: 15 skill'ов с SKILL.md + reference.md структурой
+- CLAUDE.md переписан как каталог skill'ов + workflow-правила (v3.0)
+- Все 26 .md файлов реорганизованы из плоской структуры в skill-папки
+
 ### Added
+- 15 SKILL.md файлов: quality-cascade, error-handling, security, logging, testing, database, architecture, linters, docker, http-clients, caching, workflow, create-adr, completion-report, init-project
+- quality-cascade использует context: fork для глубокого ревью
+- init-project skill с интерактивными вопросами для нового проекта
+- Документ архитектурного решения: docs/2026-03-15-skills-file-convention-architecture.md
 - Пайплайн обязательной документации: workflow, backlog, planning, git-conventions (TASK-001)
 - CHANGELOG.md (TASK-001)
