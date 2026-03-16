@@ -42,10 +42,13 @@ TASK-NNN: <type>: <краткий заголовок>
 
 - [ ] Задача в backlog (TASK-NNN)
 - [ ] План в docs/plans/ (если был)
-- [ ] ADR в docs/adr/ (если нужен)
+- [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/create-adr`
 - [ ] Запись в CHANGELOG.md
-- [ ] Completion Report в docs/reports/
+- [ ] Completion Report в docs/reports/ — если не создан автоматически, вызови `/completion-report`
 - [ ] Коммит с Task ID
+
+> **Напоминание:** create-adr и completion-report могут сработать автоматически по контексту.
+> Если этого не произошло — вызови их вручную перед коммитом.
 
 Подробнее:
 - Пайплайн: [reference/workflow.md](reference/workflow.md)

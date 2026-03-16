@@ -6,6 +6,8 @@
 ## [Unreleased]
 
 ### Changed
+- create-adr и completion-report: гибридная триггерная модель (авто + ручной fallback)
+- workflow: чеклист напоминает вызвать create-adr/completion-report если не сработали автоматически
 - Миграция на Claude Code Skills: 15 skill'ов с SKILL.md + reference.md структурой
 - CLAUDE.md переписан как каталог skill'ов + workflow-правила (v3.0)
 - Все 26 .md файлов реорганизованы из плоской структуры в skill-папки

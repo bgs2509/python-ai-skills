@@ -590,9 +590,15 @@ ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/new-skill ~/.claude/skills/new-skill
 - **Один файл** → `reference.md` (error-handling, logging, testing, database, http-clients, caching, create-adr, completion-report)
 - **Несколько файлов** → `reference/` папка (quality-cascade, security, architecture, linters, docker, workflow)
 
-### Что отложено
+### Триггерная модель create-adr и completion-report (решено 2026-03-16)
 
-- Триггерная модель create-adr и completion-report (авто vs ручной вызов) — требует опыта использования
+**Модель: гибрид (авто + ручной fallback)**
+
+- Оба skill'а **не имеют** `disable-model-invocation` — Claude может вызвать их автоматически
+- Description содержит конкретные TRIGGER-условия для автоматического срабатывания
+- Если автотриггер не сработал — workflow SKILL.md напоминает вызвать их вручную перед коммитом
+- create-adr: триггер на выбор технологий, архитектурных паттернов, сравнение вариантов
+- completion-report: триггер на завершение фичи, готовность к коммиту
 
 ---
 
