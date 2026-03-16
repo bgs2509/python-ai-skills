@@ -1,0 +1,5 @@
+{
+  "name": "python-pipeline",
+  "description": "Python development pipeline — orchestrates 15 skills via Agent Teams",
+  "author": { "name": "bgs" }
+}
