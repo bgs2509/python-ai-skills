@@ -9,16 +9,19 @@
 Репозиторий `python-ai-skills` — это **коллекция skill'ов**. Каждая директория в нём — готовый skill с конвенцией: `SKILL.md` содержит краткую версию (L0+L1), `reference.md` — полную (L2). Claude загружает `SKILL.md` при вызове, а `reference.md` читает через инструмент `Read` **только когда нужны детали**. Никакого дополнительного кода, серверов или зависимостей.
 
 ```
-~/python-ai-skills/                    # Git-репо = коллекция skill'ов
+~/python-ai-skills/                    # Git-репо = коллекция skill'ов (15 skill'ов)
 ├── quality-cascade/
-│   ├── SKILL.md                       # Краткие принципы (~30 строк, ~300 токенов)
-│   └── reference.md                   # Полный текст с примерами (~200 строк, ~2000 токенов)
+│   ├── SKILL.md                       # Краткие принципы (~50 строк, context: fork)
+│   └── reference/                     # Несколько reference-файлов
+│       ├── quality-cascade.md
+│       ├── code-standards.md
+│       └── naming.md
 ├── error-handling/
 │   ├── SKILL.md
-│   └── reference.md
+│   └── reference.md                   # Один reference-файл
 └── ...
 
-~/.claude/skills/                      # Symlinks → python-ai-skills
+~/.claude/skills/                      # Symlinks → python-ai-skills (15 шт.)
 ├── quality-cascade → ~/python-ai-skills/quality-cascade
 ├── error-handling → ~/python-ai-skills/error-handling
 └── ...
@@ -33,7 +36,7 @@
 При начале сессии Claude загружает **только `name` и `description`** каждого skill'а.
 
 - Стоимость: ~100 токенов на skill
-- 10 skill'ов = ~1,000 токенов (пренебрежимо)
+- 15 skill'ов (реализовано) = ~1,500 токенов (пренебрежимо)
 - 50 skill'ов = ~5,000 токенов (всё ещё мало)
 - Бюджет: 2% контекстного окна (можно переопределить через `SLASH_COMMAND_TOOL_CHAR_BUDGET`)
 
@@ -109,22 +112,30 @@ description: 17 принципов качества Python-кода. Испол�
 ...
 ```
 
-### Расширенная структура (для крупных skill'ов)
+### Реализованные варианты структуры
 
+**Один reference-файл** (полная версия = один файл):
 ```
-quality-cascade/
-├── SKILL.md              # Навигация + краткая версия (200 строк)
-├── reference.md          # Полные принципы с примерами (500 строк)
-└── examples.md           # Примеры ревью (300 строк)
+error-handling/
+├── SKILL.md              # Краткая версия (~40 строк)
+└── reference.md          # Полная версия (~110 строк)
+```
 
-security/
-├── SKILL.md              # OWASP Top 10 — краткий чек-лист
-├── reference/
-│   ├── auth.md           # Аутентификация и авторизация
-│   ├── injection.md      # SQL/Command injection
-│   └── validation.md     # Валидация входных данных
-└── scripts/
-    └── check_secrets.sh  # Скрипт проверки секретов в коде
+**Папка reference/** (несколько тематических файлов):
+```
+architecture/
+├── SKILL.md              # DDD + Hexagonal кратко
+└── reference/
+    ├── ddd.md            # Слои, сущности, Value Objects
+    ├── hexagonal.md      # Порты, адаптеры, DI
+    ├── monolith.md       # Специфика монолитов
+    └── microservices.md  # Специфика микросервисов
+```
+
+**Без reference** (шаблон/генератор целиком в SKILL.md):
+```
+init-project/
+└── SKILL.md              # Интерактивная инициализация с вопросами
 ```
 
 **Источник:** [Best practices — Pattern 2: Domain-organized](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#pattern-1-high-level-guide-with-references)
@@ -176,19 +187,19 @@ description: Помогает с качеством кода
 ### Сценарий: 15 skill'ов (реализовано), сессия 20 сообщений
 
 **Ревью кода (5 запросов) — нужны 3 skill'а с деталями:**
-- Descriptions всех: 1,000 токенов (загружены всегда)
+- Descriptions всех 15: ~1,500 токенов (загружены всегда)
 - SKILL.md × 3: 900-1,500 токенов
 - reference.md × 1-3: 1,500-5,000 токенов (Claude решает сколько нужно)
 - **Итого: 3,400-7,500 токенов на запрос**
 
 **Написание кода (10 запросов) — фоновый контекст, детали не нужны:**
-- Descriptions: 1,000 токенов
+- Descriptions: ~1,500 токенов
 - SKILL.md × 0-2 (автозагрузка): 0-600 токенов
 - reference.md: не читается
 - **Итого: 1,000-1,600 токенов на запрос**
 
 **Простые вопросы (5 запросов) — skills не нужны:**
-- Descriptions: 1,000 токенов
+- Descriptions: ~1,500 токенов
 - Остальное: 0
 - **Итого: 1,000 токенов на запрос**
 
@@ -228,11 +239,11 @@ description: Помогает с качеством кода
 
 ### 6. Быстрый старт
 
-Время на создание: ~2.5 часа (написать 10 skill'ов + reference файлы). Для сравнения: MCP-варианты = 4-6 часов, OpenViking = 5-7 часов.
+Время на создание: ~1 сессия Claude Code (15 skill'ов + 26 reference файлов, включая миграцию из плоской структуры). Для сравнения: MCP-варианты = 4-6 часов, OpenViking = 5-7 часов.
 
 ### 7. Масштабируемость описаний
 
-При 100 skill'ах описания = ~10,000 токенов (~2% контекста). Система работает до 100+ skill'ов без деградации.
+При 15 skill'ах (реализовано) описания = ~1,500 токенов (<1% контекста). При 100 skill'ах = ~10,000 токенов (~2%). Система работает до 100+ skill'ов без деградации.
 
 ---
 
@@ -254,9 +265,9 @@ Claude **сам решает** нужен ли reference.md. Это может �
 
 ### 3. Ручное разделение на L0/L1/L2
 
-Нужно вручную решить что идёт в SKILL.md (краткая версия), а что в reference.md (полная). Для 10 skill'ов из python-ai-skills (~22 файлов) — это ~2 часа ручной работы.
+Нужно вручную решить что идёт в SKILL.md (краткая версия), а что в reference.md (полная). Для 15 skill'ов из python-ai-skills (26 файлов) это было сделано за одну сессию Claude Code.
 
-**Митигация:** Один раз сделать — потом обновлять инкрементально. Можно использовать `/skill-creator` для первых 2-3 skill'ов чтобы увидеть паттерн.
+**Статус:** Выполнено 2026-03-16. Обновлять инкрементально при добавлении новых skill'ов.
 
 ### 4. Нет памяти между сессиями (для skills)
 
@@ -276,13 +287,13 @@ Skill не знает, что проект — монолит или микро�
 
 Для создания/редактирования skill'ов из целевого проекта (где накоплен контекст) нужно разрешить запись в `~/python-ai-skills/` — это исключение из политики LOCAL-ONLY.
 
-**Решение:** В глобальном `~/.claude/CLAUDE.md` добавлено whitelist-исключение:
+**Решение:** В глобальном `~/.claude/CLAUDE.md` добавлено whitelist-исключение (РЕАЛИЗОВАНО 2026-03-16):
 
 ```markdown
 ##### Исключения для записи вне $PWD
 
 Запись вне $PWD разрешена ТОЛЬКО:
-- Путь: `~/python-ai-skills/**`
+- Путь: `~/Henry_Bud_GitHub/python-ai-skills/**`
 - Операции: создание и редактирование .md файлов
 - Запрещено: удаление, переименование, запись не-.md файлов
 - Этот список ФИНАЛЬНЫЙ — новые исключения добавлять только после явного запроса пользователя
@@ -341,21 +352,24 @@ Claude получает **результат**, не команду. Полез�
 
 ## context: fork + reference файлы
 
-При использовании `context: fork` skill запускается в изолированном subagent контексте:
+При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `quality-cascade`:
 
 ```yaml
 ---
-name: deep-quality-review
-description: Глубокий ревью качества кода
+name: quality-cascade
+description: >
+  17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
+  Используй при ревью кода, рефакторинге, написании новых модулей.
 context: fork
 agent: Explore
 ---
 
-Проверь код по принципам quality-cascade.
-Полные принципы: см. [reference.md](reference.md)
+# Quality Cascade — 17 принципов качества
+...
+Полные принципы: см. [reference/quality-cascade.md](reference/quality-cascade.md)
 ```
 
-Subagent **может** читать reference.md через Read — поддерживающие файлы работают нормально в forked контексте.
+Subagent **может** читать reference файлы через Read — поддерживающие файлы работают нормально в forked контексте.
 
 **Источник:** [Skills — Run skills in a subagent](https://code.claude.com/docs/en/skills.md#run-skills-in-a-subagent)
 
@@ -469,20 +483,20 @@ Subagent **может** читать reference.md через Read — подде
 
 ### Деплой symlinks
 
+Symlinks создаются вручную (без скрипта). При добавлении нового skill'а — одна команда:
+
 ```bash
-#!/bin/bash
-# deploy-skills.sh — создаёт symlinks из ~/.claude/skills/ → ~/python-ai-skills/
-SKILLS_SRC="$HOME/python-ai-skills"
-SKILLS_DST="$HOME/.claude/skills"
-
-mkdir -p "$SKILLS_DST"
-
-for skill_dir in "$SKILLS_SRC"/*/; do
-    skill_name=$(basename "$skill_dir")
-    ln -sfn "$skill_dir" "$SKILLS_DST/$skill_name"
-    echo "Linked: $skill_name"
+# Создание всех symlinks (один раз)
+mkdir -p ~/.claude/skills
+for skill_dir in ~/Henry_Bud_GitHub/python-ai-skills/*/; do
+    [ -f "$skill_dir/SKILL.md" ] && ln -sfn "$skill_dir" "$HOME/.claude/skills/$(basename "$skill_dir")"
 done
+
+# Добавление нового skill'а
+ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/new-skill ~/.claude/skills/new-skill
 ```
+
+**Статус:** 15 symlinks создано 2026-03-16.
 
 ---
 
@@ -537,6 +551,48 @@ done
 | Claude никогда не читает reference.md | Значит reference.md избыточен — можно убрать |
 | Нужна память между сессиями (для skills) | Использовать Claude Code memory или рассмотреть OpenViking |
 | Стоимость токенов критична | Вариант A (MCP тиеринг) — даёт явный контроль L0/L1/L2 |
+
+---
+
+## Решения при реализации (2026-03-16)
+
+Документ ниже фиксирует ключевые решения, принятые при реализации. Исходный план выше сохранён для контекста.
+
+### Отличия от исходного плана
+
+| Аспект | План | Реализация | Причина |
+|--------|------|-----------|---------|
+| Количество skill'ов | 8 (упомянуто "10 core") | **15** | Все 26 исходных файлов покрыты через группировку |
+| Исходные файлы | Не определено | Перемещены в reference (git mv) | Вариант D — SSoT, нет дублирования |
+| CLAUDE.md | Не упомянут | Каталог skill'ов + workflow (v3.0) | Вариант B — точка входа + навигация |
+| deploy-skills.sh | Скрипт в репо | Ручные symlinks | KISS — 15 команд один раз |
+| security/reference/ | auth.md, injection.md, validation.md | security.md + secrets-management.md | Файлы из плана не существовали |
+| context: fork | Описан, не применён | quality-cascade | Единственный skill для глубокого ревью |
+| init-project | Пустой placeholder | Интерактивный с вопросами | Стандартизация настройки проектов |
+| process/ файлы | 2 файла (adr, completion-report) | 6 файлов → 3 skill'а + workflow | workflow.md, backlog.md, planning.md, git-conventions.md добавлены |
+
+### Дополнительные skill'ы (не в плане)
+
+| Skill | Источник | Почему добавлен |
+|-------|---------|----------------|
+| database | development/database.md | Самостоятельная тема: Repository, миграции, N+1 |
+| architecture | architecture/*.md (4 файла) | Фундаментальные паттерны: DDD, Hexagonal, монолит/микросервисы |
+| linters | quality/linters.md + ci-cd.md | Самый большой файл (221 строка), CI pipeline |
+| docker | operations/docker.md + production.md | Контейнеризация + production requirements |
+| http-clients | integrations/http-clients.md | HTTP клиент, Circuit Breaker — самостоятельная тема |
+| caching | integrations/caching.md | Redis, TTL — самостоятельная тема |
+| workflow | process/*.md (4 файла) | Пайплайн документации: 6 этапов |
+
+### Структура reference-файлов
+
+Два варианта в зависимости от количества reference-файлов:
+
+- **Один файл** → `reference.md` (error-handling, logging, testing, database, http-clients, caching, create-adr, completion-report)
+- **Несколько файлов** → `reference/` папка (quality-cascade, security, architecture, linters, docker, workflow)
+
+### Что отложено
+
+- Триггерная модель create-adr и completion-report (авто vs ручной вызов) — требует опыта использования
 
 ---
 
