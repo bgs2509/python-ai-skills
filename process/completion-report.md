@@ -18,6 +18,12 @@
 ```markdown
 # Completion Report: {Название фичи}
 
+## Task
+
+- Task ID: {TASK-NNN}
+- План: {PLAN-NNN или "Нет"}
+- ADR: {ADR-NNN или "Нет"}
+
 ## Executive Summary
 
 {1-3 предложения: что сделано и зачем}

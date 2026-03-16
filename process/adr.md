@@ -19,6 +19,10 @@
 ```markdown
 # ADR-{номер}: {Название решения}
 
+## Task
+
+{TASK-NNN или "Автономное решение"}
+
 ## Статус
 
 {Proposed | Accepted | Deprecated | Superseded by ADR-XXX}

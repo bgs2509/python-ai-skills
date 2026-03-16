@@ -34,6 +34,7 @@
 | Рефакторинг | `development/quality-cascade.md` + `development/code-standards.md` + `process/completion-report.md` |
 | Аудит безопасности | `operations/security.md` + `operations/secrets-management.md` + `quality/linters.md` |
 | Управление секретами | `operations/secrets-management.md` + `operations/docker.md` |
+| Любая задача | `process/workflow.md` — пайплайн обязательной документации |
 | Архитектурное решение | `process/adr.md` — создай ADR |
 | Фича завершена | `process/completion-report.md` — напиши отчёт |
 
@@ -117,6 +118,10 @@
 ### process/
 | Файл | Описание |
 |------|----------|
+| `workflow.md` | Пайплайн обязательной документации (6 этапов) |
+| `backlog.md` | Шаблон задачи и управление backlog |
+| `planning.md` | Формат и правила планирования |
+| `git-conventions.md` | Формат коммитов и работа с git |
 | `adr.md` | Шаблон Architecture Decision Record |
 | `completion-report.md` | Шаблон отчёта после завершения фичи |
 
