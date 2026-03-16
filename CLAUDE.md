@@ -18,7 +18,7 @@
 | _database | `/_database` | Repository-паттерн, миграции, транзакции |
 | _architecture | `/_architecture` | DDD, Hexagonal, монолит vs микросервисы |
 | _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
-| _docker | `/_docker` | Dockerfile, Compose, security, production |
+| _docker | `/_docker` | Dockerfile, Compose, health checks, production |
 | _http | `/_http` | httpx, timeout, retry, Circuit Breaker |
 | _caching | `/_caching` | Redis, TTL, инвалидация, graceful degradation |
 | _docworkflow | `/_docworkflow` | Пайплайн документации: backlog → commit |

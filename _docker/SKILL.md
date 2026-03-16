@@ -1,7 +1,7 @@
 ---
 name: _docker
 description: >
-  Контейнеризация Python-приложений (Dockerfile multi-stage, Docker Compose, security hardening,
+  Контейнеризация Python-приложений (Dockerfile multi-stage, Docker Compose,
   health checks, graceful shutdown). Используй при создании Dockerfile, настройке деплоя.
 ---
 
