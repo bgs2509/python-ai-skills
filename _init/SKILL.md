@@ -1,5 +1,5 @@
 ---
-name: _init-project
+name: _init
 description: >
   Инициализация нового Python-проекта для Claude Code. Создаёт CLAUDE.md, CHANGELOG.md,
   структуру docs/. Вызывай при старте нового проекта.
@@ -80,4 +80,4 @@ docs/
 Сообщи пользователю:
 - Какие файлы созданы
 - Какие skill'ы доступны глобально (перечисли основные)
-- Как вызвать skill: `/quality-cascade`, `/create-adr` и т.д.
+- Как вызвать skill: `/_code-quality`, `/_adr` и т.д.

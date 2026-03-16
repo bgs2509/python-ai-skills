@@ -83,7 +83,7 @@
 | Слой | Как логировать | Кто логирует |
 |------|---------------|-------------|
 | Входящие HTTP | Middleware (автоматически) | RequestLoggingMiddleware |
-| Исходящие HTTP | Базовый HTTP-клиент (автоматически) | Единый клиент — см. skill `_http-clients` (_http-clients/reference.md) |
+| Исходящие HTTP | Базовый HTTP-клиент (автоматически) | Единый клиент — см. skill `_http` (_http/reference.md) |
 | Операции с БД | Repository базовый класс (автоматически) | BaseRepository |
 | Бизнес-логика | Явно в Application Services | Разработчик |
 | Ошибки | Централизованный handler (автоматически) | Exception handler — см. skill `_error-handling` (_error-handling/reference.md) |

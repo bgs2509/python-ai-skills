@@ -1,5 +1,5 @@
 ---
-name: _workflow
+name: _docworkflow
 description: >
   Пайплайн обязательной документации: backlog → planning → ADR → changelog →
   completion report → commit. Нумерация TASK/PLAN/ADR. Git conventions.
@@ -42,9 +42,9 @@ TASK-NNN: <type>: <краткий заголовок>
 
 - [ ] Задача в backlog (TASK-NNN)
 - [ ] План в docs/plans/ (если был)
-- [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/create-adr`
+- [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/_adr`
 - [ ] Запись в CHANGELOG.md
-- [ ] Completion Report в docs/reports/ — если не создан автоматически, вызови `/completion-report`
+- [ ] Completion Report в docs/reports/ — если не создан автоматически, вызови `/_report`
 - [ ] Коммит с Task ID
 
 > **Напоминание:** create-adr и completion-report могут сработать автоматически по контексту.

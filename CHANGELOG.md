@@ -6,6 +6,10 @@
 ## [Unreleased]
 
 ### Changed
+- 6 skill'ов переименованы для интуитивности: _workflow→_docworkflow, _quality-cascade→_code-quality, _create-adr→_adr, _completion-report→_report, _init-project→_init, _http-clients→_http
+- Обновлены все cross-references, symlinks, CLAUDE.md (v3.2), архитектурный документ
+
+### Changed
 - Все 15 skill'ов переименованы с префиксом `_` (вызов: `/_quality-cascade` и т.д.)
 - Обновлены cross-references, symlinks, CLAUDE.md (v3.1), архитектурный документ
 - create-adr и completion-report: гибридная триггерная модель (авто + ручной fallback)

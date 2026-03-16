@@ -1,5 +1,5 @@
 ---
-name: _quality-cascade
+name: _code-quality
 description: >
   17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
   Используй при ревью кода, рефакторинге, написании новых модулей.

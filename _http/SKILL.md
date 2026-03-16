@@ -1,5 +1,5 @@
 ---
-name: _http-clients
+name: _http
 description: >
   HTTP-клиенты Python (httpx AsyncClient, timeout, retry, Circuit Breaker,
   централизованное логирование). Используй при интеграции с внешними API.

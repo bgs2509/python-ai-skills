@@ -64,7 +64,7 @@
 | SSoT, DRY (логирование) | skill `_logging` (_logging/reference.md) |
 | SSoT, DRY (обработка ошибок) | skill `_error-handling` (_error-handling/reference.md) |
 | SSoT, DIP (работа с БД) | skill `_database` (_database/reference.md) |
-| CoC (именование) | skill `_quality-cascade` (_quality-cascade/reference/naming.md) |
-| KISS, Explicit (стандарты кода) | skill `_quality-cascade` (_quality-cascade/reference/code-standards.md) |
+| CoC (именование) | skill `_code-quality` (_code-quality/reference/naming.md) |
+| KISS, Explicit (стандарты кода) | skill `_code-quality` (_code-quality/reference/code-standards.md) |
 | Security | skill `_security` (_security/reference/security.md) |
 | Testability | skill `_testing` (_testing/reference.md) |

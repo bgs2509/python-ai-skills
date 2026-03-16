@@ -24,7 +24,7 @@
 
 ## Именование
 
-Формат: `test_{что}_{сценарий}_{результат}` (общие конвенции именования — см. skill `_quality-cascade` (_quality-cascade/reference/naming.md))
+Формат: `test_{что}_{сценарий}_{результат}` (общие конвенции именования — см. skill `_code-quality` (_code-quality/reference/naming.md))
 
 Примеры:
 - `test_create_user_valid_data_returns_user`

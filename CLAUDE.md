@@ -10,7 +10,7 @@
 
 | Skill | Вызов | Описание |
 |-------|-------|----------|
-| _quality-cascade | `/_quality-cascade` | 17 принципов качества (DRY, KISS, YAGNI, SOLID) |
+| _code-quality | `/_code-quality` | 17 принципов качества (DRY, KISS, YAGNI, SOLID) |
 | _error-handling | `/_error-handling` | Иерархия исключений, HTTP-маппинг, retry |
 | _security | `/_security` | OWASP Top 10, валидация, секреты |
 | _logging | `/_logging` | Structured logging, Correlation ID, санитизация |
@@ -19,12 +19,12 @@
 | _architecture | `/_architecture` | DDD, Hexagonal, монолит vs микросервисы |
 | _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
 | _docker | `/_docker` | Dockerfile, Compose, security, production |
-| _http-clients | `/_http-clients` | httpx, timeout, retry, Circuit Breaker |
+| _http | `/_http` | httpx, timeout, retry, Circuit Breaker |
 | _caching | `/_caching` | Redis, TTL, инвалидация, graceful degradation |
-| _workflow | `/_workflow` | Пайплайн документации: backlog → commit |
-| _create-adr | `/_create-adr` | Генератор Architecture Decision Record |
-| _completion-report | `/_completion-report` | Генератор отчёта о завершении фичи |
-| _init-project | `/_init-project` | Инициализация нового проекта |
+| _docworkflow | `/_docworkflow` | Пайплайн документации: backlog → commit |
+| _adr | `/_adr` | Генератор Architecture Decision Record |
+| _report | `/_report` | Генератор отчёта о завершении фичи |
+| _init | `/_init` | Инициализация нового проекта |
 
 ---
 
@@ -32,17 +32,17 @@
 
 | Задача | Skill'ы |
 |--------|---------|
-| Пишешь код | _quality-cascade, _error-handling |
-| Ревью кода | _quality-cascade, _security, _linters |
+| Пишешь код | _code-quality, _error-handling |
+| Ревью кода | _code-quality, _security, _linters |
 | Работа с БД | _database, _error-handling |
-| HTTP интеграции | _http-clients, _caching |
+| HTTP интеграции | _http, _caching |
 | Настройка CI | _linters |
 | Деплой | _docker, _security |
 | Тестирование | _testing |
-| Новый проект | _init-project, _architecture |
-| Архитектурное решение | _architecture, _create-adr |
-| Фича завершена | _completion-report, _workflow |
-| Начало задачи | _workflow |
+| Новый проект | _init, _architecture |
+| Архитектурное решение | _architecture, _adr |
+| Фича завершена | _report, _docworkflow |
+| Начало задачи | _docworkflow |
 
 ---
 
@@ -66,4 +66,4 @@
 
 ---
 
-**Версия**: 3.1
+**Версия**: 3.2

@@ -10,7 +10,7 @@
 
 ```
 ~/python-ai-skills/                    # Git-репо = коллекция skill'ов (15 skill'ов)
-├── _quality-cascade/
+├── _code-quality/
 │   ├── SKILL.md                       # Краткие принципы (~50 строк, context: fork)
 │   └── reference/                     # Несколько reference-файлов
 │       ├── quality-cascade.md
@@ -22,7 +22,7 @@
 └── ...
 
 ~/.claude/skills/                      # Symlinks → python-ai-skills (15 шт.)
-├── _quality-cascade → ~/python-ai-skills/_quality-cascade
+├── _code-quality → ~/python-ai-skills/_code-quality
 ├── _error-handling → ~/python-ai-skills/_error-handling
 └── ...
 ```
@@ -46,7 +46,7 @@ Claude видит **что доступно**, но не загружает со
 
 ### Фаза 2: SKILL.md (при вызове)
 
-Когда skill вызван (вручную `/_quality-cascade` или автоматически по description), Claude читает полный `SKILL.md` с диска.
+Когда skill вызван (вручную `/_code-quality` или автоматически по description), Claude читает полный `SKILL.md` с диска.
 
 - Стоимость: 300-5,000 токенов (зависит от размера)
 - Рекомендация: до 500 строк
@@ -72,9 +72,9 @@ Claude видит **что доступно**, но не загружает со
 ### Минимальный пример
 
 ```yaml
-# ~/python-ai-skills/_quality-cascade/SKILL.md
+# ~/python-ai-skills/_code-quality/SKILL.md
 ---
-name: _quality-cascade
+name: _code-quality
 description: 17 принципов качества Python-кода. Используй при ревью, рефакторинге и написании нового кода.
 ---
 
@@ -294,7 +294,7 @@ Skills не запоминают что работало, а что нет. Ка
 ### 5. Нет автоматического профилирования по типу проекта
 
 Skill не знает, что проект — монолит или микросервис. Нужно либо:
-- Явно вызывать `/_quality-cascade`
+- Явно вызывать `/_code-quality`
 - Либо полагаться на CLAUDE.md проекта (где указан тип архитектуры)
 
 **Митигация:** В CLAUDE.md проекта указывать тип архитектуры. Skill может содержать инструкцию: "Прочитай CLAUDE.md проекта, найди тип архитектуры, применяй соответствующие правила."
@@ -342,7 +342,7 @@ Skill не знает, что проект — монолит или микро�
 | 3 | Project | `.claude/skills/<name>/SKILL.md` |
 | 4 (низший) | Plugin | `<plugin>/skills/<name>/SKILL.md` |
 
-Проектный skill может **переопределить** глобальный с тем же именем. Это позволяет иметь глобальный `_quality-cascade` и проектный `_quality-cascade` с дополнениями.
+Проектный skill может **переопределить** глобальный с тем же именем. Это позволяет иметь глобальный `_code-quality` и проектный `_code-quality` с дополнениями.
 
 **Источник:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
 
@@ -372,11 +372,11 @@ Claude получает **результат**, не команду. Полез�
 
 ## context: fork + reference файлы
 
-При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `_quality-cascade`:
+При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `_code-quality`:
 
 ```yaml
 ---
-name: _quality-cascade
+name: _code-quality
 description: >
   17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
   Используй при ревью кода, рефакторинге, написании новых модулей.
@@ -402,7 +402,7 @@ Subagent **может** читать reference файлы через Read — п
 
 ```
 ~/python-ai-skills/                    # Git-репо (источник истины) — РЕАЛИЗОВАНО 2026-03-16
-├── _quality-cascade/                   # context: fork, agent: Explore
+├── _code-quality/                      # context: fork, agent: Explore
 │   ├── SKILL.md                       # 17 принципов — краткий чек-лист
 │   └── reference/
 │       ├── quality-cascade.md         # Полные принципы с антипаттернами
@@ -451,7 +451,7 @@ Subagent **может** читать reference файлы через Read — п
 │       ├── docker.md                  # Dockerfile, Compose, .dockerignore
 │       └── production.md              # Graceful shutdown, мониторинг
 │
-├── _http-clients/
+├── _http/
 │   ├── SKILL.md                       # httpx, timeout, Circuit Breaker
 │   └── reference.md                   # Retry, логирование, обработка ошибок
 │
@@ -459,7 +459,7 @@ Subagent **может** читать reference файлы через Read — п
 │   ├── SKILL.md                       # Redis, TTL, graceful degradation
 │   └── reference.md                   # Паттерны, инвалидация, именование
 │
-├── _workflow/
+├── _docworkflow/
 │   ├── SKILL.md                       # Пайплайн 6 этапов, чеклист
 │   └── reference/
 │       ├── workflow.md                # Полный пайплайн документации
@@ -467,15 +467,15 @@ Subagent **может** читать reference файлы через Read — п
 │       ├── planning.md                # Формат планов
 │       └── git-conventions.md         # Формат коммитов
 │
-├── _create-adr/                        # Гибридный триггер: авто + ручной
+├── _adr/                               # Гибридный триггер: авто + ручной
 │   ├── SKILL.md                       # Шаблон ADR, правила создания
 │   └── reference.md                   # Полный шаблон и статусы
 │
-├── _completion-report/                 # Гибридный триггер: авто + ручной
+├── _report/                            # Гибридный триггер: авто + ручной
 │   ├── SKILL.md                       # Шаблон отчёта, правила
 │   └── reference.md                   # Полный шаблон с метриками
 │
-├── _init-project/
+├── _init/
 │   └── SKILL.md                       # Интерактивная инициализация (disable-model-invocation)
 │
 ├── docs/
@@ -485,7 +485,7 @@ Subagent **может** читать reference файлы через Read — п
 └── CHANGELOG.md
 
 ~/.claude/skills/                      # Symlinks (деплой) — СОЗДАНО 2026-03-16
-├── _quality-cascade → ~/python-ai-skills/_quality-cascade
+├── _code-quality → ~/python-ai-skills/_code-quality
 ├── _error-handling → ~/python-ai-skills/_error-handling
 ├── _security → ~/python-ai-skills/_security
 ├── _logging → ~/python-ai-skills/_logging
@@ -494,12 +494,12 @@ Subagent **может** читать reference файлы через Read — п
 ├── _architecture → ~/python-ai-skills/_architecture
 ├── _linters → ~/python-ai-skills/_linters
 ├── _docker → ~/python-ai-skills/_docker
-├── _http-clients → ~/python-ai-skills/_http-clients
+├── _http → ~/python-ai-skills/_http
 ├── _caching → ~/python-ai-skills/_caching
-├── _workflow → ~/python-ai-skills/_workflow
-├── _create-adr → ~/python-ai-skills/_create-adr
-├── _completion-report → ~/python-ai-skills/_completion-report
-└── _init-project → ~/python-ai-skills/_init-project
+├── _docworkflow → ~/python-ai-skills/_docworkflow
+├── _adr → ~/python-ai-skills/_adr
+├── _report → ~/python-ai-skills/_report
+└── _init → ~/python-ai-skills/_init
 ```
 
 ### Деплой symlinks

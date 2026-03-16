@@ -38,7 +38,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 - Retry только для idempotent операций и retryable ошибок
 - Circuit Breaker для защиты от каскадных сбоев
 
-> Детали HTTP-клиентов (timeout, retry, circuit breaker) — см. skill `_http-clients` (_http-clients/reference.md).
+> Детали HTTP-клиентов (timeout, retry, circuit breaker) — см. skill `_http` (_http/reference.md).
 
 ### Асинхронная (Events)
 
@@ -68,7 +68,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 
 ### Circuit Breaker
 
-> Детали паттерна (состояния, fallback) — см. skill `_http-clients` (_http-clients/reference.md).
+> Детали паттерна (состояния, fallback) — см. skill `_http` (_http/reference.md).
 
 ### Retry
 

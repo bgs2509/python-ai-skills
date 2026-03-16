@@ -1,5 +1,5 @@
 ---
-name: _create-adr
+name: _adr
 description: >
   Создание Architecture Decision Record (ADR). Шаблон с контекстом, альтернативами,
   решением и последствиями. Вызывай при архитектурном решении.
