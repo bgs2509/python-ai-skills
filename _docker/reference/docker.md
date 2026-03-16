@@ -81,9 +81,6 @@ services:
 | Правило | Как |
 |---------|-----|
 | Non-root user | `RUN adduser --disabled-password appuser` + `USER appuser` |
-| No new privileges | `security_opt: - no-new-privileges:true` |
-| Drop capabilities | `cap_drop: - ALL` |
-| Read-only filesystem | `read_only: true` + tmpfs для /tmp |
 | Без секретов в image | Не COPY .env, не ARG для секретов |
 
 ---

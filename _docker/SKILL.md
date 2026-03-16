@@ -21,9 +21,7 @@ description: >
 
 ## Security
 
-- `security_opt: no-new-privileges:true`
-- `cap_drop: ALL`
-- `read_only: true` + tmpfs для /tmp
+- Non-root user: `adduser --disabled-password appuser` + `USER appuser`
 - Без секретов в image (не COPY .env, не ARG для секретов)
 
 ## Docker Compose
