@@ -89,7 +89,7 @@
 
 Медленные запросы (> порога) — WARNING.
 
-> Подробнее о формате логирования — см. `development/logging.md`.
+> Подробнее о формате логирования — см. skill `logging` (logging/reference.md).
 
 ---
 

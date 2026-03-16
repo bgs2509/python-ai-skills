@@ -68,7 +68,7 @@ services:
 
 ## Pre-commit проверки
 
-Автоматическая блокировка секретов в коммитах — см. `quality/linters.md`:
+Автоматическая блокировка секретов в коммитах — см. skill `linters` (linters/reference/linters.md):
 - gitleaks — сканер секретов
 - detect-secrets — дополнительный сканер
 - Блокировка файлов: .env, .pem, .key, credentials.json

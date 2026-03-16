@@ -9,7 +9,7 @@
 - Endpoint `/health` возвращает HTTP 200 при здоровом состоянии, 503 при проблемах
 - Проверка подключения к БД, Redis, внешним зависимостям
 - Формат ответа: `{"status": "healthy", "checks": {"database": "ok", "redis": "ok"}}`
-- Используется оркестратором для перезапуска (см. `operations/docker.md`)
+- Используется оркестратором для перезапуска (см. skill `docker` (docker/reference/docker.md))
 
 ---
 
@@ -19,14 +19,14 @@
 - Завершение текущих HTTP-запросов перед остановкой
 - Закрытие соединений с БД и кэшем
 - Таймаут на завершение (30 секунд)
-- Логирование начала и завершения shutdown (см. `development/logging.md`)
+- Логирование начала и завершения shutdown (см. skill `logging` (logging/reference.md))
 
 ---
 
 ## Configuration Management (SSoT)
 
 - Все настройки — через Pydantic Settings (единая точка конфигурации)
-- Все секреты — через environment variables (см. `operations/secrets-management.md`)
+- Все секреты — через environment variables (см. skill `security` (security/reference/secrets-management.md))
 - Валидация конфигурации при старте (Fail Fast): обязательные поля без default
 - Значения по умолчанию только для опциональных параметров
 - Разделение dev/staging/prod через `ENVIRONMENT` переменную
@@ -35,7 +35,7 @@
 
 ## Error Handling
 
-- Централизованная обработка исключений (см. `development/error-handling.md` — DRY)
+- Централизованная обработка исключений (см. skill `error-handling` (error-handling/reference.md) — DRY)
 - Стандартизированный формат ошибок: `{error: {code, message, request_id}}`
 - Stack trace только в dev (settings.DEBUG)
 - Все необработанные исключения логируются
@@ -60,7 +60,7 @@
 - feature_flags
 - зависимости (versions)
 
-> Формат логирования — см. `development/logging.md`.
+> Формат логирования — см. skill `logging` (logging/reference.md).
 
 ---
 

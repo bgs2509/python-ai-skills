@@ -60,11 +60,11 @@
 
 | Принцип | Файл |
 |---------|------|
-| DIP, SoC, SRP (архитектура слоёв) | `architecture/ddd.md`, `architecture/hexagonal.md` |
-| SSoT, DRY (логирование) | `development/logging.md` |
-| SSoT, DRY (обработка ошибок) | `development/error-handling.md` |
-| SSoT, DIP (работа с БД) | `development/database.md` |
-| CoC (именование) | `development/naming.md` |
-| KISS, Explicit (стандарты кода) | `development/code-standards.md` |
-| Security | `operations/security.md` |
-| Testability | `quality/testing.md` |
+| DIP, SoC, SRP (архитектура слоёв) | skill `architecture` (architecture/reference/ddd.md, architecture/reference/hexagonal.md) |
+| SSoT, DRY (логирование) | skill `logging` (logging/reference.md) |
+| SSoT, DRY (обработка ошибок) | skill `error-handling` (error-handling/reference.md) |
+| SSoT, DIP (работа с БД) | skill `database` (database/reference.md) |
+| CoC (именование) | skill `quality-cascade` (quality-cascade/reference/naming.md) |
+| KISS, Explicit (стандарты кода) | skill `quality-cascade` (quality-cascade/reference/code-standards.md) |
+| Security | skill `security` (security/reference/security.md) |
+| Testability | skill `testing` (testing/reference.md) |

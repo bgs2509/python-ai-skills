@@ -1,6 +1,6 @@
 # Специфика микросервисной архитектуры
 
-> Каждый сервис — изолированный Bounded Context. Коммуникация только через сеть. Внутри каждого сервиса — та же структура (см. `architecture/ddd.md`, `architecture/hexagonal.md`).
+> Каждый сервис — изолированный Bounded Context. Коммуникация только через сеть. Внутри каждого сервиса — та же структура (см. skill `architecture` (architecture/reference/ddd.md, architecture/reference/hexagonal.md)).
 
 ---
 
@@ -38,7 +38,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 - Retry только для idempotent операций и retryable ошибок
 - Circuit Breaker для защиты от каскадных сбоев
 
-> Детали HTTP-клиентов (timeout, retry, circuit breaker) — см. `integrations/http-clients.md`.
+> Детали HTTP-клиентов (timeout, retry, circuit breaker) — см. skill `http-clients` (http-clients/reference.md).
 
 ### Асинхронная (Events)
 
@@ -53,7 +53,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 
 - Каждый запрос получает уникальный `request_id` на входе (API Gateway)
 - `correlation_id` передаётся между сервисами через HTTP-заголовок `X-Correlation-ID`
-- Все логи содержат `correlation_id` — восстановление цепочки вызовов (DRY — см. `development/logging.md`)
+- Все логи содержат `correlation_id` — восстановление цепочки вызовов (DRY — см. skill `logging` (logging/reference.md))
 - Единый формат логирования во всех сервисах (SSoT)
 
 ---
@@ -68,11 +68,11 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 
 ### Circuit Breaker
 
-> Детали паттерна (состояния, fallback) — см. `integrations/http-clients.md`.
+> Детали паттерна (состояния, fallback) — см. skill `http-clients` (http-clients/reference.md).
 
 ### Retry
 
-> Retry-стратегии (retryable/non-retryable, backoff, jitter) — см. `development/error-handling.md`.
+> Retry-стратегии (retryable/non-retryable, backoff, jitter) — см. skill `error-handling` (error-handling/reference.md).
 
 ---
 
@@ -87,7 +87,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 
 ## Структура сервиса
 
-Каждый сервис внутри — DDD/Hexagonal (см. `architecture/ddd.md`, `architecture/hexagonal.md`):
+Каждый сервис внутри — DDD/Hexagonal (см. skill `architecture` (architecture/reference/ddd.md, architecture/reference/hexagonal.md)):
 
 ```
 service-name/

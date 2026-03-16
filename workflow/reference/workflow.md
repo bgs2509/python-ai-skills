@@ -45,7 +45,7 @@
 
 **Обязательный этап.**
 
-- Задача фиксируется в `docs/backlog/` по шаблону из `process/backlog.md`
+- Задача фиксируется в `docs/backlog/` по шаблону из skill `workflow` (workflow/reference/backlog.md)
 - Присваивается номер TASK-NNN (следующий по порядку)
 - Без записи в backlog задача не начинается
 
@@ -53,7 +53,7 @@
 
 **Когда нужен:** Claude создал файл плана = этап планирования состоялся.
 
-- Формат плана: см. `process/planning.md`
+- Формат плана: см. skill `workflow` (workflow/reference/planning.md)
 - Файл плана сохраняется в `docs/plans/` целевого проекта
 - Именование: `PLAN-NNN-{краткое-название}.md`
 - План ссылается на задачу: `Task: TASK-NNN`
@@ -64,7 +64,7 @@
 
 ### 3. ADR (опциональный)
 
-**Когда нужен:** см. критерии в `process/adr.md`.
+**Когда нужен:** см. критерии в skill `create-adr` (create-adr/reference.md).
 
 - ADR ссылается на задачу: `Task: TASK-NNN`
 - Хранение: `docs/adr/`
@@ -85,7 +85,7 @@
 
 **Обязательный этап.**
 
-- Формат: см. `process/completion-report.md`
+- Формат: см. skill `completion-report` (completion-report/reference.md)
 - Содержит ссылки на: задачу, план (если был), ADR (если были)
 - Хранение: `docs/reports/{дата}-{фича}.md`
 
@@ -93,7 +93,7 @@
 
 **Обязательный этап.**
 
-- Формат: см. `process/git-conventions.md`
+- Формат: см. skill `workflow` (workflow/reference/git-conventions.md)
 - Коммит содержит Task ID
 - Язык: английский
 

@@ -1,6 +1,6 @@
 # Специфика монолитной архитектуры
 
-> Все компоненты работают в одном процессе. Внутренняя структура организована по DDD/Hexagonal (см. `architecture/ddd.md`, `architecture/hexagonal.md`) — те же слои, та же изоляция.
+> Все компоненты работают в одном процессе. Внутренняя структура организована по DDD/Hexagonal (см. skill `architecture` (architecture/reference/ddd.md, architecture/reference/hexagonal.md)) — те же слои, та же изоляция.
 
 ---
 

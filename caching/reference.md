@@ -94,7 +94,7 @@
 | ttl | Время жизни (для set) |
 | duration_ms | Время операции |
 
-> Формат логирования — см. `development/logging.md`.
+> Формат логирования — см. skill `logging` (logging/reference.md).
 
 ---
 

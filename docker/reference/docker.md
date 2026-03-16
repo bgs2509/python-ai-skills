@@ -44,7 +44,7 @@ FROM python:3.11-slim
 - Сервисы, сети, volumes
 - Healthcheck для каждого сервиса
 - Depends_on с condition: service_healthy
-- Секреты через environment — см. `operations/secrets-management.md`
+- Секреты через environment — см. skill `security` (security/reference/secrets-management.md)
 
 ```yaml
 services:

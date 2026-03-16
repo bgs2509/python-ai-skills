@@ -8,7 +8,7 @@
 
 - Type hints ОБЯЗАТЕЛЬНЫ для всех параметров, возвращаемых значений, атрибутов классов (Explicit > Implicit)
 - Современный синтаксис: `list[User]`, `dict[str, Any]`, `str | None` (не `Optional[str]`)
-- Конфигурация mypy — см. `quality/linters.md`
+- Конфигурация mypy — см. skill `linters` (linters/reference/linters.md)
 
 ---
 
@@ -25,7 +25,7 @@
 - Только absolute imports (никаких relative)
 - Группировка: стандартная библиотека → сторонние → локальные
 - Внутри группы — алфавитный порядок
-- Автоматическая сортировка — ruff (isort) — см. `quality/linters.md`
+- Автоматическая сортировка — ruff (isort) — см. skill `linters` (linters/reference/linters.md)
 
 ---
 

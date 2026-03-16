@@ -18,13 +18,13 @@
 
 - Минимум: ≥90%
 - Команда: `pytest --cov=src --cov-fail-under=90`
-- CI pipeline: coverage gate — pipeline fails если < 90% (см. `quality/ci-cd.md`)
+- CI pipeline: coverage gate — pipeline fails если < 90% (см. skill `linters` (linters/reference/ci-cd.md))
 
 ---
 
 ## Именование
 
-Формат: `test_{что}_{сценарий}_{результат}` (общие конвенции именования — см. `development/naming.md`)
+Формат: `test_{что}_{сценарий}_{результат}` (общие конвенции именования — см. skill `quality-cascade` (quality-cascade/reference/naming.md))
 
 Примеры:
 - `test_create_user_valid_data_returns_user`
@@ -86,7 +86,7 @@
 - Repositories (CRUD, специфичные запросы)
 - API endpoints (status codes, response format)
 - Валидация схем (Pydantic)
-- Обработка ошибок (все ветки exception handler — см. `development/error-handling.md`)
+- Обработка ошибок (все ветки exception handler — см. skill `error-handling` (error-handling/reference.md))
 
 ---
 

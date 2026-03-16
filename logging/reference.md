@@ -83,10 +83,10 @@
 | Слой | Как логировать | Кто логирует |
 |------|---------------|-------------|
 | Входящие HTTP | Middleware (автоматически) | RequestLoggingMiddleware |
-| Исходящие HTTP | Базовый HTTP-клиент (автоматически) | Единый клиент — см. `integrations/http-clients.md` |
+| Исходящие HTTP | Базовый HTTP-клиент (автоматически) | Единый клиент — см. skill `http-clients` (http-clients/reference.md) |
 | Операции с БД | Repository базовый класс (автоматически) | BaseRepository |
 | Бизнес-логика | Явно в Application Services | Разработчик |
-| Ошибки | Централизованный handler (автоматически) | Exception handler — см. `development/error-handling.md` |
+| Ошибки | Централизованный handler (автоматически) | Exception handler — см. skill `error-handling` (error-handling/reference.md) |
 
 **Запрет (DRY)**: не дублировать логирование, которое уже выполняется автоматически (middleware, базовый клиент, handler).
 

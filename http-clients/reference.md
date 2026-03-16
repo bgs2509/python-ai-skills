@@ -8,7 +8,7 @@
 
 - Один базовый класс для всех HTTP-клиентов
 - Встроенное логирование каждого вызова (DRY — не дублировать в каждом клиенте)
-- Встроенная обработка ошибок (DRY — см. `development/error-handling.md`)
+- Встроенная обработка ошибок (DRY — см. skill `error-handling` (error-handling/reference.md))
 - Конкретные клиенты наследуются от базового
 
 ---
@@ -40,7 +40,7 @@
 
 Базовый HTTP-клиент автоматически применяет retry-стратегии.
 
-> Таблица retryable/non-retryable ошибок, параметры backoff — см. `development/error-handling.md` секция "Retry-стратегии".
+> Таблица retryable/non-retryable ошибок, параметры backoff — см. skill `error-handling` (error-handling/reference.md) секция "Retry-стратегии".
 
 ---
 
@@ -59,7 +59,7 @@
 | error_type | Тип ошибки (если есть) |
 | is_retryable | Можно ли повторить |
 
-> Формат логирования — см. `development/logging.md`.
+> Формат логирования — см. skill `logging` (logging/reference.md).
 
 ---
 
@@ -68,7 +68,7 @@
 - HTTP-ошибки маппятся на `ExternalServiceError` (из иерархии `AppException`)
 - Обработка — в базовом клиенте, не в каждом вызове
 
-> Иерархия исключений — см. `development/error-handling.md`.
+> Иерархия исключений — см. skill `error-handling` (error-handling/reference.md).
 
 ---
 
@@ -82,5 +82,5 @@
 | **Open** | Порог ошибок превышен, запросы не отправляются (fallback) |
 | **Half-Open** | Пробный запрос для проверки восстановления |
 
-- Логирование переходов состояний (см. `development/logging.md` — state transitions)
+- Логирование переходов состояний (см. skill `logging` (logging/reference.md) — state transitions)
 - Fallback: кэшированные данные, default значение, или ошибка с понятным сообщением

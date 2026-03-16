@@ -1,6 +1,6 @@
 # CI/CD
 
-> Автоматический pipeline проверок. Быстрые проверки первыми. Детали инструментов — см. `quality/linters.md` (DRY).
+> Автоматический pipeline проверок. Быстрые проверки первыми. Детали инструментов — см. skill `linters` (linters/reference/linters.md) (DRY).
 
 ---
 
@@ -34,7 +34,7 @@ lint (ruff check) → format (ruff format --check) → typecheck (mypy) → test
 
 ## Docker build в CI
 
-- Multi-stage build (см. `operations/docker.md`)
+- Multi-stage build (см. skill `docker` (docker/reference/docker.md))
 - Кэширование слоёв — зависимости отдельно от кода
 - Build + healthcheck как финальный шаг pipeline
 
@@ -53,6 +53,6 @@ docker run --rm app:ci python -c "import src; print('OK')"
 make ci
 ```
 
-> Команда `make ci` и конфигурация инструментов — см. `quality/linters.md`.
+> Команда `make ci` и конфигурация инструментов — см. skill `linters` (linters/reference/linters.md).
 
-> Детали тестирования (уровни, фикстуры, покрытие) — см. `quality/testing.md`.
+> Детали тестирования (уровни, фикстуры, покрытие) — см. skill `testing` (testing/reference.md).
