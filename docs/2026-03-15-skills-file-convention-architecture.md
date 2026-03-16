@@ -10,20 +10,20 @@
 
 ```
 ~/python-ai-skills/                    # Git-репо = коллекция skill'ов (15 skill'ов)
-├── quality-cascade/
+├── _quality-cascade/
 │   ├── SKILL.md                       # Краткие принципы (~50 строк, context: fork)
 │   └── reference/                     # Несколько reference-файлов
 │       ├── quality-cascade.md
 │       ├── code-standards.md
 │       └── naming.md
-├── error-handling/
+├── _error-handling/
 │   ├── SKILL.md
 │   └── reference.md                   # Один reference-файл
 └── ...
 
 ~/.claude/skills/                      # Symlinks → python-ai-skills (15 шт.)
-├── quality-cascade → ~/python-ai-skills/quality-cascade
-├── error-handling → ~/python-ai-skills/error-handling
+├── _quality-cascade → ~/python-ai-skills/_quality-cascade
+├── _error-handling → ~/python-ai-skills/_error-handling
 └── ...
 ```
 
@@ -46,7 +46,7 @@ Claude видит **что доступно**, но не загружает со
 
 ### Фаза 2: SKILL.md (при вызове)
 
-Когда skill вызван (вручную `/quality-review` или автоматически по description), Claude читает полный `SKILL.md` с диска.
+Когда skill вызван (вручную `/_quality-cascade` или автоматически по description), Claude читает полный `SKILL.md` с диска.
 
 - Стоимость: 300-5,000 токенов (зависит от размера)
 - Рекомендация: до 500 строк
@@ -72,9 +72,9 @@ Claude видит **что доступно**, но не загружает со
 ### Минимальный пример
 
 ```yaml
-# ~/python-ai-skills/quality-cascade/SKILL.md
+# ~/python-ai-skills/_quality-cascade/SKILL.md
 ---
-name: quality-cascade
+name: _quality-cascade
 description: 17 принципов качества Python-кода. Используй при ревью, рефакторинге и написании нового кода.
 ---
 
@@ -116,7 +116,7 @@ description: 17 принципов качества Python-кода. Испол�
 
 **Один reference-файл** (полная версия = один файл):
 ```
-error-handling/
+_error-handling/
 ├── SKILL.md              # Краткая версия (~40 строк)
 └── reference.md          # Полная версия (~110 строк)
 ```
@@ -294,7 +294,7 @@ Skills не запоминают что работало, а что нет. Ка
 ### 5. Нет автоматического профилирования по типу проекта
 
 Skill не знает, что проект — монолит или микросервис. Нужно либо:
-- Явно вызывать `/quality-review-monolith`
+- Явно вызывать `/_quality-cascade`
 - Либо полагаться на CLAUDE.md проекта (где указан тип архитектуры)
 
 **Митигация:** В CLAUDE.md проекта указывать тип архитектуры. Skill может содержать инструкцию: "Прочитай CLAUDE.md проекта, найди тип архитектуры, применяй соответствующие правила."
@@ -342,7 +342,7 @@ Skill не знает, что проект — монолит или микро�
 | 3 | Project | `.claude/skills/<name>/SKILL.md` |
 | 4 (низший) | Plugin | `<plugin>/skills/<name>/SKILL.md` |
 
-Проектный skill может **переопределить** глобальный с тем же именем. Это позволяет иметь глобальный `quality-cascade` и проектный `quality-cascade` с дополнениями.
+Проектный skill может **переопределить** глобальный с тем же именем. Это позволяет иметь глобальный `_quality-cascade` и проектный `_quality-cascade` с дополнениями.
 
 **Источник:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
 
@@ -372,11 +372,11 @@ Claude получает **результат**, не команду. Полез�
 
 ## context: fork + reference файлы
 
-При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `quality-cascade`:
+При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `_quality-cascade`:
 
 ```yaml
 ---
-name: quality-cascade
+name: _quality-cascade
 description: >
   17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
   Используй при ревью кода, рефакторинге, написании новых модулей.
@@ -402,36 +402,36 @@ Subagent **может** читать reference файлы через Read — п
 
 ```
 ~/python-ai-skills/                    # Git-репо (источник истины) — РЕАЛИЗОВАНО 2026-03-16
-├── quality-cascade/                   # context: fork, agent: Explore
+├── _quality-cascade/                   # context: fork, agent: Explore
 │   ├── SKILL.md                       # 17 принципов — краткий чек-лист
 │   └── reference/
 │       ├── quality-cascade.md         # Полные принципы с антипаттернами
 │       ├── code-standards.md          # Типизация, docstrings, метрики
 │       └── naming.md                  # Конвенции именования
 │
-├── error-handling/
+├── _error-handling/
 │   ├── SKILL.md                       # Иерархия исключений, retry
 │   └── reference.md                   # Полный маппинг HTTP ↔ исключения
 │
-├── security/
+├── _security/
 │   ├── SKILL.md                       # OWASP Top 10 + обязательные правила
 │   └── reference/
 │       ├── security.md                # Полные правила безопасности
 │       └── secrets-management.md      # Pydantic Settings, .env.example, ротация
 │
-├── logging/
+├── _logging/
 │   ├── SKILL.md                       # Log-Driven Design, ключевые принципы
 │   └── reference.md                   # AI-Readable Logging, structlog конфиг
 │
-├── testing/
+├── _testing/
 │   ├── SKILL.md                       # 3 уровня тестов, покрытие ≥90%
 │   └── reference.md                   # AAA-паттерн, фикстуры, моки
 │
-├── database/
+├── _database/
 │   ├── SKILL.md                       # Repository-паттерн, ключевые правила
 │   └── reference.md                   # Alembic, транзакции, N+1, connection pooling
 │
-├── architecture/
+├── _architecture/
 │   ├── SKILL.md                       # DDD + Hexagonal, выбор монолит/микросервисы
 │   └── reference/
 │       ├── ddd.md                     # Слои, сущности, Value Objects
@@ -439,27 +439,27 @@ Subagent **может** читать reference файлы через Read — п
 │       ├── monolith.md                # Модульные границы, shared database
 │       └── microservices.md           # Изоляция, коммуникация, трейсинг
 │
-├── linters/
+├── _linters/
 │   ├── SKILL.md                       # Ruff, Mypy, Bandit, pre-commit
 │   └── reference/
 │       ├── linters.md                 # Полная конфигурация инструментов
 │       └── ci-cd.md                   # CI pipeline, coverage gate
 │
-├── docker/
+├── _docker/
 │   ├── SKILL.md                       # Multi-stage, security, health checks
 │   └── reference/
 │       ├── docker.md                  # Dockerfile, Compose, .dockerignore
 │       └── production.md              # Graceful shutdown, мониторинг
 │
-├── http-clients/
+├── _http-clients/
 │   ├── SKILL.md                       # httpx, timeout, Circuit Breaker
 │   └── reference.md                   # Retry, логирование, обработка ошибок
 │
-├── caching/
+├── _caching/
 │   ├── SKILL.md                       # Redis, TTL, graceful degradation
 │   └── reference.md                   # Паттерны, инвалидация, именование
 │
-├── workflow/
+├── _workflow/
 │   ├── SKILL.md                       # Пайплайн 6 этапов, чеклист
 │   └── reference/
 │       ├── workflow.md                # Полный пайплайн документации
@@ -467,39 +467,39 @@ Subagent **может** читать reference файлы через Read — п
 │       ├── planning.md                # Формат планов
 │       └── git-conventions.md         # Формат коммитов
 │
-├── create-adr/                        # Гибридный триггер: авто + ручной
+├── _create-adr/                        # Гибридный триггер: авто + ручной
 │   ├── SKILL.md                       # Шаблон ADR, правила создания
 │   └── reference.md                   # Полный шаблон и статусы
 │
-├── completion-report/                 # Гибридный триггер: авто + ручной
+├── _completion-report/                 # Гибридный триггер: авто + ручной
 │   ├── SKILL.md                       # Шаблон отчёта, правила
 │   └── reference.md                   # Полный шаблон с метриками
 │
-├── init-project/
+├── _init-project/
 │   └── SKILL.md                       # Интерактивная инициализация (disable-model-invocation)
 │
 ├── docs/
 │   └── 2026-03-15-skills-file-convention-architecture.md
 │
-├── CLAUDE.md                          # Каталог skill'ов + workflow (v3.0)
+├── CLAUDE.md                          # Каталог skill'ов + workflow (v3.1)
 └── CHANGELOG.md
 
 ~/.claude/skills/                      # Symlinks (деплой) — СОЗДАНО 2026-03-16
-├── quality-cascade → ~/python-ai-skills/quality-cascade
-├── error-handling → ~/python-ai-skills/error-handling
-├── security → ~/python-ai-skills/security
-├── logging → ~/python-ai-skills/logging
-├── testing → ~/python-ai-skills/testing
-├── database → ~/python-ai-skills/database
-├── architecture → ~/python-ai-skills/architecture
-├── linters → ~/python-ai-skills/linters
-├── docker → ~/python-ai-skills/docker
-├── http-clients → ~/python-ai-skills/http-clients
-├── caching → ~/python-ai-skills/caching
-├── workflow → ~/python-ai-skills/workflow
-├── create-adr → ~/python-ai-skills/create-adr
-├── completion-report → ~/python-ai-skills/completion-report
-└── init-project → ~/python-ai-skills/init-project
+├── _quality-cascade → ~/python-ai-skills/_quality-cascade
+├── _error-handling → ~/python-ai-skills/_error-handling
+├── _security → ~/python-ai-skills/_security
+├── _logging → ~/python-ai-skills/_logging
+├── _testing → ~/python-ai-skills/_testing
+├── _database → ~/python-ai-skills/_database
+├── _architecture → ~/python-ai-skills/_architecture
+├── _linters → ~/python-ai-skills/_linters
+├── _docker → ~/python-ai-skills/_docker
+├── _http-clients → ~/python-ai-skills/_http-clients
+├── _caching → ~/python-ai-skills/_caching
+├── _workflow → ~/python-ai-skills/_workflow
+├── _create-adr → ~/python-ai-skills/_create-adr
+├── _completion-report → ~/python-ai-skills/_completion-report
+└── _init-project → ~/python-ai-skills/_init-project
 ```
 
 ### Деплой symlinks
@@ -509,12 +509,12 @@ Symlinks создаются вручную (без скрипта). При до�
 ```bash
 # Создание всех symlinks (один раз)
 mkdir -p ~/.claude/skills
-for skill_dir in ~/Henry_Bud_GitHub/python-ai-skills/*/; do
+for skill_dir in ~/Henry_Bud_GitHub/python-ai-skills/_*/; do
     [ -f "$skill_dir/SKILL.md" ] && ln -sfn "$skill_dir" "$HOME/.claude/skills/$(basename "$skill_dir")"
 done
 
-# Добавление нового skill'а
-ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/new-skill ~/.claude/skills/new-skill
+# Добавление нового skill'а (с префиксом _)
+ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/_new-skill ~/.claude/skills/_new-skill
 ```
 
 **Статус:** 15 symlinks создано 2026-03-16.
@@ -541,7 +541,7 @@ ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/new-skill ~/.claude/skills/new-skill
 Проект claude_bot                     ~/python-ai-skills/
 ┌─────────────────────┐                ┌─────────────────────┐
 │ Работаешь над кодом │                │                     │
-│ Выявляешь паттерн   │ ── запись ──→  │ error-handling/     │
+│ Выявляешь паттерн   │ ── запись ──→  │ _error-handling/     │
 │ Контекст на месте   │                │   SKILL.md (новый)  │
 │                     │                │   reference.md      │
 └─────────────────────┘                └─────────────────────┘
@@ -585,13 +585,14 @@ ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/new-skill ~/.claude/skills/new-skill
 |--------|------|-----------|---------|
 | Количество skill'ов | 8 (упомянуто "10 core") | **15** | Все 26 исходных файлов покрыты через группировку |
 | Исходные файлы | Не определено | Перемещены в reference (git mv) | Вариант D — SSoT, нет дублирования |
-| CLAUDE.md | Не упомянут | Каталог skill'ов + workflow (v3.0) | Вариант B — точка входа + навигация |
+| CLAUDE.md | Не упомянут | Каталог skill'ов + workflow (v3.1) | Вариант B — точка входа + навигация |
 | deploy-skills.sh | Скрипт в репо | Ручные symlinks | KISS — 15 команд один раз |
 | security/reference/ | auth.md, injection.md, validation.md | security.md + secrets-management.md | Файлы из плана не существовали |
 | context: fork | Описан, не применён | quality-cascade | Единственный skill для глубокого ревью |
 | init-project | Пустой placeholder | Интерактивный с вопросами | Стандартизация настройки проектов |
 | process/ файлы | 2 файла (adr, completion-report) | 6 файлов → 3 skill'а + workflow | workflow.md, backlog.md, planning.md, git-conventions.md добавлены |
 | Триггерная модель | Отложено | Гибрид: авто (TRIGGER в description) + ручной fallback (workflow) | Баланс: не забудешь, но и без ложных срабатываний |
+| Именование | Без префикса | Префикс `_` для всех skill'ов | Визуальное отличие кастомных skill'ов от встроенных |
 
 ### Дополнительные skill'ы (не в плане)
 

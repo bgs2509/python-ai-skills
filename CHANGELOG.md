@@ -6,6 +6,8 @@
 ## [Unreleased]
 
 ### Changed
+- Все 15 skill'ов переименованы с префиксом `_` (вызов: `/_quality-cascade` и т.д.)
+- Обновлены cross-references, symlinks, CLAUDE.md (v3.1), архитектурный документ
 - create-adr и completion-report: гибридная триггерная модель (авто + ручной fallback)
 - workflow: чеклист напоминает вызвать create-adr/completion-report если не сработали автоматически
 - Миграция на Claude Code Skills: 15 skill'ов с SKILL.md + reference.md структурой

@@ -2,6 +2,7 @@
 
 > Коллекция skill'ов для качественной разработки Python 3.11+ приложений.
 > Каждый skill — папка с `SKILL.md` (краткая версия) + `reference.md` (полная версия).
+> Префикс `_` отличает кастомные skill'ы от встроенных.
 
 ---
 
@@ -9,21 +10,21 @@
 
 | Skill | Вызов | Описание |
 |-------|-------|----------|
-| quality-cascade | `/quality-cascade` | 17 принципов качества (DRY, KISS, YAGNI, SOLID) |
-| error-handling | `/error-handling` | Иерархия исключений, HTTP-маппинг, retry |
-| security | `/security` | OWASP Top 10, валидация, секреты |
-| logging | `/logging` | Structured logging, Correlation ID, санитизация |
-| testing | `/testing` | 3 уровня тестов, покрытие ≥90%, pytest |
-| database | `/database` | Repository-паттерн, миграции, транзакции |
-| architecture | `/architecture` | DDD, Hexagonal, монолит vs микросервисы |
-| linters | `/linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
-| docker | `/docker` | Dockerfile, Compose, security, production |
-| http-clients | `/http-clients` | httpx, timeout, retry, Circuit Breaker |
-| caching | `/caching` | Redis, TTL, инвалидация, graceful degradation |
-| workflow | `/workflow` | Пайплайн документации: backlog → commit |
-| create-adr | `/create-adr` | Генератор Architecture Decision Record |
-| completion-report | `/completion-report` | Генератор отчёта о завершении фичи |
-| init-project | `/init-project` | Инициализация нового проекта |
+| _quality-cascade | `/_quality-cascade` | 17 принципов качества (DRY, KISS, YAGNI, SOLID) |
+| _error-handling | `/_error-handling` | Иерархия исключений, HTTP-маппинг, retry |
+| _security | `/_security` | OWASP Top 10, валидация, секреты |
+| _logging | `/_logging` | Structured logging, Correlation ID, санитизация |
+| _testing | `/_testing` | 3 уровня тестов, покрытие ≥90%, pytest |
+| _database | `/_database` | Repository-паттерн, миграции, транзакции |
+| _architecture | `/_architecture` | DDD, Hexagonal, монолит vs микросервисы |
+| _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
+| _docker | `/_docker` | Dockerfile, Compose, security, production |
+| _http-clients | `/_http-clients` | httpx, timeout, retry, Circuit Breaker |
+| _caching | `/_caching` | Redis, TTL, инвалидация, graceful degradation |
+| _workflow | `/_workflow` | Пайплайн документации: backlog → commit |
+| _create-adr | `/_create-adr` | Генератор Architecture Decision Record |
+| _completion-report | `/_completion-report` | Генератор отчёта о завершении фичи |
+| _init-project | `/_init-project` | Инициализация нового проекта |
 
 ---
 
@@ -31,17 +32,17 @@
 
 | Задача | Skill'ы |
 |--------|---------|
-| Пишешь код | quality-cascade, error-handling |
-| Ревью кода | quality-cascade, security, linters |
-| Работа с БД | database, error-handling |
-| HTTP интеграции | http-clients, caching |
-| Настройка CI | linters |
-| Деплой | docker, security |
-| Тестирование | testing |
-| Новый проект | init-project, architecture |
-| Архитектурное решение | architecture, create-adr |
-| Фича завершена | completion-report, workflow |
-| Начало задачи | workflow |
+| Пишешь код | _quality-cascade, _error-handling |
+| Ревью кода | _quality-cascade, _security, _linters |
+| Работа с БД | _database, _error-handling |
+| HTTP интеграции | _http-clients, _caching |
+| Настройка CI | _linters |
+| Деплой | _docker, _security |
+| Тестирование | _testing |
+| Новый проект | _init-project, _architecture |
+| Архитектурное решение | _architecture, _create-adr |
+| Фича завершена | _completion-report, _workflow |
+| Начало задачи | _workflow |
 
 ---
 
@@ -65,4 +66,4 @@
 
 ---
 
-**Версия**: 3.0
+**Версия**: 3.1
