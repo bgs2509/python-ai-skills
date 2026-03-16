@@ -85,17 +85,22 @@ Task description: `$ARGUMENTS`
 1. Launch **py-quality** agent in read-only plan review mode:
    - Prompt: "Review this feature plan for quality concerns. Check: Does the proposed architecture violate DRY, SRP, SOLID? Are abstractions and layers correct? Is error handling planned? Do names follow conventions? Any scalability issues? Plan file: docs/plans/PLAN-NNN-{name}.md"
 2. Present py-quality's findings to the user
-3. **Wait for user approval** before proceeding to Phase 4
-   - Ask: "Plan created and reviewed by py-quality. Proceed with implementation? (any changes needed?)"
+3. **⛔ BLOCKER: получить ЯВНОЕ одобрение плана от пользователя.**
+   - Ask: "План создан и проверен py-quality. Одобряете план? (или какие изменения нужны?)"
+   - Без явного "да/одобряю/proceed" от пользователя — Phase 4 ЗАПРЕЩЕНА.
+   - Молчание, отсутствие ответа или неясный ответ ≠ одобрение.
 
 ### Gate 3.5 → 4 (проверь перед переходом к Phase 4):
 - [ ] py-quality агент был запущен (не подменён оценкой Lead)
 - [ ] Результаты py-quality показаны пользователю
-- [ ] Пользователь явно подтвердил переход
+- [ ] Пользователь ЯВНО одобрил план (слова: "да", "ок", "одобряю", "proceed", "go"). Любой другой ответ = вернуться к Phase 3.
 
 ---
 
 ## Phase 4: IMPLEMENTATION
+
+> **PREREQUISITE**: Phase 4 начинается ТОЛЬКО после явного одобрения плана пользователем в Phase 3.5.
+> Если одобрение не получено — СТОП. Вернуться к Phase 3.5 и спросить пользователя.
 
 1. Write the code, applying contextual skills:
    - Load relevant skill SKILL.md files for guidance (from the Routing Table)
@@ -215,6 +220,7 @@ Output: list of documentation artifacts created
 - **Никогда не пропускай фазу молча.** Если фаза кажется избыточной — спроси пользователя. Не принимай решение о пропуске самостоятельно.
 - **Phase 5 = ровно 3 агента.** Не 2, не 1. Проверь количество Agent tool calls перед отправкой.
 - **Gate-чеклисты обязательны.** Перед переходом к следующей фазе — проверь gate текущей. Не прошёл gate — не переходи.
+- **Никогда не пиши код без одобрения плана.** Phase 4 начинается ТОЛЬКО после явного "да" от пользователя в Phase 3.5. Это абсолютный BLOCKER.
 
 ### Операционные правила
 

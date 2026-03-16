@@ -25,6 +25,7 @@
 - Pipeline: gate-чеклисты между фазами 3.5→4, 5→6 и в Phase 8 (TASK-003)
 - Pipeline: Phase 5 требует ровно 3 агента в одном сообщении (TASK-003)
 - Pipeline: Phase 6 — BLOCKER/CRITICAL исправляются всегда, не optional (TASK-003)
+- Pipeline: обязательное одобрение плана пользователем перед Phase 4 — абсолютный BLOCKER (TASK-004)
 
 ### Changed
 - Все 26 .md файлов реорганизованы из плоской структуры в skill-папки (TASK-001)
