@@ -14,6 +14,11 @@
 - Гибридная триггерная модель для _adr и _report (TASK-001)
 - CHANGELOG.md (TASK-001)
 - Ретроспективный docworkflow: backlog, ADR, completion report (TASK-001)
+- python-pipeline плагин: 8-фазная оркестрация разработки (TASK-002)
+- 4 специализированных агента: py-quality, py-security, py-test-writer, py-doc-manager (TASK-002)
+- Plugin manifest `.claude-plugin/plugin.json` (TASK-002)
+- Routing Table для автоматического выбора skill'ов по контексту (TASK-002)
+- Ретроспективный docworkflow: backlog, completion report (TASK-002)
 
 ### Changed
 - Все 26 .md файлов реорганизованы из плоской структуры в skill-папки (TASK-001)
