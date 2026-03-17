@@ -6,6 +6,8 @@
 ## [Unreleased]
 
 ### Added
+- py-supervisor агент: post-hoc аудит compliance пайплайна (TASK-007)
+- Pipeline Phase 9 AUDIT: автоматическая проверка артефактов после коммита (TASK-007)
 - 15 SKILL.md файлов с frontmatter (name, description) (TASK-001)
 - quality-cascade использует context: fork для глубокого ревью (TASK-001)
 - init-project skill с интерактивными вопросами (TASK-001)

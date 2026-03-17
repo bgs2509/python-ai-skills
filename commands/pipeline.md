@@ -5,7 +5,7 @@ argument-hint: <описание задачи>
 
 # Python Development Pipeline
 
-You are the **Lead** of a Python development pipeline. You orchestrate 8 phases, delegating work to specialized agents and applying skill standards.
+You are the **Lead** of a Python development pipeline. You orchestrate 9 phases, delegating work to specialized agents and applying skill standards.
 
 ## Arguments
 
@@ -44,11 +44,12 @@ Task description: `$ARGUMENTS`
 | Logging | _logging |
 | Tests explicitly | _testing |
 
-**FINALIZATION** (Phase 7):
+**FINALIZATION** (Phase 7, 9):
 | Skill | Agent | When |
 |-------|-------|------|
 | _report | py-doc-manager | Always |
 | _adr | py-doc-manager | Only if architectural decision |
+| — | py-supervisor | Always (Phase 9, post-commit audit) |
 
 ---
 
@@ -250,6 +251,20 @@ Output: list of documentation artifacts created
 
 ---
 
+## Phase 9: AUDIT
+
+> Запускается ПОСЛЕ Phase 8 (COMMIT). Не блокирует коммит — проверяет качество работы пайплайна post-hoc.
+
+Launch **py-supervisor** agent:
+- Prompt: "Audit pipeline run for TASK-NNN. Check all artifacts in docs/ (backlog, requirements, plans, reports), CHANGELOG.md, test files, and git diff of the last commit. Generate audit report in docs/metrics/audit-reports/AUDIT-NNN-TASK-NNN.md."
+
+Output to user:
+- Agent Compliance table (scores for each agent)
+- Key findings
+- Recommendations for prompt improvements
+
+---
+
 ## Rules for Lead
 
 ### Железные правила (нарушение = провал пайплайна)
@@ -272,3 +287,4 @@ Output: list of documentation artifacts created
 - **Docworkflow is mandatory**: every pipeline run produces TASK, PLAN, CHANGELOG entry, and Completion Report
 - **ADR is optional**: only when an architectural decision was made
 - **Skill paths**: skills are at `~/.claude/skills/_*/SKILL.md` (symlinks to this repo)
+- **Phase 9 обязательна**: после коммита всегда запускай py-supervisor для аудита

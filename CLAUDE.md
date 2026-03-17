@@ -25,6 +25,7 @@
 | _adr | `/_adr` | Генератор Architecture Decision Record |
 | _report | `/_report` | Генератор отчёта о завершении фичи |
 | _init | `/_init` | Инициализация нового проекта |
+| py-supervisor | (agent) | Post-hoc аудит compliance пайплайна |
 
 ---
 
@@ -42,6 +43,7 @@
 | Новый проект | _init, _architecture |
 | Архитектурное решение | _architecture, _adr |
 | Фича завершена | _report, _docworkflow |
+| Аудит пайплайна | py-supervisor |
 | Начало задачи | _docworkflow |
 
 ---
@@ -63,6 +65,16 @@
 - Формат: [Keep a Changelog](https://keepachangelog.com/)
 - Секции: Added, Changed, Deprecated, Removed, Fixed, Security
 - Каждое изменение → запись в `Unreleased`
+
+### Обновление плагина
+
+> **ОБЯЗАТЕЛЬНО** после любых изменений в skill'ах, commands, agents или plugin.json.
+
+Полная инструкция: [`docs/plugin-update.md`](docs/plugin-update.md)
+
+**Кратко:** поднять версию в `.claude-plugin/plugin.json` → закоммитить → `claude plugins update python-pipeline@local-plugins` → перезапустить Claude Code.
+
+При коммите изменений в этом проекте — **всегда** поднять версию и напомнить пользователю обновить кэш плагина.
 
 ---
 
