@@ -1,8 +1,8 @@
 ---
 name: _docworkflow
 description: >
-  Пайплайн обязательной документации: backlog → planning → ADR → changelog →
-  completion report → commit. Нумерация TASK/PLAN/ADR. Git conventions.
+  Пайплайн обязательной документации: backlog → requirements → planning → ADR → changelog →
+  completion report → commit. Нумерация TASK/REQ/PLAN/ADR. Git conventions.
   Используй при начале новой задачи или перед коммитом.
 ---
 
@@ -10,15 +10,16 @@ description: >
 
 > Каждая реализованная задача проходит эти этапы.
 
-## 6 этапов
+## 7 этапов
 
 ```
-1. BACKLOG         → docs/backlog/TASK-NNN-*.md (обязательно)
-2. PLANNING (опц.) → docs/plans/PLAN-NNN-*.md
-3. ADR (опц.)      → docs/adr/ADR-NNN-*.md
-4. CHANGELOG        → CHANGELOG.md секция Unreleased (обязательно)
-5. COMPLETION REPORT → docs/reports/{дата}-{фича}.md (обязательно)
-6. COMMIT           → TASK-NNN: <type>: <description> (обязательно)
+1. BACKLOG              → docs/backlog/TASK-NNN-*.md (обязательно)
+1.5. REQUIREMENTS       → docs/requirements/REQ-NNN-*.md (обязательно)
+2. PLANNING (опц.)      → docs/plans/PLAN-NNN-*.md
+3. ADR (опц.)           → docs/adr/ADR-NNN-*.md
+4. CHANGELOG            → CHANGELOG.md секция Unreleased (обязательно)
+5. COMPLETION REPORT    → docs/reports/{дата}-{фича}.md (обязательно)
+6. COMMIT               → TASK-NNN: <type>: <description> (обязательно)
 ```
 
 ## Связность
@@ -41,6 +42,7 @@ TASK-NNN: <type>: <краткий заголовок>
 ## Чеклист (перед коммитом)
 
 - [ ] Задача в backlog (TASK-NNN)
+- [ ] Требования одобрены пользователем (REQ-NNN)
 - [ ] План в docs/plans/ (если был)
 - [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/_adr`
 - [ ] Запись в CHANGELOG.md
@@ -53,5 +55,6 @@ TASK-NNN: <type>: <краткий заголовок>
 Подробнее:
 - Пайплайн: [reference/workflow.md](reference/workflow.md)
 - Backlog: [reference/backlog.md](reference/backlog.md)
+- Требования: [reference/requirements.md](reference/requirements.md)
 - Планирование: [reference/planning.md](reference/planning.md)
 - Git: [reference/git-conventions.md](reference/git-conventions.md)

@@ -8,10 +8,11 @@
 
 ```
 1. BACKLOG              → Задача зафиксирована
+1.5. REQUIREMENTS       → Требования зафиксированы → docs/requirements/
 2. PLANNING (опц.)      → Файл плана создан → docs/plans/
 3. ADR (опц.)           → Архитектурное решение → docs/adr/
 4. CHANGELOG            → Запись о сделанном
-5. COMPLETION REPORT    → Отчёт со ссылками на план и ADR → docs/reports/
+5. COMPLETION REPORT    → Отчёт со ссылками → docs/reports/
 6. COMMIT               → Фиксация в git
 ```
 
@@ -24,6 +25,7 @@
 | Артефакт | Префикс | Пример | Хранение |
 |----------|---------|--------|----------|
 | Задача | TASK- | TASK-001 | `docs/backlog/` |
+| Требования | REQ- | REQ-001 | `docs/requirements/` |
 | План | PLAN- | PLAN-001 | `docs/plans/` |
 | ADR | ADR- | ADR-001 | `docs/adr/` |
 | Completion Report | — | по дате | `docs/reports/` |
@@ -32,6 +34,7 @@
 
 Сквозной идентификатор **Task ID** проходит через все артефакты:
 
+- Требования ссылаются на задачу: `Task: TASK-001`
 - План ссылается на задачу: `Task: TASK-001`
 - ADR ссылается на задачу: `Task: TASK-001`
 - Completion Report ссылается на задачу, план и ADR
@@ -48,6 +51,17 @@
 - Задача фиксируется в `docs/backlog/` по шаблону из skill `_docworkflow` (_docworkflow/reference/backlog.md)
 - Присваивается номер TASK-NNN (следующий по порядку)
 - Без записи в backlog задача не начинается
+
+### 1.5. REQUIREMENTS
+
+**Обязательный этап.**
+
+- Lead анализирует задачу и формулирует функциональные (FR) и нефункциональные (NFR) требования
+- Документ создаётся в `docs/requirements/` по шаблону из `_docworkflow/reference/requirements.md`
+- Именование: `REQ-NNN-{краткое-название}.md`
+- Нумерация совпадает с TASK-NNN
+- Минимум 1 FR со статусом Must
+- **⛔ BLOCKER**: пользователь должен явно одобрить требования до перехода к следующим этапам
 
 ### 2. PLANNING (опциональный)
 
@@ -104,6 +118,7 @@
 ```
 docs/
 ├── backlog/        # Задачи (TASK-NNN)
+├── requirements/   # Требования (REQ-NNN)
 ├── plans/          # Планы реализации (PLAN-NNN)
 ├── adr/            # Архитектурные решения (ADR-NNN)
 └── reports/        # Отчёты о выполнении
@@ -114,6 +129,7 @@ docs/
 ## Чеклист (перед коммитом)
 
 - [ ] Задача зафиксирована в backlog (TASK-NNN)
+- [ ] Требования зафиксированы и одобрены (REQ-NNN)
 - [ ] План создан и сохранён в `docs/plans/` (если был)
 - [ ] ADR создан и сохранён в `docs/adr/` (если нужен)
 - [ ] Запись в CHANGELOG.md добавлена

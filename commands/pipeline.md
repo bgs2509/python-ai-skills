@@ -52,12 +52,43 @@ Task description: `$ARGUMENTS`
 
 ---
 
+## Phase 1.5: REQUIREMENTS
+
+1. Проанализировать задачу и сформулировать:
+   - **Функциональные требования (FR)** — что система должна делать
+   - **Нефункциональные требования (NFR)** — качественные атрибуты (performance, security, maintainability и др.)
+2. Запустить **py-doc-manager** агента:
+   - Prompt: "Phase 1.5 REQUIREMENTS: Создай документ требований для TASK-NNN. Прочитай _docworkflow/reference/requirements.md для формата. Создай docs/requirements/REQ-NNN-{name}.md. FR: {список}. NFR: {список}. Обнови TASK-NNN — добавь ссылку на REQ-NNN в артефакты."
+3. Вывести таблицу требований пользователю:
+   - FR: таблица (ID, Требование, Приоритет)
+   - NFR: таблица (ID, Требование, Категория, Приоритет)
+   - Минимум 1 FR со статусом Must. NFR опциональны.
+
+---
+
+## Phase 1.7: REQUIREMENTS APPROVAL
+
+> **⛔ BLOCKER** — без явного одобрения требований Phase 2 ЗАПРЕЩЕНА.
+
+1. Показать пользователю список требований из Phase 1.5
+2. Спросить: "Требования сформулированы. Одобряете? (или какие изменения нужны?)"
+3. Без явного "да/ок/одобряю/proceed" — вернуться к Phase 1.5 и уточнить
+
+### Gate 1.7 → 2 (проверь перед переходом к Phase 2):
+- [ ] Документ REQ-NNN существует в docs/requirements/
+- [ ] Есть хотя бы 1 FR со статусом Must
+- [ ] Пользователь ЯВНО одобрил требования (слова: "да", "ок", "одобряю", "proceed", "go"). Любой другой ответ = вернуться к Phase 1.5.
+
+---
+
 ## Phase 2: EXPLORATION
 
+0. Review approved requirements from REQ-NNN in TASK-NNN
 1. Explore the codebase to understand the current state:
    - Use `Glob` to find relevant files
    - Use `Grep` to search for related patterns
    - Read key files (entry points, models, routes, config)
+   - Focus exploration on areas relevant to approved FR/NFR requirements
 2. If plugin **feature-dev** is available:
    - Launch 2-3 **code-explorer** agents in parallel, each investigating a different aspect
 3. Build a mental map: existing patterns, conventions, dependencies
@@ -70,8 +101,8 @@ Task description: `$ARGUMENTS`
 1. Ask the user clarifying questions if needed (edge cases, requirements, constraints)
 2. Design the implementation approach
 3. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read _docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using _adr skill format."
-   - Include: task context, exploration findings, design decisions
+   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read _docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. Plan MUST cover ALL FR with Must priority from REQ-NNN. Each plan step should reference which FR/NFR it implements. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using _adr skill format."
+   - Include: task context, exploration findings, design decisions, approved requirements from REQ-NNN
 4. If plugin **feature-dev** is available:
    - Optionally launch **code-architect** for complex architectural decisions
 5. Output: plan summary to user
@@ -183,6 +214,7 @@ Output: list of documentation artifacts created
 
 1. Verify **full pipeline** checklist (каждый пункт проверяется, результат выводится пользователю):
    - [ ] Task in backlog (TASK-NNN)
+   - [ ] Requirements approved (REQ-NNN in docs/requirements/)
    - [ ] Plan in docs/plans/
    - [ ] Plan reviewed by py-quality agent (Phase 3.5)
    - [ ] ADR in docs/adr/ (if applicable)
@@ -221,6 +253,7 @@ Output: list of documentation artifacts created
 - **Phase 5 = ровно 3 агента.** Не 2, не 1. Проверь количество Agent tool calls перед отправкой.
 - **Gate-чеклисты обязательны.** Перед переходом к следующей фазе — проверь gate текущей. Не прошёл gate — не переходи.
 - **Никогда не пиши код без одобрения плана.** Phase 4 начинается ТОЛЬКО после явного "да" от пользователя в Phase 3.5. Это абсолютный BLOCKER.
+- **Никогда не начинай EXPLORATION без утверждённых требований.** Phase 2 начинается ТОЛЬКО после явного одобрения требований пользователем в Phase 1.7.
 
 ### Операционные правила
 
