@@ -32,6 +32,10 @@
 - Pipeline: обязательное одобрение плана пользователем перед Phase 4 — абсолютный BLOCKER (TASK-004)
 
 ### Changed
+- Agents: критичные правила встроены inline в py-quality, py-security, py-test-writer, py-doc-manager — убрано обязательное чтение 2-4 skill-файлов на старте (TASK-006)
+- Pipeline Phase 5: добавлена Unified Severity Mapping — единая таблица Must Fix / Should Fix / Optional (TASK-006)
+- Pipeline Phase 6: severity-правила используют Unified Severity Mapping вместо разрозненных терминов (TASK-006)
+- Pipeline Phase 5: промпты агентов упрощены — убрано "Read skill first" (TASK-006)
 - Все 26 .md файлов реорганизованы из плоской структуры в skill-папки (TASK-001)
 - Все 15 skill'ов переименованы с префиксом `_` (TASK-001)
 - 6 skill'ов получили интуитивные имена: _workflow→_docworkflow, _quality-cascade→_code-quality, _create-adr→_adr, _completion-report→_report, _init-project→_init, _http-clients→_http (TASK-001)

@@ -1,5 +1,6 @@
 {
   "name": "python-pipeline",
+  "version": "1.1.0",
   "description": "Python development pipeline — orchestrates 15 skills via Agent Teams",
   "author": { "name": "bgs" }
 }

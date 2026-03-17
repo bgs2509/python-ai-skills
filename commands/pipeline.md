@@ -154,16 +154,23 @@ Task description: `$ARGUMENTS`
 > **CRITICAL**: В этой фазе запускаются ровно **3 агента** в одном сообщении. Все три ОБЯЗАТЕЛЬНЫ.
 > Перед отправкой сообщения — убедись что в нём **3 вызова Agent tool**. Если меньше — СТОП, добавь недостающих.
 
+### Unified Severity Mapping
+
+| Must Fix (блокирует коммит) | Should Fix | Optional |
+|-----------------------------|------------|----------|
+| py-quality: BLOCKER | py-quality: WARNING | py-quality: INFO |
+| py-security: CRITICAL | py-security: HIGH | py-security: MEDIUM, LOW |
+
 Launch **exactly 3** agents in a **single message** (all 3 Agent tool calls in one response):
 
 ### Agent 1: py-quality
-- Prompt: "Review these files for code quality: {list of created/modified files}. Apply 17 quality principles, check error handling, linters compliance, logging. Report format: Status (PASS/WARN/FAIL), Findings with severity, file:line, fix suggestions."
+- Prompt: "Review these files for code quality: {list of created/modified files}. Report format: Status (PASS/WARN/FAIL), Findings with severity (BLOCKER/WARNING/INFO), file:line, fix suggestions."
 
 ### Agent 2: py-security
-- Prompt: "Security review these files: {list of created/modified files}. Check OWASP Top 10, input validation, secrets in code, SQL injection, XSS. Report format: Status (PASS/WARN/FAIL), Findings with severity, file:line, fix suggestions."
+- Prompt: "Security review these files: {list of created/modified files}. Report format: Status (PASS/WARN/FAIL), Findings with severity (CRITICAL/HIGH/MEDIUM/LOW), file:line, fix suggestions."
 
 ### Agent 3: py-test-writer
-- Prompt: "Write tests for these files: {list of created/modified files}. Read _testing skill first. Follow AAA pattern, fixtures in conftest.py, coverage target ≥90%. Create test files, run pytest."
+- Prompt: "Write tests for these files: {list of created/modified files}. Follow AAA pattern, fixtures in conftest.py, coverage target ≥90%. Create test files, run pytest."
 
 After **all 3** agents complete:
 1. Consolidate results into a summary table:
@@ -186,12 +193,12 @@ After **all 3** agents complete:
 
 ## Phase 6: FIX
 
-> **BLOCKER/CRITICAL — исправляются ВСЕГДА.** Lead не может переопределить severity, назначенную агентом.
-> Если Lead считает что BLOCKER не применим — он ОБЯЗАН спросить пользователя, а не пропускать молча.
+> **Must Fix (см. Unified Severity Mapping выше) — исправляются ВСЕГДА.** Lead не может переопределить severity, назначенную агентом.
+> Если Lead считает что BLOCKER/CRITICAL не применим — он ОБЯЗАН спросить пользователя, а не пропускать молча.
 
-1. **BLOCKER/CRITICAL** — исправить все. Это не optional. Пропуск BLOCKER = провал пайплайна.
-2. **WARNING** — показать пользователю, исправить если пользователь согласен.
-3. **INFO** — на усмотрение Lead, не требует действий.
+1. **Must Fix** (BLOCKER от py-quality, CRITICAL от py-security) — исправить все. Пропуск = провал пайплайна.
+2. **Should Fix** (WARNING от py-quality, HIGH от py-security) — показать пользователю, исправить если согласен.
+3. **Optional** (INFO, MEDIUM, LOW) — на усмотрение Lead, не требует действий.
 4. После исправлений — запустить mini quality check (re-launch relevant agent) на изменённых файлах.
 5. Skip this phase entirely **only if** all 3 agents returned PASS with zero BLOCKERs.
 
