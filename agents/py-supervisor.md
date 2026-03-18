@@ -36,16 +36,18 @@ You are a pipeline supervisor agent. Your task is to audit the work of other pip
 
 ### 2. py-quality Compliance
 
+- Отдельный файл `docs/reports/QUALITY-NNN-*.md` существует (НЕ встроен в completion report)
 - Отчёт содержит Status (PASS/WARN/FAIL)
+- Чеклист критических правил заполнен (7 строк: DRY, KISS, YAGNI, SOLID, Fail Fast, Error Handling, Logging)
 - Findings имеют severity (BLOCKER/WARNING/INFO)
-- Findings содержат file:line и confidence ≥80
-- Checklist из Critical Rules заполнен (DRY, KISS, YAGNI, SOLID, Error handling)
+- Findings содержат `file:line` и `Уверенность: NN/100` (≥80)
 
 ### 3. py-security Compliance
 
-- OWASP checklist присутствует или упомянут
+- Отдельный файл `docs/reports/SECURITY-NNN-*.md` существует (НЕ встроен в completion report)
+- Чеклист OWASP Top 10 заполнен (10 строк A01–A10, каждая [PASS]/[FAIL]/[N/A])
 - Severity levels корректны (CRITICAL/HIGH/MEDIUM/LOW)
-- Findings содержат file:line
+- Findings содержат `file:line` и `Уверенность: NN/100` (≥80)
 
 ### 4. py-test-writer Compliance
 
@@ -75,6 +77,42 @@ You are a pipeline supervisor agent. Your task is to audit the work of other pip
 4. Проверь тестовые файлы: Glob `tests/**/*.py`, Grep для AAA-паттерна
 5. Для каждого агента — оцени compliance (0-100%)
 6. Сформулируй конкретные рекомендации
+
+## Программная проверка (перед scoring)
+
+Перед оценкой compliance — выполни grep-проверки на файлах отчётов:
+
+### py-quality
+```bash
+# Отдельный файл существует?
+ls docs/reports/QUALITY-*-*.md 2>/dev/null
+# file:line паттерн (минимум 1 совпадение)?
+grep -cP '`[a-zA-Z_/]+\.py:\d+`' docs/reports/QUALITY-*-*.md 2>/dev/null
+# Уверенность указана?
+grep -c 'Уверенность:' docs/reports/QUALITY-*-*.md 2>/dev/null
+# Чеклист заполнен (7 правил)?
+grep -cP '\[PASS\]|\[FAIL\]' docs/reports/QUALITY-*-*.md 2>/dev/null
+```
+
+### py-security
+```bash
+# Отдельный файл существует?
+ls docs/reports/SECURITY-*-*.md 2>/dev/null
+# OWASP чеклист (10 категорий A01–A10)?
+grep -cP 'A\d{2}' docs/reports/SECURITY-*-*.md 2>/dev/null
+# file:line паттерн?
+grep -cP '`[a-zA-Z_/]+\.py:\d+`' docs/reports/SECURITY-*-*.md 2>/dev/null
+```
+
+### py-test-writer
+```bash
+# conftest.py существует?
+find services/ -name conftest.py 2>/dev/null | head -1
+# AAA-паттерн (хотя бы в нескольких тестах)?
+grep -rcl '# Arrange' tests/ services/*/tests/ 2>/dev/null | wc -l
+```
+
+Если grep-проверка даёт 0 совпадений или файл не найден → автоматический [FAIL] для соответствующего пункта.
 
 ## Scoring
 

@@ -165,13 +165,23 @@ Task description: `$ARGUMENTS`
 Launch **exactly 3** agents in a **single message** (all 3 Agent tool calls in one response):
 
 ### Agent 1: py-quality
-- Prompt: "Review these files for code quality: {list of created/modified files}. Report format: Status (PASS/WARN/FAIL), Findings with severity (BLOCKER/WARNING/INFO), file:line, fix suggestions."
+- Prompt: "Review these files for code quality: {list of created/modified files}. ОБЯЗАТЕЛЬНО создай ОТДЕЛЬНЫЙ файл docs/reports/QUALITY-NNN-{name}.md по шаблону из твоего agent definition. НЕ встраивай отчёт в другие документы."
 
 ### Agent 2: py-security
-- Prompt: "Security review these files: {list of created/modified files}. Report format: Status (PASS/WARN/FAIL), Findings with severity (CRITICAL/HIGH/MEDIUM/LOW), file:line, fix suggestions."
+- Prompt: "Security review these files: {list of created/modified files}. ОБЯЗАТЕЛЬНО создай ОТДЕЛЬНЫЙ файл docs/reports/SECURITY-NNN-{name}.md по шаблону из твоего agent definition. НЕ встраивай отчёт в другие документы."
 
 ### Agent 3: py-test-writer
 - Prompt: "Write tests for these files: {list of created/modified files}. Follow AAA pattern, fixtures in conftest.py, coverage target ≥90%. Create test files, run pytest."
+
+### Обязательные артефакты Phase 5
+
+Каждый агент ОБЯЗАН создать ОТДЕЛЬНЫЙ файл отчёта:
+- py-quality → `docs/reports/QUALITY-NNN-{name}.md`
+- py-security → `docs/reports/SECURITY-NNN-{name}.md`
+- py-test-writer → результаты в stdout (тесты + coverage)
+
+Lead ОБЯЗАН проверить наличие файлов QUALITY-NNN и SECURITY-NNN перед переходом к Phase 6.
+Если файл отсутствует — вернуть агенту с указанием: "создай отдельный файл отчёта по шаблону".
 
 After **all 3** agents complete:
 1. Consolidate results into a summary table:
@@ -227,6 +237,7 @@ Output: list of documentation artifacts created
    - [ ] Plan reviewed by py-quality agent (Phase 3.5)
    - [ ] ADR in docs/adr/ (if applicable)
    - [ ] Quality Gate: all 3 agents ran (py-quality, py-security, py-test-writer)
+   - [ ] Quality Gate: отдельные файлы QUALITY-NNN и SECURITY-NNN существуют в docs/reports/
    - [ ] Quality Gate: zero unresolved BLOCKERs
    - [ ] Tests exist and pass
    - [ ] CHANGELOG.md updated

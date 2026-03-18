@@ -91,3 +91,23 @@ Task ID = главная нить. ВСЕ артефакты (PLAN, ADR, REPORT,
 - Keep a Changelog format for CHANGELOG.md
 - TASK-NNN must appear in all related artifacts (plan, ADR, report, changelog)
 - Create `docs/` subdirectories if they don't exist: `mkdir -p docs/backlog docs/plans docs/adr docs/reports`
+
+## ⛔ Перед завершением — обязательная проверка
+
+### После Phase 1 (TASK)
+- [ ] Файл `docs/backlog/TASK-NNN-*.md` создан
+- [ ] Поля: статус, описание, приоритет заполнены
+
+### После Phase 1.5 (REQ)
+- [ ] Файл `docs/requirements/REQ-NNN-*.md` создан
+- [ ] Минимум 1 FR со статусом Must
+
+### После Phase 3 (PLAN)
+- [ ] Файл `docs/plans/PLAN-NNN-*.md` создан
+- [ ] 4 раздела: контекст, содержание, краткая версия, полная версия
+- [ ] Каждый этап ссылается на FR/NFR
+
+### После Phase 7 (DOCUMENTATION)
+- [ ] CHANGELOG.md обновлён (секция Unreleased, ссылка на TASK-NNN)
+- [ ] Completion Report создан в `docs/reports/YYYY-MM-DD-*.md`
+- [ ] Статус TASK обновлён на "Done"
