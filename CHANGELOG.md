@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- docs/plugin-install.md: добавлен шаг создания симлинков `~/.claude/skills/` — без него скиллы не видны как slash-команды (TASK-008)
+- docs/plugin-install.md: добавлена ошибка 4 `Unknown skill: _docworkflow` с диагностикой (TASK-008)
+- docs/plugin-install.md: переписана секция «Архитектура» — разделение плагин vs скиллы (TASK-008)
+
 ### Added
 - py-supervisor агент: post-hoc аудит compliance пайплайна (TASK-007)
 - Pipeline Phase 9 AUDIT: автоматическая проверка артефактов после коммита (TASK-007)

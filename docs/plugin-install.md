@@ -15,35 +15,52 @@
 
 ---
 
-## Архитектура плагинов Claude Code
+## Архитектура: плагин vs скиллы
 
-Прежде чем устанавливать — полезно понимать, как устроена система плагинов.
+Прежде чем устанавливать — важно понимать, что **плагин и скиллы — разные механизмы**.
+
+### Что даёт плагин (`~/.claude/plugins/`)
+
+Плагин регистрирует **commands** и **agents**:
+- `/pipeline` — из `commands/pipeline.md`
+- `py-quality`, `py-security`, `py-doc-manager`, `py-test-writer`, `py-supervisor` — из `agents/*.md`
+
+### Что даёт `~/.claude/skills/`
+
+Скиллы (slash-команды `/_docworkflow`, `/_code-quality` и т.д.) регистрируются **отдельно** через симлинки в `~/.claude/skills/`. Без этих симлинков скиллы **не видны** как slash-команды, даже если плагин установлен.
+
+### Полная структура
 
 ```
-~/.claude/plugins/
-├── known_marketplaces.json    # Реестр источников плагинов (маркетплейсов)
-├── installed_plugins.json     # Метаданные установленных плагинов (версия, SHA, дата)
-├── config.json                # Конфигурация (репозитории)
-├── local/                     # Симлинки на локальные плагины (исходники)
-│   └── python-pipeline → /home/USER/path/to/python-ai-skills
-├── cache/                     # Кэшированные копии плагинов (рабочие файлы)
-│   └── local-plugins/
-│       └── python-pipeline/
-│           └── 1.2.0/         # Версия из plugin.json на момент установки
-│               ├── _code-quality/
-│               ├── _security/
-│               ├── commands/
-│               ├── agents/
-│               └── ...
-└── marketplaces/              # Маркетплейсы (GitHub-репозитории с плагинами)
-    └── claude-plugins-official/
+~/.claude/
+├── settings.json                 # Глобальные настройки (permissions, hooks, plugins)
+├── settings.local.json           # Накопленные разрешения (создаётся автоматически)
+├── skills/                       # ⚠️ Симлинки на скиллы (для slash-команд /_*)
+│   ├── _docworkflow → ~/Henry_Bud_GitHub/python-ai-skills/_docworkflow/
+│   ├── _code-quality → ~/Henry_Bud_GitHub/python-ai-skills/_code-quality/
+│   └── ... (15 скиллов)
+└── plugins/
+    ├── known_marketplaces.json   # Реестр маркетплейсов
+    ├── installed_plugins.json    # Метаданные установленных плагинов
+    ├── config.json               # Конфигурация
+    ├── local/                    # Симлинки на локальные плагины
+    │   └── python-pipeline → ~/Henry_Bud_GitHub/python-ai-skills
+    ├── cache/                    # Кэш (рабочие файлы, которые Claude Code читает)
+    │   └── local-plugins/
+    │       └── python-pipeline/
+    │           └── 1.2.1/
+    │               ├── commands/
+    │               ├── agents/
+    │               └── ...
+    └── marketplaces/
 ```
 
 **Ключевые моменты:**
-- `local/` содержит **симлинк** на исходный репозиторий — это «указатель» откуда брать плагин
-- `cache/` содержит **копию** файлов плагина, которую Claude Code реально использует
+- **Плагин** (`plugins/`) → команды (`/pipeline`) и агенты
+- **Скиллы** (`skills/`) → slash-команды (`/_docworkflow`, `/_code-quality` и т.д.)
+- `cache/` содержит **копию** файлов плагина, привязанную к **версии** из `plugin.json`
 - Claude Code читает файлы **только из кэша**, не из исходника напрямую
-- Кэш привязан к **версии** из `plugin.json`, а не к содержимому файлов
+- **Оба механизма нужны** для полноценной работы
 
 ---
 
@@ -105,7 +122,28 @@ ls -la ~/.claude/plugins/local/python-pipeline
 # python-pipeline -> /home/USER/Henry_Bud_GitHub/python-ai-skills
 ```
 
-### Шаг 4. Установить плагин
+### Шаг 4. Создать симлинки скиллов
+
+> **⚠️ Без этого шага скиллы `/_docworkflow`, `/_code-quality` и т.д. НЕ будут видны как slash-команды.**
+
+```bash
+mkdir -p ~/.claude/skills
+
+for skill in _adr _architecture _caching _code-quality _database _docker _docworkflow _error-handling _http _init _linters _logging _report _security _testing; do
+  ln -s ~/Henry_Bud_GitHub/python-ai-skills/${skill}/ ~/.claude/skills/${skill}
+done
+```
+
+**Проверка:**
+
+```bash
+ls -la ~/.claude/skills/
+# Должно быть 15 симлинков, каждый указывает на соответствующую директорию в python-ai-skills
+```
+
+Claude Code ищет скиллы в `~/.claude/skills/` и регистрирует каждую папку с `SKILL.md` как slash-команду.
+
+### Шаг 5. Установить плагин
 
 ```bash
 claude plugins install python-pipeline@local-plugins
@@ -123,7 +161,7 @@ claude plugins install python-pipeline@local-plugins
 ✔ Installed python-pipeline@local-plugins (version 1.2.0)
 ```
 
-### Шаг 5. Перезапустить Claude Code
+### Шаг 6. Перезапустить Claude Code
 
 ```bash
 # Выйти из текущей сессии
@@ -134,7 +172,7 @@ claude
 
 Claude Code загружает плагины при старте. Без перезапуска новый плагин не будет виден.
 
-### Шаг 6. Проверить установку
+### Шаг 7. Проверить установку
 
 В новой сессии Claude Code:
 
@@ -144,11 +182,14 @@ claude plugins list
 
 Плагин `python-pipeline@local-plugins` должен быть в списке с актуальной версией.
 
-Дополнительная проверка — вызвать любой skill плагина:
+Дополнительная проверка — вызвать команду плагина и скилл:
 
 ```
-/pipeline
+/pipeline          # Команда из плагина (commands/)
+/_docworkflow      # Скилл из ~/.claude/skills/
 ```
+
+Оба должны распознаваться. Если `/pipeline` работает, а `/_docworkflow` — нет, значит пропущен шаг 4 (симлинки скиллов).
 
 ---
 
@@ -164,14 +205,20 @@ git clone <url-репозитория> python-ai-skills
 # 2. Зарегистрировать локальный маркетплейс
 claude plugins marketplace add local-plugins --directory ~/.claude/plugins/local
 
-# 3. Создать симлинк
+# 3. Создать симлинк плагина
 mkdir -p ~/.claude/plugins/local
 ln -s ~/Henry_Bud_GitHub/python-ai-skills ~/.claude/plugins/local/python-pipeline
 
-# 4. Установить плагин
+# 4. Создать симлинки скиллов
+mkdir -p ~/.claude/skills
+for skill in _adr _architecture _caching _code-quality _database _docker _docworkflow _error-handling _http _init _linters _logging _report _security _testing; do
+  ln -s ~/Henry_Bud_GitHub/python-ai-skills/${skill}/ ~/.claude/skills/${skill}
+done
+
+# 5. Установить плагин
 claude plugins install python-pipeline@local-plugins
 
-# 5. Перезапустить Claude Code
+# 6. Перезапустить Claude Code
 ```
 
 ---
@@ -288,7 +335,41 @@ cat ~/.claude/plugins/local/python-pipeline/.claude-plugin/plugin.json
 
 ---
 
-### Ошибка 4: Плагин установлен, но skill'ы не работают
+### Ошибка 4: `Unknown skill: _docworkflow` (скиллы не видны как slash-команды)
+
+**Симптом:**
+```
+› Unknown skill: _docworkflow
+```
+
+Плагин установлен, `/pipeline` работает, но `/_docworkflow`, `/_code-quality` и другие скиллы с префиксом `_` не распознаются.
+
+**Причина:** отсутствует директория `~/.claude/skills/` с симлинками на скиллы. Плагин регистрирует только commands (`/pipeline`) и agents, а скиллы — **отдельный механизм** через `~/.claude/skills/`.
+
+**Решение:**
+
+```bash
+mkdir -p ~/.claude/skills
+
+for skill in _adr _architecture _caching _code-quality _database _docker _docworkflow _error-handling _http _init _linters _logging _report _security _testing; do
+  ln -s ~/Henry_Bud_GitHub/python-ai-skills/${skill}/ ~/.claude/skills/${skill}
+done
+
+# Перезапустить Claude Code
+```
+
+**Проверка:**
+
+```bash
+ls ~/.claude/skills/
+# Должно быть 15 симлинков
+```
+
+> **Важно:** это самая частая ошибка при установке на новой машине. Симлинки в `~/.claude/skills/` нужно создавать на каждой машине отдельно — они не переносятся с плагином.
+
+---
+
+### Ошибка 5: Плагин установлен, но `/pipeline` не работает
 
 **Симптом:** `claude plugins list` показывает плагин, но `/pipeline` и другие команды не распознаются.
 
@@ -310,7 +391,7 @@ claude plugins install python-pipeline@local-plugins
 
 ---
 
-### Ошибка 5: `Permission denied` при создании симлинка
+### Ошибка 6: `Permission denied` при создании симлинка
 
 **Причина:** нет прав на запись в `~/.claude/plugins/local/`.
 
@@ -325,7 +406,7 @@ ls -la ~/.claude/plugins/ | grep local
 
 ---
 
-### Ошибка 6: Установлена не та версия
+### Ошибка 7: Установлена не та версия
 
 **Симптом:** `claude plugins list` показывает старую версию.
 
@@ -345,7 +426,7 @@ claude plugins update python-pipeline@local-plugins
 
 ---
 
-### Ошибка 7: `already at the latest version` при первичной установке
+### Ошибка 8: `already at the latest version` при первичной установке
 
 **Симптом:**
 ```
@@ -381,7 +462,7 @@ rm -rf ~/.claude/plugins/cache/local-plugins/python-pipeline
 # 1. Маркетплейс зарегистрирован?
 cat ~/.claude/plugins/known_marketplaces.json | python3 -m json.tool
 
-# 2. Симлинк существует и валиден?
+# 2. Симлинк плагина существует и валиден?
 ls -la ~/.claude/plugins/local/python-pipeline
 cat ~/.claude/plugins/local/python-pipeline/.claude-plugin/plugin.json
 
@@ -396,6 +477,11 @@ cat ~/.claude/plugins/installed_plugins.json | python3 -m json.tool
 cat ~/Henry_Bud_GitHub/python-ai-skills/.claude-plugin/plugin.json
 # Кэш:
 ls ~/.claude/plugins/cache/local-plugins/python-pipeline/
+
+# 6. Симлинки скиллов существуют?
+ls -la ~/.claude/skills/
+# Должно быть 15 симлинков (_adr, _architecture, ..., _testing)
+# Каждый должен указывать на ~/Henry_Bud_GitHub/python-ai-skills/_*/
 ```
 
 Если какой-то из шагов показывает проблему — вернитесь к соответствующему шагу установки.
