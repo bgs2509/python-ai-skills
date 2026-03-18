@@ -67,5 +67,6 @@ description: >
 | Хранение | `docs/adr/` |
 | Immutability | Принятый ADR не изменяется — новый со статусом Superseded |
 | Краткость | Контекст и решение — 3-5 предложений |
+| Язык | Русский |
 
 Полная версия: см. [reference.md](reference.md)

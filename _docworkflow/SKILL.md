@@ -47,6 +47,7 @@ TASK-NNN: <type>: <краткий заголовок>
 - [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/_adr`
 - [ ] Запись в CHANGELOG.md
 - [ ] Completion Report в docs/reports/ — если не создан автоматически, вызови `/_report`
+- [ ] Язык документации — русский (commit messages — английский)
 - [ ] Коммит с Task ID
 
 > **Напоминание:** create-adr и completion-report могут сработать автоматически по контексту.
