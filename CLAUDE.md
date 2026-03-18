@@ -66,11 +66,12 @@
 - Секции: Added, Changed, Deprecated, Removed, Fixed, Security
 - Каждое изменение → запись в `Unreleased`
 
-### Обновление плагина
+### Установка и обновление плагина
 
-> **ОБЯЗАТЕЛЬНО** после любых изменений в skill'ах, commands, agents или plugin.json.
+- Установка с нуля: [`docs/plugin-install.md`](docs/plugin-install.md)
+- Обновление после изменений: [`docs/plugin-update.md`](docs/plugin-update.md)
 
-Полная инструкция: [`docs/plugin-update.md`](docs/plugin-update.md)
+> **ОБЯЗАТЕЛЬНО** после любых изменений в skill'ах, commands, agents или plugin.json — обновить плагин.
 
 **Кратко:** поднять версию в `.claude-plugin/plugin.json` → закоммитить → `claude plugins update python-pipeline@local-plugins` → перезапустить Claude Code.
 
