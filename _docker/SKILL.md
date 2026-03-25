@@ -1,41 +1,41 @@
 ---
 name: _docker
 description: >
-  Контейнеризация Python-приложений (Dockerfile multi-stage, Docker Compose,
-  health checks, graceful shutdown). Используй при создании Dockerfile, настройке деплоя.
+  Python application containerization (Dockerfile multi-stage, Docker Compose,
+  health checks, graceful shutdown). Use when creating Dockerfiles or configuring deployment.
 ---
 
 # Docker
 
-> Multi-stage build. Минимальный размер, безопасность, кэширование слоёв.
+> Multi-stage build. Minimal size, security, layer caching.
 
-## Dockerfile принципы
+## Dockerfile Principles
 
-| Правило | Описание |
-|---------|----------|
-| Multi-stage | Builder → Runtime (минимальный образ) |
+| Rule | Description |
+|------|-------------|
+| Multi-stage | Builder → Runtime (minimal image) |
 | Non-root | `adduser --disabled-password appuser` + `USER appuser` |
-| Порядок слоёв | Зависимости → Код (кэширование) |
-| python:3.11-slim | Не python:3.11 |
-| Без dev-зависимостей | Только runtime |
+| Layer order | Dependencies → Code (caching) |
+| python:3.11-slim | Not python:3.11 |
+| No dev dependencies | Runtime only |
 
 ## Security
 
 - Non-root user: `adduser --disabled-password appuser` + `USER appuser`
-- Без секретов в image (не COPY .env, не ARG для секретов)
+- No secrets in image (no COPY .env, no ARG for secrets)
 
 ## Docker Compose
 
-- Healthcheck для каждого сервиса
-- `depends_on` с `condition: service_healthy`
-- Секреты через `environment:` (не build args)
+- Healthcheck for every service
+- `depends_on` with `condition: service_healthy`
+- Secrets via `environment:` (not build args)
 
-## Production requirements
+## Production Requirements
 
 - Health endpoint `/health` → 200/503
 - Graceful shutdown: SIGTERM/SIGINT, 30s timeout
-- Конфигурация: Pydantic Settings (Fail Fast при старте)
-- Мониторинг: `/metrics` (Prometheus)
+- Configuration: Pydantic Settings (Fail Fast at startup)
+- Monitoring: `/metrics` (Prometheus)
 
-Полная конфигурация: см. [reference/docker.md](reference/docker.md)
-Production requirements: см. [reference/production.md](reference/production.md)
+Full configuration: see [reference/docker.md](reference/docker.md)
+Production requirements: see [reference/production.md](reference/production.md)

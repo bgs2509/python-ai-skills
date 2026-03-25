@@ -1,31 +1,31 @@
-# Completion Report: Обязательное одобрение плана
+# Completion Report: Mandatory Plan Approval
 
-## Метаданные
+## Metadata
 
 - **Task ID**: TASK-004
-- **Дата**: 2026-03-16
-- **Тип**: fix
-- **Статус**: Done
+- **Date**: 2026-03-16
+- **Type**: fix
+- **Status**: Done
 
-## Что сделано
+## What Was Done
 
-Усилено требование одобрения плана пользователем перед написанием кода в pipeline.
+Strengthened the requirement for user plan approval before writing code in the pipeline.
 
-### Изменения
+### Changes
 
-| Секция | Что изменено |
-|--------|-------------|
-| Phase 3.5, п.3 | BLOCKER: явное одобрение обязательно, молчание ≠ одобрение |
-| Gate 3.5→4 | Список допустимых слов одобрения, иначе возврат к Phase 3 |
-| Phase 4 | PREREQUISITE блок — запрет начала без одобрения |
-| Железные правила | Новое правило: никогда не пиши код без одобрения плана |
+| Section | What was changed |
+|---------|-----------------|
+| Phase 3.5, item 3 | BLOCKER: explicit approval is mandatory, silence ≠ approval |
+| Gate 3.5→4 | List of acceptable approval words, otherwise return to Phase 3 |
+| Phase 4 | PREREQUISITE block — prohibits starting without approval |
+| Iron Rules | New rule: never write code without plan approval |
 
-## Файлы
+## Files
 
-| Файл | Действие |
-|------|----------|
-| `commands/pipeline.md` | Изменён — 4 точки усиления |
+| File | Action |
+|------|--------|
+| `commands/pipeline.md` | Modified — 4 enforcement points |
 
-## Итого
+## Summary
 
-- Файлов изменено: 1
+- Files changed: 1

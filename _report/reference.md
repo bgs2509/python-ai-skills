@@ -1,51 +1,51 @@
 # Completion Report
 
-> Отчёт после завершения фичи. Фиксирует что сделано, что проверено, что изменилось, что не работает.
+> Report after finishing a feature. Records what was done, what was verified, what changed, what does not work.
 
 ---
 
-## Когда создавать
+## When to Create
 
-- После завершения каждой значимой фичи
-- После рефакторинга
-- После исправления критического бага
-- Перед merge в main
+- After completing every significant feature
+- After refactoring
+- After fixing a critical bug
+- Before merging to main
 
 ---
 
-## Шаблон
+## Template
 
 ```markdown
-# Completion Report: {Название фичи}
+# Completion Report: {Feature Name}
 
 ## Task
 
 - Task ID: {TASK-NNN}
-- План: {PLAN-NNN или "Нет"}
-- ADR: {ADR-NNN или "Нет"}
+- Plan: {PLAN-NNN or "None"}
+- ADR: {ADR-NNN or "None"}
 
 ## Executive Summary
 
-{1-3 предложения: что сделано и зачем}
+{1-3 sentences: what was done and why}
 
-## Изменения
+## Changes
 
-### Добавлено
-- {Что добавлено}
+### Added
+- {What was added}
 
-### Изменено
-- {Что изменено}
+### Changed
+- {What was changed}
 
-### Удалено
-- {Что удалено}
+### Removed
+- {What was removed}
 
-## Результаты ревью
+## Review Results
 
-- [ ] Quality Cascade (17 принципов) — проверено
-- [ ] Security чеклист — проверено
-- [ ] Линтеры пройдены (ruff, mypy)
+- [ ] Quality Cascade (17 principles) — verified
+- [ ] Security checklist — verified
+- [ ] Linters passed (ruff, mypy)
 
-## Результаты тестов
+## Test Results
 
 - Unit: {passed}/{total}
 - Integration: {passed}/{total}
@@ -53,32 +53,32 @@
 
 ## Architecture Decision Records
 
-{Список ADR, созданных в рамках фичи, или "Нет"}
+{List of ADRs created as part of the feature, or "None"}
 
 ## Scope Changes
 
-{Что отличается от первоначального плана и почему, или "Нет"}
+{What differs from the original plan and why, or "None"}
 
 ## Known Limitations
 
-{Что не работает, workarounds, планы на исправление, или "Нет"}
+{What does not work, workarounds, plans for fixing, or "None"}
 
-## Метрики
+## Metrics
 
-- Файлов изменено: {N}
-- Строк добавлено: {N}
-- Строк удалено: {N}
-- Тестов добавлено: {N}
+- Files changed: {N}
+- Lines added: {N}
+- Lines deleted: {N}
+- Tests added: {N}
 ```
 
 ---
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Хранение | `docs/reports/` в репозитории проекта |
-| Именование | `{дата}-{фича}.md` (например `2024-01-15-user-auth.md`) |
-| Краткость | Executive Summary — 1-3 предложения, не пересказ всей работы |
-| Known Limitations | Обязательная секция — даже если "Нет" |
-| Scope Changes | Обязательная секция — фиксация отклонений от плана |
+| Rule | Description |
+|------|-------------|
+| Storage | `docs/reports/` in the project repository |
+| Naming | `{date}-{feature}.md` (e.g., `2024-01-15-user-auth.md`) |
+| Brevity | Executive Summary — 1-3 sentences, not a retelling of all the work |
+| Known Limitations | Mandatory section — even if "None" |
+| Scope Changes | Mandatory section — recording deviations from the plan |

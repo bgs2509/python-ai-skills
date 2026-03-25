@@ -1,43 +1,43 @@
 ---
 name: _security
 description: >
-  Безопасность Python-приложений: OWASP Top 10 чеклист, валидация, CORS, rate limiting,
-  управление секретами (Pydantic Settings, .env.example). Используй при ревью безопасности, настройке секретов, аудите.
+  Python application security: OWASP Top 10 checklist, validation, CORS, rate limiting,
+  secrets management (Pydantic Settings, .env.example). Use for security reviews, secrets configuration, and audits.
 ---
 
 # Security
 
-> Безопасность на всех уровнях — от ввода до логов. Секреты через environment variables (SSoT).
+> Security at all levels — from input to logs. Secrets via environment variables (SSoT).
 
-## Обязательные правила
+## Mandatory Rules
 
-| Правило | Детали |
-|---------|--------|
-| Секреты только через env vars | Никаких hardcoded паролей, токенов, API-ключей |
+| Rule | Details |
+|------|---------|
+| Secrets only via env vars | No hardcoded passwords, tokens, or API keys |
 | .gitignore | .env, *.pem, *.key, credentials.json |
-| .env.example без секретов | Только CHANGE_ME placeholder'ы |
-| Санитизация логов | Автоматическая маскировка через structlog |
-| Валидация на границах | Pydantic, Fail Fast |
-| Параметризованные SQL | SQL injection — blocker |
-| CORS (не `*` в prod) | Явный список origins |
-| Rate limiting | Для публичных endpoints |
-| HTTPS only в prod | Незашифрованный трафик недопустим |
-| Pre-commit hooks | Автоматическая проверка утечки секретов |
+| .env.example without secrets | Only CHANGE_ME placeholders |
+| Log sanitization | Automatic masking via structlog |
+| Validation at boundaries | Pydantic, Fail Fast |
+| Parameterized SQL | SQL injection is a blocker |
+| CORS (no `*` in prod) | Explicit list of origins |
+| Rate limiting | For public endpoints |
+| HTTPS only in prod | Unencrypted traffic is unacceptable |
+| Pre-commit hooks | Automatic secret leak detection |
 
 ## OWASP Top 10
 
-| # | Уязвимость | Предотвращение |
-|---|-----------|----------------|
-| 1 | Injection | Параметризованные запросы, ORM |
-| 2 | Broken Auth | bcrypt/argon2, сессии с таймаутом |
-| 3 | Sensitive Data | HTTPS, маскировка в логах |
-| 4 | XXE | Отключение внешних сущностей |
-| 5 | Broken Access | Проверка прав, deny by default |
-| 6 | Misconfiguration | Нет дефолтных паролей, debug=False |
-| 7 | XSS | Экранирование, CSP |
-| 8 | Insecure Deserialization | Pydantic для валидации |
-| 9 | Known Vulnerabilities | Обновление зависимостей |
-| 10 | Insufficient Logging | Логирование security-событий |
+| # | Vulnerability | Prevention |
+|---|--------------|------------|
+| 1 | Injection | Parameterized queries, ORM |
+| 2 | Broken Auth | bcrypt/argon2, sessions with timeout |
+| 3 | Sensitive Data | HTTPS, masking in logs |
+| 4 | XXE | Disable external entities |
+| 5 | Broken Access | Permission checks, deny by default |
+| 6 | Misconfiguration | No default passwords, debug=False |
+| 7 | XSS | Escaping, CSP |
+| 8 | Insecure Deserialization | Pydantic for validation |
+| 9 | Known Vulnerabilities | Dependency updates |
+| 10 | Insufficient Logging | Logging security events |
 
-Управление секретами (Pydantic Settings, ротация): см. [reference/secrets-management.md](reference/secrets-management.md)
-Полная версия security-правил: см. [reference/security.md](reference/security.md)
+Secrets management (Pydantic Settings, rotation): see [reference/secrets-management.md](reference/secrets-management.md)
+Full security rules: see [reference/security.md](reference/security.md)

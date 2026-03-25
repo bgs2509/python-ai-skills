@@ -1,43 +1,43 @@
-# ADR-001: Файловая конвенция SKILL.md + reference.md
+# ADR-001: File Convention SKILL.md + reference.md
 
 ## Task
 TASK-001
 
-## Статус
+## Status
 Accepted
 
-## Контекст
-Нужно переиспользовать стандарты python-ai-skills в 10-20+ проектах через Claude Code.
-Требования: минимум токенов, ноль зависимостей, live reload при редактировании,
-git-версионирование.
+## Context
+Need to reuse python-ai-skills standards across 10-20+ projects via Claude Code.
+Requirements: minimal tokens, zero dependencies, live reload on editing,
+git versioning.
 
-## Рассмотренные альтернативы
+## Considered Alternatives
 
-### Вариант A: MCP-сервер с тиерингом
-- Плюсы: явный контроль L0/L1/L2, семантический поиск
-- Минусы: нужен код сервера, зависимости, MCP-ответы дублируются в истории
+### Variant A: MCP Server with Tiering
+- Pros: explicit L0/L1/L2 control, semantic search
+- Cons: requires server code, dependencies, MCP responses are duplicated in history
 
-### Вариант B: MCP с FTS5
-- Плюсы: полнотекстовый поиск, масштабируется до 100+ документов
-- Минусы: SQLite + embedding, сложность настройки, overhead на сервер
+### Variant B: MCP with FTS5
+- Pros: full-text search, scales to 100+ documents
+- Cons: SQLite + embedding, setup complexity, server overhead
 
-### Вариант C: Файловая конвенция SKILL.md + reference.md
-- Плюсы: ноль кода, лучшая экономия токенов (-66%), live reload, git native
-- Минусы: нет семантического поиска, ручное разделение на краткую/полную версию
+### Variant C: File Convention SKILL.md + reference.md
+- Pros: zero code, best token savings (-66%), live reload, git native
+- Cons: no semantic search, manual split into short/full version
 
-### Вариант D: OpenViking
-- Плюсы: память между сессиями, профилирование по проекту
-- Минусы: 5-7 часов настройки, внешняя зависимость
+### Variant D: OpenViking
+- Pros: memory between sessions, per-project profiling
+- Cons: 5-7 hours setup, external dependency
 
-## Решение
-Выбран Вариант C потому что обеспечивает лучшую экономию токенов при нулевой
-сложности инфраструктуры. reference.md читается через Read tool и не дублируется
-в истории сообщений (в отличие от MCP-ответов).
+## Decision
+Chose Variant C because it provides the best token savings with zero
+infrastructure complexity. reference.md is read via Read tool and is not duplicated
+in message history (unlike MCP responses).
 
-## Последствия
-- Проще: добавление skill'а = создание папки + SKILL.md + symlink
-- Проще: обновление = редактирование .md файла (live reload)
-- Сложнее: при 30+ skill'ах возможны ложные срабатывания автоматического выбора
-- Ограничение: нет семантического поиска — Claude выбирает skill только по description
+## Consequences
+- Easier: adding a skill = creating a folder + SKILL.md + symlink
+- Easier: updating = editing an .md file (live reload)
+- Harder: with 30+ skills, false positives in automatic selection are possible
+- Limitation: no semantic search — Claude selects skills only by description
 
-Полный анализ: [docs/2026-03-15-skills-file-convention-architecture.md](../2026-03-15-skills-file-convention-architecture.md)
+Full analysis: [docs/2026-03-15-skills-file-convention-architecture.md](../2026-03-15-skills-file-convention-architecture.md)

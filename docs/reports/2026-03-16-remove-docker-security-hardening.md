@@ -1,31 +1,31 @@
 # Completion Report: TASK-005
 
-**Дата:** 2026-03-16
-**Задача:** Удалить security hardening из _docker skill
+**Date:** 2026-03-16
+**Task:** Remove security hardening from _docker skill
 
-## Что сделано
+## What Was Done
 
-Удалены правила контейнерной безопасности, которые ломают сервисы с `setuid()`/`setgid()` (nginx, postgres).
+Removed container security rules that broke services using `setuid()`/`setgid()` (nginx, postgres).
 
-## Изменения
+## Changes
 
-| Файл | Что сделано |
-|------|-------------|
-| `_docker/SKILL.md` | Убран "security hardening" из description, удалены `no-new-privileges`, `cap_drop: ALL`, `read_only: true` |
-| `_docker/reference/docker.md` | Удалены строки `No new privileges`, `Drop capabilities`, `Read-only filesystem` из таблицы Security |
-| `CLAUDE.md` | Обновлено описание `_docker` в каталоге skill'ов |
+| File | What was done |
+|------|---------------|
+| `_docker/SKILL.md` | Removed "security hardening" from description, deleted `no-new-privileges`, `cap_drop: ALL`, `read_only: true` |
+| `_docker/reference/docker.md` | Removed `No new privileges`, `Drop capabilities`, `Read-only filesystem` rows from Security table |
+| `CLAUDE.md` | Updated `_docker` description in skill catalog |
 
-## Что осталось в секции Security
+## What Remains in Security Section
 
 - Non-root user (`adduser --disabled-password appuser` + `USER appuser`)
-- Без секретов в image (не COPY .env, не ARG для секретов)
+- No secrets in image (no COPY .env, no ARG for secrets)
 
-## Причина
+## Reason
 
-`no-new-privileges:true` + `cap_drop: ALL` запрещали nginx worker'ам вызывать `setgid()`.
-Worker'ы падали при старте → master принимал TCP-соединения, но некому было их обрабатывать → curl зависал.
+`no-new-privileges:true` + `cap_drop: ALL` prevented nginx workers from calling `setgid()`.
+Workers crashed on startup → master accepted TCP connections, but there was no one to handle them → curl hung.
 
-## Коммиты
+## Commits
 
 - `6032b71` — chore: remove 'security hardening' pattern from _docker skill description
 - `5ef759a` — fix: remove no-new-privileges and cap_drop rules from _docker skill

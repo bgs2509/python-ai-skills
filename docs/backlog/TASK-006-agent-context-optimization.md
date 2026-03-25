@@ -1,18 +1,18 @@
-# TASK-006: Оптимизация контекста агентов пайплайна
+# TASK-006: Pipeline Agent Context Optimization
 
-## Статус: Done
+## Status: Done
 
-## Приоритет: Critical
+## Priority: Critical
 
-## Описание
+## Description
 
-Агенты пайплайна (py-quality, py-security, py-test-writer, py-doc-manager) при запуске читали 2-4 skill-файла, загружая 4000-12000 токенов знаний в контекст. Это приводило к пропуску инструкций, неполным отчётам и медленной работе.
+Pipeline agents (py-quality, py-security, py-test-writer, py-doc-manager) were reading 2-4 skill files at startup, loading 4,000-12,000 tokens of knowledge into context. This led to missed instructions, incomplete reports, and slow performance.
 
-Решение: паттерн "Critical rules inline, details on demand" — критичные правила (severity, формат отчёта, top-5 проверок) встроены прямо в агент-файлы, ссылки на skill-файлы сохранены для деталей.
+Solution: "Critical rules inline, details on demand" pattern — critical rules (severity, report format, top-5 checks) are embedded directly in agent files, references to skill files are preserved for details.
 
-Дополнительно: добавлена единая таблица Unified Severity Mapping в pipeline.md для согласования severity между агентами.
+Additionally: a Unified Severity Mapping table was added to pipeline.md for severity alignment across agents.
 
-## Связанные артефакты
+## Related Artifacts
 
 - CHANGELOG.md (Unreleased)
 - Report: docs/reports/2026-03-17-agent-context-optimization.md

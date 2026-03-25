@@ -1,72 +1,72 @@
-# Планирование
+# Planning
 
-> Формат и правила создания планов. Применяется как в пайплайне документации (этап 2), так и для автономного планирования (ресёрч, оценка).
-
----
-
-## Когда план попадает в пайплайн
-
-Если Claude создал файл плана для задачи из backlog — это этап планирования пайплайна. План сохраняется в `docs/plans/` целевого проекта.
-
-Планы вне пайплайна (ресёрч, оценка "делать/не делать") не сохраняются в `docs/plans/`.
+> Format and rules for creating plans. Applies both in the documentation pipeline (stage 2) and for standalone planning (research, estimation).
 
 ---
 
-## Хранение
+## When a Plan Enters the Pipeline
 
-| Правило | Описание |
-|---------|----------|
-| Хранение | `docs/plans/` в репозитории целевого проекта |
-| Именование | `PLAN-NNN-{краткое-название}.md` |
-| Нумерация | PLAN-001, PLAN-002, ... — последовательная |
-| Связь с задачей | Обязательное поле `Task: TASK-NNN` |
-| Язык | Русский (описание этапов, вопросы, ответы) |
+If Claude created a plan file for a backlog task — this is the planning stage of the pipeline. The plan is saved in `docs/plans/` of the target project.
+
+Plans outside the pipeline (research, "do or don't" estimation) are not saved in `docs/plans/`.
 
 ---
 
-## Формат файла плана
+## Storage
 
-> **КРИТИЧЕСКОЕ ПРАВИЛО**: Эта инструкция ОБЯЗАТЕЛЬНА для КАЖДОГО плана. Нарушение = переписывание плана с нуля.
-
-### Структура (СТРОГО в таком порядке)
-
-**1. Контекст** (3-5 предложений)
-- Что делаем, зачем, какую проблему решаем
-
-**2. Содержание** (оглавление)
-- Нумерованный список всех этапов плана (только названия)
-
-**3. Краткая версия плана**
-- По каждому этапу: 6 вопросов (ответ на каждый — 1-2 предложения простым языком)
-- Без кода и без деталей реализации (номера строк, сигнатуры функций, паттерны проектирования)
-- ОБЯЗАТЕЛЬНО упоминать конкретные названия: сервисов, файлов, параметров, папок — чтобы было понятно О ЧЁМ идёт речь
-- Цель: понять ЧТО делает каждый этап за 30 секунд чтения
-
-Обязательные вопросы для каждого этапа:
-
-1. **Проблема** — Какую проблему решает?
-2. **Действие** — Что делает?
-3. **Результат** — Какой результат получаем?
-4. **Зависимости** — От чего зависит? (какие этапы до этого)
-5. **Риски** — Какие новые проблемы порождает?
-6. **Без этого** — Что ломается если этот этап пропустить?
-
-**4. Полная версия плана**
-- Детальное описание с файлами, кодом, техническими деталями
-- Каждый этап начинается с заголовка `## Этап N: Название`
+| Rule | Description |
+|------|-------------|
+| Storage | `docs/plans/` in the target project repository |
+| Naming | `PLAN-NNN-{short-name}.md` |
+| Numbering | PLAN-001, PLAN-002, ... — sequential |
+| Task link | Mandatory field `Task: TASK-NNN` |
+| Language | Russian (stage descriptions, questions, answers) |
 
 ---
 
-## Запреты
+## Plan File Format
 
-- ❌ ЗАПРЕЩЕНО писать план без содержания и краткой версии
-- ❌ ЗАПРЕЩЕНО смешивать краткую и полную версии
-- ❌ ЗАПРЕЩЕНО начинать полную версию без краткой перед ней
-- ❌ ЗАПРЕЩЕНО редактировать файл плана если пользователь попросил устное объяснение — отвечать ТЕКСТОМ В ЧАТ
+> **CRITICAL RULE**: This instruction is MANDATORY for EVERY plan. Violation = rewriting the plan from scratch.
+
+### Structure (STRICTLY in this order)
+
+**1. Context** (3-5 sentences)
+- What we are doing, why, what problem we are solving
+
+**2. Table of Contents** (outline)
+- Numbered list of all plan stages (names only)
+
+**3. Brief version of the plan**
+- For each stage: 6 questions (answer to each — 1-2 sentences in plain language)
+- No code and no implementation details (line numbers, function signatures, design patterns)
+- MUST mention specific names: services, files, parameters, directories — so it is clear WHAT is being discussed
+- Goal: understand WHAT each stage does in 30 seconds of reading
+
+Mandatory questions for each stage:
+
+1. **Problem** — What problem does it solve?
+2. **Action** — What does it do?
+3. **Result** — What result do we get?
+4. **Dependencies** — What does it depend on? (which stages come before this one)
+5. **Risks** — What new problems does it create?
+6. **Without this** — What breaks if this stage is skipped?
+
+**4. Full version of the plan**
+- Detailed description with files, code, technical details
+- Each stage starts with a heading `## Stage N: Name`
 
 ---
 
-## Взаимодействие с пользователем в режиме планирования
+## Prohibitions
 
-- Если пользователь просит "объясни", "расскажи", "опиши" — отвечать ТЕКСТОМ В ЧАТ, НЕ редактировать файл плана
-- Редактировать файл плана ТОЛЬКО если пользователь явно просит "измени план", "добавь в план", "перепиши план"
+- Prohibited: writing a plan without a table of contents and brief version
+- Prohibited: mixing the brief and full versions
+- Prohibited: starting the full version without the brief version before it
+- Prohibited: editing the plan file if the user asked for a verbal explanation — respond with TEXT IN CHAT
+
+---
+
+## User Interaction in Planning Mode
+
+- If the user asks "explain", "tell me", "describe" — respond with TEXT IN CHAT, DO NOT edit the plan file
+- Edit the plan file ONLY if the user explicitly asks "change the plan", "add to the plan", "rewrite the plan"

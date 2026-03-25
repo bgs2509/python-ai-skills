@@ -1,23 +1,23 @@
-# Управление секретами
+# Secrets Management
 
-> Environment variables как единственный источник секретов (SSoT). Никаких секретов в коде, git, Docker images.
+> Environment variables as the single source of secrets (SSoT). No secrets in code, git, or Docker images.
 
 ---
 
 ## Pydantic Settings (SSoT)
 
-- Все настройки — через `pydantic-settings`
-- Типизированная валидация при старте (Fail Fast)
-- Обязательные поля без default — приложение не запустится без них
-- Единый класс `Settings` в `core/config.py` (SSoT)
+- All settings via `pydantic-settings`
+- Typed validation at startup (Fail Fast)
+- Required fields without defaults — the application will not start without them
+- Single `Settings` class in `core/config.py` (SSoT)
 
 ```
 class Settings(BaseSettings):
-    database_url: str                    # Обязательно — нет default
-    redis_url: str                       # Обязательно — нет default
-    secret_key: str                      # Обязательно — нет default
-    debug: bool = False                  # Опционально — есть default
-    log_level: str = "INFO"              # Опционально — есть default
+    database_url: str                    # Required — no default
+    redis_url: str                       # Required — no default
+    secret_key: str                      # Required — no default
+    debug: bool = False                  # Optional — has default
+    log_level: str = "INFO"              # Optional — has default
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -29,9 +29,9 @@ class Settings(BaseSettings):
 
 ## .env.example
 
-- Шаблон без реальных значений — только CHANGE_ME
-- Хранится в git
-- Описание каждой переменной
+- Template without real values — only CHANGE_ME
+- Stored in git
+- Description for each variable
 
 ```
 # Database
@@ -52,9 +52,9 @@ LOG_LEVEL=INFO
 
 ## Docker
 
-- Передача секретов через `environment:` в docker-compose
-- НИКОГДА через build args (остаются в image layers)
-- НИКОГДА через COPY .env в Dockerfile
+- Pass secrets via `environment:` in docker-compose
+- NEVER via build args (they remain in image layers)
+- NEVER via COPY .env in Dockerfile
 
 ```yaml
 services:
@@ -66,30 +66,30 @@ services:
 
 ---
 
-## Pre-commit проверки
+## Pre-commit Checks
 
-Автоматическая блокировка секретов в коммитах — см. skill `_linters` (_linters/reference/linters.md):
-- gitleaks — сканер секретов
-- detect-secrets — дополнительный сканер
-- Блокировка файлов: .env, .pem, .key, credentials.json
-
----
-
-## Ротация секретов
-
-- Процедура без downtime: новый секрет → деплой → отзыв старого
-- Не хранить старые секреты "на всякий случай"
-- Логирование факта ротации (без значений) — INFO
+Automatic blocking of secrets in commits — see skill `_linters` (_linters/reference/linters.md):
+- gitleaks — secret scanner
+- detect-secrets — additional scanner
+- Blocking files: .env, .pem, .key, credentials.json
 
 ---
 
-## Запреты (blocker)
+## Secret Rotation
 
-| Антипаттерн | Почему плохо |
-|-------------|-------------|
-| Hardcoded секреты в коде | Утечка через git |
-| Секреты в Docker image | Утечка через registry |
-| Секреты в логах | Утечка через log aggregator |
-| `.env` в git | Утечка секретов |
-| Default значение для секрета | Приложение запустится с невалидным секретом |
-| Секреты в CI/CD конфигах | Утечка через CI/CD систему |
+- Zero-downtime procedure: new secret → deploy → revoke old one
+- Do not keep old secrets "just in case"
+- Log the rotation event (without values) — INFO
+
+---
+
+## Prohibitions (blocker)
+
+| Anti-pattern | Why it is bad |
+|--------------|---------------|
+| Hardcoded secrets in code | Leak via git |
+| Secrets in Docker image | Leak via registry |
+| Secrets in logs | Leak via log aggregator |
+| `.env` in git | Secret leak |
+| Default value for a secret | Application starts with an invalid secret |
+| Secrets in CI/CD configs | Leak via CI/CD system |

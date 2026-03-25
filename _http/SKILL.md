@@ -1,47 +1,47 @@
 ---
 name: _http
 description: >
-  HTTP-клиенты Python (httpx AsyncClient, timeout, retry, Circuit Breaker,
-  централизованное логирование). Используй при интеграции с внешними API.
+  Python HTTP clients (httpx AsyncClient, timeout, retry, Circuit Breaker,
+  centralized logging). Use when integrating with external APIs.
 ---
 
-# HTTP-клиенты
+# HTTP Clients
 
-> Единый базовый HTTP-клиент (DRY, SSoT). Все исходящие вызовы через него.
+> Single base HTTP client (DRY, SSoT). All outgoing calls go through it.
 
 ## httpx AsyncClient
 
-- Один экземпляр на lifetime приложения
+- One instance per application lifetime
 - Connection pooling
-- Конкретные клиенты наследуются от базового
+- Specific clients inherit from the base client
 
-## Timeout (обязательно)
+## Timeout (required)
 
-| Параметр | Рекомендация |
-|----------|-------------|
+| Parameter | Recommendation |
+|-----------|---------------|
 | connect | 5s |
 | read | 30s |
 | write | 10s |
 | pool | 10s |
 
-Без таймаута — blocker.
+No timeout — blocker.
 
 ## Retry
 
-Retryable: 5xx, Timeout, Connection error, 429 (после Retry-After).
+Retryable: 5xx, Timeout, Connection error, 429 (after Retry-After).
 Non-retryable: 4xx.
-Стратегия: Exponential backoff + jitter, 3-5 попыток.
+Strategy: Exponential backoff + jitter, 3-5 attempts.
 
 ## Circuit Breaker
 
-| Состояние | Описание |
-|-----------|----------|
-| Closed | Нормальная работа |
-| Open | Порог ошибок превышен → fallback |
-| Half-Open | Пробный запрос |
+| State | Description |
+|-------|-------------|
+| Closed | Normal operation |
+| Open | Error threshold exceeded → fallback |
+| Half-Open | Probe request |
 
-## Централизованное логирование (автоматическое)
+## Centralized Logging (automatic)
 
 service, operation, method, endpoint, duration_ms, status_code, error_type, is_retryable.
 
-Полная версия: см. [reference.md](reference.md)
+Full version: see [reference.md](reference.md)

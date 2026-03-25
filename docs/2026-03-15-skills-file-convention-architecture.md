@@ -1,27 +1,27 @@
-# Вариант C: Файловая конвенция SKILL.md + reference.md
+# Variant C: File Convention SKILL.md + reference.md
 
-**Дата:** 2026-03-15
-**Контекст:** Выбор архитектуры для переиспользования стандартов python-ai-skills в 10-20+ проектах через Claude Code Skills.
-**Статус:** РЕАЛИЗОВАНО 2026-03-16 (15 skill'ов, 26 reference-файлов, symlinks в ~/.claude/skills/, гибридные триггеры).
+**Date:** 2026-03-15
+**Context:** Choosing an architecture for reusing python-ai-skills standards across 10-20+ projects via Claude Code Skills.
+**Status:** IMPLEMENTED 2026-03-16 (15 skills, 26 reference files, symlinks in ~/.claude/skills/, hybrid triggers).
 
-## Суть подхода
+## Approach Overview
 
-Репозиторий `python-ai-skills` — это **коллекция skill'ов**. Каждая директория в нём — готовый skill с конвенцией: `SKILL.md` содержит краткую версию (L0+L1), `reference.md` — полную (L2). Claude загружает `SKILL.md` при вызове, а `reference.md` читает через инструмент `Read` **только когда нужны детали**. Никакого дополнительного кода, серверов или зависимостей.
+The `python-ai-skills` repository is a **skill collection**. Each directory in it is a ready-made skill following the convention: `SKILL.md` contains the short version (L0+L1), `reference.md` — the full version (L2). Claude loads `SKILL.md` on invocation, and reads `reference.md` via the `Read` tool **only when details are needed**. No additional code, servers, or dependencies.
 
 ```
-~/python-ai-skills/                    # Git-репо = коллекция skill'ов (15 skill'ов)
+~/python-ai-skills/                    # Git repo = skill collection (15 skills)
 ├── _code-quality/
-│   ├── SKILL.md                       # Краткие принципы (~50 строк, context: fork)
-│   └── reference/                     # Несколько reference-файлов
+│   ├── SKILL.md                       # Short principles (~50 lines, context: fork)
+│   └── reference/                     # Multiple reference files
 │       ├── quality-cascade.md
 │       ├── code-standards.md
 │       └── naming.md
 ├── _error-handling/
 │   ├── SKILL.md
-│   └── reference.md                   # Один reference-файл
+│   └── reference.md                   # Single reference file
 └── ...
 
-~/.claude/skills/                      # Symlinks → python-ai-skills (15 шт.)
+~/.claude/skills/                      # Symlinks → python-ai-skills (15 total)
 ├── _code-quality → ~/python-ai-skills/_code-quality
 ├── _error-handling → ~/python-ai-skills/_error-handling
 └── ...
@@ -29,462 +29,462 @@
 
 ---
 
-## Как работает загрузка (3 фазы)
+## How Loading Works (3 Phases)
 
-### Фаза 1: Метаданные (старт сессии)
+### Phase 1: Metadata (session start)
 
-При начале сессии Claude загружает **только `name` и `description`** каждого skill'а.
+At session start, Claude loads **only `name` and `description`** of each skill.
 
-- Стоимость: ~100 токенов на skill
-- 15 skill'ов (реализовано) = ~1,500 токенов (пренебрежимо)
-- 50 skill'ов = ~5,000 токенов (всё ещё мало)
-- Бюджет: 2% контекстного окна (можно переопределить через `SLASH_COMMAND_TOOL_CHAR_BUDGET`)
+- Cost: ~100 tokens per skill
+- 15 skills (implemented) = ~1,500 tokens (negligible)
+- 50 skills = ~5,000 tokens (still low)
+- Budget: 2% of context window (can be overridden via `SLASH_COMMAND_TOOL_CHAR_BUDGET`)
 
-Claude видит **что доступно**, но не загружает содержимое.
+Claude sees **what is available**, but does not load content.
 
-**Источник:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
+**Source:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
 
-### Фаза 2: SKILL.md (при вызове)
+### Phase 2: SKILL.md (on invocation)
 
-Когда skill вызван (вручную `/_code-quality` или автоматически по description), Claude читает полный `SKILL.md` с диска.
+When a skill is invoked (manually `/_code-quality` or automatically by description), Claude reads the full `SKILL.md` from disk.
 
-- Стоимость: 300-5,000 токенов (зависит от размера)
-- Рекомендация: до 500 строк
-- Перечитывается каждый раз (нет кеша между вызовами)
-- Изменения в файле видны мгновенно (live reload)
+- Cost: 300-5,000 tokens (depends on size)
+- Recommendation: up to 500 lines
+- Re-read every time (no cache between invocations)
+- File changes are visible immediately (live reload)
 
-### Фаза 3: Поддерживающие файлы (по требованию)
+### Phase 3: Supporting files (on demand)
 
-Если `SKILL.md` ссылается на `reference.md`, Claude читает его через `Read` **только если задача требует деталей**.
+If `SKILL.md` references `reference.md`, Claude reads it via `Read` **only if the task requires details**.
 
-- Стоимость: 0 токенов пока не прочитан
-- Claude решает сам — нужен ли reference.md для текущей задачи
-- Файл читается через Read tool, **не дублируется** в каждом сообщении контекста (в отличие от MCP-ответов)
+- Cost: 0 tokens until read
+- Claude decides on its own — whether reference.md is needed for the current task
+- File is read via Read tool, **not duplicated** in every context message (unlike MCP responses)
 
-**Это ключевое преимущество Варианта C:** reference.md прочитан через Read = одноразовая загрузка. MCP-ответ = включается в историю и пересылается в каждом сообщении.
+**This is the key advantage of Variant C:** reference.md read via Read = one-time load. MCP response = included in history and forwarded in every message.
 
-**Источник:** [Skills — Add supporting files](https://code.claude.com/docs/en/skills.md#add-supporting-files)
+**Source:** [Skills — Add supporting files](https://code.claude.com/docs/en/skills.md#add-supporting-files)
 
 ---
 
-## Структура skill'а
+## Skill Structure
 
-### Минимальный пример
+### Minimal Example
 
 ```yaml
 # ~/python-ai-skills/_code-quality/SKILL.md
 ---
 name: _code-quality
-description: 17 принципов качества Python-кода. Используй при ревью, рефакторинге и написании нового кода.
+description: 17 Python code quality principles. Use during review, refactoring, and writing new code.
 ---
 
-## Принципы (краткая версия)
+## Principles (short version)
 
-1. **DRY** — нет дублирования логики
-2. **SRP** — один класс/функция = одна ответственность
-3. **LoD** — не лезь в чужие внутренности (a.b.c.d — плохо)
-4. **KISS** — простое решение лучше сложного
-5. **Fail Fast** — валидация на входе, guard clauses
+1. **DRY** — no logic duplication
+2. **SRP** — one class/function = one responsibility
+3. **LoD** — don't reach into others' internals (a.b.c.d — bad)
+4. **KISS** — simple solution is better than complex
+5. **Fail Fast** — validate at entry, guard clauses
 ...
 
-**Красные флаги:** except pass, god class >300 строк, magic numbers
+**Red flags:** except pass, god class >300 lines, magic numbers
 
-Полный текст с примерами и антипаттернами: см. [reference.md](reference.md)
+Full text with examples and anti-patterns: see [reference.md](reference.md)
 ```
 
 ### reference.md
 
 ```markdown
-# Quality Cascade — полная версия
+# Quality Cascade — Full Version
 
-## Принцип 1: DRY
+## Principle 1: DRY
 
-### Описание
+### Description
 ...
 
-### Примеры нарушений
+### Violation Examples
 ...
 
-### Как исправить
+### How to Fix
 ...
 
-## Принцип 2: SRP
+## Principle 2: SRP
 ...
 ```
 
-### Реализованные варианты структуры
+### Implemented Structure Variants
 
-**Один reference-файл** (полная версия = один файл):
+**Single reference file** (full version = one file):
 ```
 _error-handling/
-├── SKILL.md              # Краткая версия (~40 строк)
-└── reference.md          # Полная версия (~110 строк)
+├── SKILL.md              # Short version (~40 lines)
+└── reference.md          # Full version (~110 lines)
 ```
 
-**Папка reference/** (несколько тематических файлов):
+**reference/ folder** (multiple topic-specific files):
 ```
 architecture/
-├── SKILL.md              # DDD + Hexagonal кратко
+├── SKILL.md              # DDD + Hexagonal short
 └── reference/
-    ├── ddd.md            # Слои, сущности, Value Objects
-    ├── hexagonal.md      # Порты, адаптеры, DI
-    ├── monolith.md       # Специфика монолитов
-    └── microservices.md  # Специфика микросервисов
+    ├── ddd.md            # Layers, entities, Value Objects
+    ├── hexagonal.md      # Ports, adapters, DI
+    ├── monolith.md       # Monolith specifics
+    └── microservices.md  # Microservices specifics
 ```
 
-**Без reference** (шаблон/генератор целиком в SKILL.md):
+**No reference** (template/generator entirely in SKILL.md):
 ```
 init-project/
-└── SKILL.md              # Интерактивная инициализация с вопросами
+└── SKILL.md              # Interactive initialization with questions
 ```
 
-**Источник:** [Best practices — Pattern 2: Domain-organized](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#pattern-1-high-level-guide-with-references)
+**Source:** [Best practices — Pattern 2: Domain-organized](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#pattern-1-high-level-guide-with-references)
 
 ---
 
-## Поведение description — как Claude выбирает skills
+## Description Behavior — How Claude Selects Skills
 
-Description — **единственное** что определяет автозагрузку. Claude использует **семантическое сопоставление** (не regex, не ключевые слова) через свою языковую модель.
+Description is the **only thing** that determines auto-loading. Claude uses **semantic matching** (not regex, not keywords) via its language model.
 
-### Правила хорошего description
-
-```yaml
-# ✅ Хорошо — конкретно, с триггерами
-description: >
-  17 принципов качества Python-кода (DRY, SRP, LoD, KISS).
-  Используй при ревью кода, рефакторинге, написании новых модулей.
-
-# ❌ Плохо — слишком абстрактно
-description: Помогает с качеством кода
-```
-
-### Что включать в description
-
-1. **ЧТО делает** — "17 принципов качества Python-кода"
-2. **КОГДА использовать** — "при ревью, рефакторинге, написании нового кода"
-3. **Ключевые слова** — "DRY, SRP, LoD, KISS" (помогают семантическому матчингу)
-4. **TRIGGER-условия** (для авто-вызова) — "TRIGGER когда: выбор между технологиями, пользователь сравнивает варианты"
-
-### Паттерн TRIGGER в description
-
-Для skill'ов, которые должны срабатывать автоматически, в description добавляется блок TRIGGER:
+### Rules for Good Descriptions
 
 ```yaml
+# ✅ Good — specific, with triggers
 description: >
-  Создание ADR. Шаблон с контекстом, альтернативами, решением.
-  TRIGGER когда: выбор между технологиями/библиотеками, выбор архитектурного паттерна,
-  пользователь сравнивает варианты.
+  17 Python code quality principles (DRY, SRP, LoD, KISS).
+  Use during code review, refactoring, writing new modules.
+
+# ❌ Bad — too abstract
+description: Helps with code quality
 ```
 
-Это не гарантирует автоматический вызов, но значительно повышает вероятность. Если авто-вызов не сработал, workflow напоминает вызвать skill вручную.
+### What to Include in Description
 
-**Реализовано для:** create-adr, completion-report.
+1. **WHAT it does** — "17 Python code quality principles"
+2. **WHEN to use** — "during review, refactoring, writing new code"
+3. **Keywords** — "DRY, SRP, LoD, KISS" (help semantic matching)
+4. **TRIGGER conditions** (for auto-invocation) — "TRIGGER when: choosing between technologies, user compares options"
 
-### Ограничения
+### TRIGGER Pattern in Description
 
-- Максимум 1,024 символа
-- Нельзя XML-теги
-- Писать от третьего лица ("Проверяет код...", не "Я проверяю...")
+For skills that should fire automatically, a TRIGGER block is added to the description:
 
-**Источник:** [Best practices — Writing effective descriptions](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#writing-effective-descriptions)
+```yaml
+description: >
+  ADR creation. Template with context, alternatives, decision.
+  TRIGGER when: choosing between technologies/libraries, choosing an architectural pattern,
+  user compares options.
+```
+
+This does not guarantee automatic invocation, but significantly increases the likelihood. If auto-invocation does not trigger, the workflow reminds to invoke the skill manually.
+
+**Implemented for:** create-adr, completion-report.
+
+### Limitations
+
+- Maximum 1,024 characters
+- No XML tags
+- Write in third person ("Checks code...", not "I check...")
+
+**Source:** [Best practices — Writing effective descriptions](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#writing-effective-descriptions)
 
 ---
 
-## Расход токенов — детальный расчёт
+## Token Consumption — Detailed Calculation
 
-### Базовые размеры
+### Base Sizes
 
-| Компонент | Строк | Токенов |
-|-----------|-------|---------|
+| Component | Lines | Tokens |
+|-----------|-------|--------|
 | Description (1 skill) | 2-3 | ~100 |
-| SKILL.md body (краткая версия) | 30-50 | ~300-500 |
-| reference.md (полная версия) | 150-500 | ~1,500-5,000 |
+| SKILL.md body (short version) | 30-50 | ~300-500 |
+| reference.md (full version) | 150-500 | ~1,500-5,000 |
 
-### Сценарий: 15 skill'ов (реализовано), сессия 20 сообщений
+### Scenario: 15 skills (implemented), 20-message session
 
-**Ревью кода (5 запросов) — нужны 3 skill'а с деталями:**
-- Descriptions всех 15: ~1,500 токенов (загружены всегда)
-- SKILL.md × 3: 900-1,500 токенов
-- reference.md × 1-3: 1,500-5,000 токенов (Claude решает сколько нужно)
-- **Итого: 3,400-7,500 токенов на запрос**
+**Code review (5 requests) — 3 skills with details needed:**
+- Descriptions of all 15: ~1,500 tokens (always loaded)
+- SKILL.md × 3: 900-1,500 tokens
+- reference.md × 1-3: 1,500-5,000 tokens (Claude decides how many are needed)
+- **Total: 3,400-7,500 tokens per request**
 
-**Написание кода (10 запросов) — фоновый контекст, детали не нужны:**
-- Descriptions: ~1,500 токенов
-- SKILL.md × 0-2 (автозагрузка): 0-600 токенов
-- reference.md: не читается
-- **Итого: 1,000-1,600 токенов на запрос**
+**Writing code (10 requests) — background context, details not needed:**
+- Descriptions: ~1,500 tokens
+- SKILL.md × 0-2 (auto-loaded): 0-600 tokens
+- reference.md: not read
+- **Total: 1,000-1,600 tokens per request**
 
-**Простые вопросы (5 запросов) — skills не нужны:**
-- Descriptions: ~1,500 токенов
-- Остальное: 0
-- **Итого: 1,000 токенов на запрос**
+**Simple questions (5 requests) — skills not needed:**
+- Descriptions: ~1,500 tokens
+- Everything else: 0
+- **Total: 1,000 tokens per request**
 
-### Сравнение с другими вариантами
+### Comparison with Other Variants
 
-| Метрика | Без тиеринга | Вариант C | MCP (A/B/D) |
-|---------|-------------|-----------|-------------|
-| Среднее за сессию | ~100,000 | ~34,000 | ~46,000 |
-| Экономия | — | **66%** | 54% |
-| Мусорные токены | 40-60% | 10-20% | 10-20% |
+| Metric | No tiering | Variant C | MCP (A/B/D) |
+|--------|-----------|-----------|-------------|
+| Average per session | ~100,000 | ~34,000 | ~46,000 |
+| Savings | — | **66%** | 54% |
+| Wasted tokens | 40-60% | 10-20% | 10-20% |
 
-**Почему C экономнее MCP:** reference.md прочитан через Read = данные в одном сообщении. MCP-ответ = включается в tool_result и **пересылается в каждом последующем запросе** пока не будет сжат.
-
----
-
-## Сильные стороны
-
-### 1. Ноль кода, ноль зависимостей
-
-Никакого MCP-сервера, embedding-провайдера, базы данных. Только .md файлы в `~/python-ai-skills/` + symlinks в `~/.claude/skills/`. Работает на любой машине с Claude Code.
-
-### 2. Лучшая экономия токенов (-66%)
-
-Парадоксально, самый простой вариант экономит больше всех. Причина: `reference.md` читается через `Read` tool и не дублируется в истории сообщений, в отличие от MCP-ответов.
-
-### 3. Live reload
-
-Изменил `SKILL.md` или `reference.md` — Claude видит изменения при следующем вызове. Не нужно перезапускать сервер, переиндексировать базу, перезагружать сессию.
-
-### 4. Git-версионирование
-
-Все skill'ы — обычные .md файлы. Можно хранить в git, делать PR, откатывать, отслеживать историю изменений.
-
-### 5. Прозрачность
-
-Видно что Claude загрузил — каждый Read tool call отображается в чате. В отличие от автозагрузки `user-invocable: false`, где непонятно что и когда подгрузилось.
-
-### 6. Быстрый старт
-
-Время на создание: ~1 сессия Claude Code (15 skill'ов + 26 reference файлов, включая миграцию из плоской структуры). Для сравнения: MCP-варианты = 4-6 часов, OpenViking = 5-7 часов.
-
-### 7. Масштабируемость описаний
-
-При 15 skill'ах (реализовано) описания = ~1,500 токенов (<1% контекста). При 100 skill'ах = ~10,000 токенов (~2%). Система работает до 100+ skill'ов без деградации.
+**Why C is more economical than MCP:** reference.md read via Read = data in one message. MCP response = included in tool_result and **forwarded in every subsequent request** until compressed.
 
 ---
 
-## Слабые стороны
+## Strengths
 
-### 1. Нет семантического поиска
+### 1. Zero Code, Zero Dependencies
 
-Claude выбирает skill только по description (семантическое сопоставление LLM). При 30+ skill'ах с похожими описаниями Claude может выбрать не тот skill или пропустить нужный.
+No MCP server, embedding provider, or database. Only .md files in `~/python-ai-skills/` + symlinks in `~/.claude/skills/`. Works on any machine with Claude Code.
 
-**Митигация:** Писать максимально специфичные description с ключевыми словами-триггерами. Избегать пересекающихся описаний.
+### 2. Best Token Savings (-66%)
 
-### 2. Нет гарантии что reference.md будет/не будет прочитан
+Paradoxically, the simplest variant saves the most. Reason: `reference.md` is read via `Read` tool and is not duplicated in message history, unlike MCP responses.
 
-Claude **сам решает** нужен ли reference.md. Это может привести к:
-- **Перерасходу:** Claude читает reference.md когда хватило бы SKILL.md
-- **Недозагрузке:** Claude не читает reference.md когда детали нужны
+### 3. Live Reload
 
-**Митигация:** Чёткие указания в SKILL.md: "Для ревью кода ОБЯЗАТЕЛЬНО прочитай reference.md. Для написания нового кода — достаточно принципов выше."
+Changed `SKILL.md` or `reference.md` — Claude sees changes on the next invocation. No need to restart a server, re-index a database, or reload a session.
 
-### 3. Ручное разделение на L0/L1/L2
+### 4. Git Versioning
 
-Нужно вручную решить что идёт в SKILL.md (краткая версия), а что в reference.md (полная). Для 15 skill'ов из python-ai-skills (26 файлов) это было сделано за одну сессию Claude Code.
+All skills are regular .md files. Can be stored in git, PRs made, rolled back, change history tracked.
 
-**Статус:** Выполнено 2026-03-16. Обновлять инкрементально при добавлении новых skill'ов.
+### 5. Transparency
 
-### 4. Нет памяти между сессиями (для skills)
+You can see what Claude loaded — every Read tool call is displayed in chat. Unlike auto-loading with `user-invocable: false`, where it is unclear what was loaded and when.
 
-Skills не запоминают что работало, а что нет. Каждая сессия начинается с нуля.
+### 6. Quick Start
 
-**Митигация:** Claude Code имеет собственную систему memory (`~/.claude/projects/*/memory/`). Это не связано со skills, но покрывает потребность в памяти.
+Creation time: ~1 Claude Code session (15 skills + 26 reference files, including migration from flat structure). For comparison: MCP variants = 4-6 hours, OpenViking = 5-7 hours.
 
-### 5. Нет автоматического профилирования по типу проекта
+### 7. Description Scalability
 
-Skill не знает, что проект — монолит или микросервис. Нужно либо:
-- Явно вызывать `/_code-quality`
-- Либо полагаться на CLAUDE.md проекта (где указан тип архитектуры)
+With 15 skills (implemented) descriptions = ~1,500 tokens (<1% of context). With 100 skills = ~10,000 tokens (~2%). The system works up to 100+ skills without degradation.
 
-**Митигация:** В CLAUDE.md проекта указывать тип архитектуры. Skill может содержать инструкцию: "Прочитай CLAUDE.md проекта, найди тип архитектуры, применяй соответствующие правила."
+---
 
-### 6. Запись в python-ai-skills из другого проекта требует исключения в политике $PWD
+## Weaknesses
 
-Для создания/редактирования skill'ов из целевого проекта (где накоплен контекст) нужно разрешить запись в `~/python-ai-skills/` — это исключение из политики LOCAL-ONLY.
+### 1. No Semantic Search
 
-**Решение:** В глобальном `~/.claude/CLAUDE.md` добавлено whitelist-исключение (РЕАЛИЗОВАНО 2026-03-16):
+Claude selects skills only by description (LLM semantic matching). With 30+ skills with similar descriptions, Claude may select the wrong skill or miss the right one.
+
+**Mitigation:** Write maximally specific descriptions with trigger keywords. Avoid overlapping descriptions.
+
+### 2. No Guarantee That reference.md Will/Won't Be Read
+
+Claude **decides on its own** whether reference.md is needed. This can lead to:
+- **Overspending:** Claude reads reference.md when SKILL.md would have been sufficient
+- **Under-loading:** Claude does not read reference.md when details are needed
+
+**Mitigation:** Clear instructions in SKILL.md: "For code review, ALWAYS read reference.md. For writing new code — the principles above are sufficient."
+
+### 3. Manual Split into L0/L1/L2
+
+You need to manually decide what goes in SKILL.md (short version) and what in reference.md (full version). For 15 skills from python-ai-skills (26 files) this was done in one Claude Code session.
+
+**Status:** Completed 2026-03-16. Update incrementally when adding new skills.
+
+### 4. No Memory Between Sessions (for skills)
+
+Skills do not remember what worked and what did not. Each session starts from scratch.
+
+**Mitigation:** Claude Code has its own memory system (`~/.claude/projects/*/memory/`). This is unrelated to skills, but covers the memory need.
+
+### 5. No Automatic Profiling by Project Type
+
+A skill does not know whether the project is a monolith or microservice. You need to either:
+- Explicitly invoke `/_code-quality`
+- Or rely on the project's CLAUDE.md (where the architecture type is specified)
+
+**Mitigation:** Specify architecture type in the project's CLAUDE.md. A skill can contain the instruction: "Read the project's CLAUDE.md, find the architecture type, apply the corresponding rules."
+
+### 6. Writing to python-ai-skills from Another Project Requires a $PWD Policy Exception
+
+To create/edit skills from a target project (where context has accumulated) you need to allow writing to `~/python-ai-skills/` — this is an exception to the LOCAL-ONLY policy.
+
+**Solution:** A whitelist exception was added to global `~/.claude/CLAUDE.md` (IMPLEMENTED 2026-03-16):
 
 ```markdown
-##### Исключения для записи вне $PWD
+##### Exceptions for writing outside $PWD
 
-Запись вне $PWD разрешена ТОЛЬКО:
-- Путь: `~/Henry_Bud_GitHub/python-ai-skills/**`
-- Операции: создание и редактирование .md файлов
-- Запрещено: удаление, переименование, запись не-.md файлов
-- Этот список ФИНАЛЬНЫЙ — новые исключения добавлять только после явного запроса пользователя
+Writing outside $PWD is allowed ONLY:
+- Path: `~/Henry_Bud_GitHub/python-ai-skills/**`
+- Operations: creating and editing .md files
+- Prohibited: deletion, renaming, writing non-.md files
+- This list is FINAL — add new exceptions only after explicit user request
 ```
 
-Это не "размывание" политики, а осознанное решение: `python-ai-skills` — это инфраструктура skill'ов (аналог `.gitconfig`), а не "чужой проект".
+This is not "diluting" the policy, but a conscious decision: `python-ai-skills` is skill infrastructure (analogous to `.gitconfig`), not a "foreign project".
 
-### 7. Claude может автозагрузить ненужный skill (или не загрузить нужный)
+### 7. Claude May Auto-load an Unnecessary Skill (or Not Load a Needed One)
 
-Если description слишком широкий — ложные срабатывания. Если слишком узкий — Claude не вызовет автоматически когда нужно.
+If the description is too broad — false positives. If too narrow — Claude won't invoke automatically when needed.
 
-**Митигация (подавление авто-вызова):**
-- `disable-model-invocation: true` — только ручной вызов (реализовано: init-project)
-- Узкие, специфичные description
+**Mitigation (suppressing auto-invocation):**
+- `disable-model-invocation: true` — manual invocation only (implemented: init-project)
+- Narrow, specific descriptions
 
-**Митигация (усиление авто-вызова):**
-- TRIGGER-условия в description с конкретными ситуациями (реализовано: create-adr, completion-report)
-- Fallback через workflow: напоминание вызвать вручную перед коммитом
+**Mitigation (enhancing auto-invocation):**
+- TRIGGER conditions in description with specific situations (implemented: create-adr, completion-report)
+- Fallback via workflow: reminder to invoke manually before commit
 
 ---
 
-## Приоритеты skill'ов
+## Skill Priorities
 
-При конфликте имён (один skill на нескольких уровнях):
+When names conflict (same skill at multiple levels):
 
-| Приоритет | Уровень | Путь |
-|-----------|---------|------|
-| 1 (высший) | Enterprise | Управляется админом |
+| Priority | Level | Path |
+|----------|-------|------|
+| 1 (highest) | Enterprise | Managed by admin |
 | 2 | Personal | `~/.claude/skills/<name>/SKILL.md` |
 | 3 | Project | `.claude/skills/<name>/SKILL.md` |
-| 4 (низший) | Plugin | `<plugin>/skills/<name>/SKILL.md` |
+| 4 (lowest) | Plugin | `<plugin>/skills/<name>/SKILL.md` |
 
-Проектный skill может **переопределить** глобальный с тем же именем. Это позволяет иметь глобальный `_code-quality` и проектный `_code-quality` с дополнениями.
+A project skill can **override** a global one with the same name. This allows having a global `_code-quality` and a project-level `_code-quality` with additions.
 
-**Источник:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
+**Source:** [Skills — Where skills live](https://code.claude.com/docs/en/skills.md#where-skills-live)
 
 ---
 
-## Динамический контент (!`command`)
+## Dynamic Content (!`command`)
 
-Skills поддерживают preprocessing — выполнение shell-команд **до** отправки Claude:
+Skills support preprocessing — executing shell commands **before** sending to Claude:
 
 ```yaml
 ---
 name: project-stats
-description: Статистика текущего проекта
+description: Current project statistics
 ---
 
-## Текущее состояние
-- Файлов Python: !`find . -name "*.py" | wc -l`
-- Строк кода: !`find . -name "*.py" -exec wc -l {} + | tail -1`
-- Последний коммит: !`git log --oneline -1`
+## Current State
+- Python files: !`find . -name "*.py" | wc -l`
+- Lines of code: !`find . -name "*.py" -exec wc -l {} + | tail -1`
+- Last commit: !`git log --oneline -1`
 ```
 
-Claude получает **результат**, не команду. Полезно для skill'ов, которые должны знать состояние проекта.
+Claude receives the **result**, not the command. Useful for skills that need to know the project state.
 
-**Источник:** [Skills — Inject dynamic context](https://code.claude.com/docs/en/skills.md#inject-dynamic-context)
+**Source:** [Skills — Inject dynamic context](https://code.claude.com/docs/en/skills.md#inject-dynamic-context)
 
 ---
 
-## context: fork + reference файлы
+## context: fork + Reference Files
 
-При использовании `context: fork` skill запускается в изолированном subagent контексте. **Реализовано** в skill `_code-quality`:
+When using `context: fork`, the skill runs in an isolated subagent context. **Implemented** in the `_code-quality` skill:
 
 ```yaml
 ---
 name: _code-quality
 description: >
-  17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
-  Используй при ревью кода, рефакторинге, написании новых модулей.
-  Проверяет code-standards и naming conventions.
+  17 Python code quality principles (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
+  Use during code review, refactoring, writing new modules.
+  Checks code-standards and naming conventions.
 context: fork
 agent: Explore
 ---
 
-# Quality Cascade — 17 принципов качества
+# Quality Cascade — 17 Quality Principles
 ...
-Полные принципы: см. [reference/quality-cascade.md](reference/quality-cascade.md)
+Full principles: see [reference/quality-cascade.md](reference/quality-cascade.md)
 ```
 
-Subagent **может** читать reference файлы через Read — поддерживающие файлы работают нормально в forked контексте.
+The subagent **can** read reference files via Read — supporting files work normally in forked context.
 
-**Источник:** [Skills — Run skills in a subagent](https://code.claude.com/docs/en/skills.md#run-skills-in-a-subagent)
+**Source:** [Skills — Run skills in a subagent](https://code.claude.com/docs/en/skills.md#run-skills-in-a-subagent)
 
 ---
 
-## Структура python-ai-skills
+## python-ai-skills Structure
 
-Репозиторий `~/python-ai-skills/` — единый источник истины для всех skill'ов. Деплой в `~/.claude/skills/` через symlinks.
+The `~/python-ai-skills/` repository is the single source of truth for all skills. Deployment to `~/.claude/skills/` via symlinks.
 
 ```
-~/python-ai-skills/                    # Git-репо (источник истины) — РЕАЛИЗОВАНО 2026-03-16
+~/python-ai-skills/                    # Git repo (source of truth) — IMPLEMENTED 2026-03-16
 ├── _code-quality/                      # context: fork, agent: Explore
-│   ├── SKILL.md                       # 17 принципов — краткий чек-лист
+│   ├── SKILL.md                       # 17 principles — short checklist
 │   └── reference/
-│       ├── quality-cascade.md         # Полные принципы с антипаттернами
-│       ├── code-standards.md          # Типизация, docstrings, метрики
-│       └── naming.md                  # Конвенции именования
+│       ├── quality-cascade.md         # Full principles with anti-patterns
+│       ├── code-standards.md          # Typing, docstrings, metrics
+│       └── naming.md                  # Naming conventions
 │
 ├── _error-handling/
-│   ├── SKILL.md                       # Иерархия исключений, retry
-│   └── reference.md                   # Полный маппинг HTTP ↔ исключения
+│   ├── SKILL.md                       # Exception hierarchy, retry
+│   └── reference.md                   # Full HTTP ↔ exception mapping
 │
 ├── _security/
-│   ├── SKILL.md                       # OWASP Top 10 + обязательные правила
+│   ├── SKILL.md                       # OWASP Top 10 + mandatory rules
 │   └── reference/
-│       ├── security.md                # Полные правила безопасности
-│       └── secrets-management.md      # Pydantic Settings, .env.example, ротация
+│       ├── security.md                # Full security rules
+│       └── secrets-management.md      # Pydantic Settings, .env.example, rotation
 │
 ├── _logging/
-│   ├── SKILL.md                       # Log-Driven Design, ключевые принципы
-│   └── reference.md                   # AI-Readable Logging, structlog конфиг
+│   ├── SKILL.md                       # Log-Driven Design, key principles
+│   └── reference.md                   # AI-Readable Logging, structlog config
 │
 ├── _testing/
-│   ├── SKILL.md                       # 3 уровня тестов, покрытие ≥90%
-│   └── reference.md                   # AAA-паттерн, фикстуры, моки
+│   ├── SKILL.md                       # 3 test levels, coverage ≥90%
+│   └── reference.md                   # AAA pattern, fixtures, mocks
 │
 ├── _database/
-│   ├── SKILL.md                       # Repository-паттерн, ключевые правила
-│   └── reference.md                   # Alembic, транзакции, N+1, connection pooling
+│   ├── SKILL.md                       # Repository pattern, key rules
+│   └── reference.md                   # Alembic, transactions, N+1, connection pooling
 │
 ├── _architecture/
-│   ├── SKILL.md                       # DDD + Hexagonal, выбор монолит/микросервисы
+│   ├── SKILL.md                       # DDD + Hexagonal, monolith/microservices choice
 │   └── reference/
-│       ├── ddd.md                     # Слои, сущности, Value Objects
-│       ├── hexagonal.md               # Порты, адаптеры, DI
-│       ├── monolith.md                # Модульные границы, shared database
-│       └── microservices.md           # Изоляция, коммуникация, трейсинг
+│       ├── ddd.md                     # Layers, entities, Value Objects
+│       ├── hexagonal.md               # Ports, adapters, DI
+│       ├── monolith.md                # Modular boundaries, shared database
+│       └── microservices.md           # Isolation, communication, tracing
 │
 ├── _linters/
 │   ├── SKILL.md                       # Ruff, Mypy, Bandit, pre-commit
 │   └── reference/
-│       ├── linters.md                 # Полная конфигурация инструментов
+│       ├── linters.md                 # Full tool configuration
 │       └── ci-cd.md                   # CI pipeline, coverage gate
 │
 ├── _docker/
 │   ├── SKILL.md                       # Multi-stage, security, health checks
 │   └── reference/
 │       ├── docker.md                  # Dockerfile, Compose, .dockerignore
-│       └── production.md              # Graceful shutdown, мониторинг
+│       └── production.md              # Graceful shutdown, monitoring
 │
 ├── _http/
 │   ├── SKILL.md                       # httpx, timeout, Circuit Breaker
-│   └── reference.md                   # Retry, логирование, обработка ошибок
+│   └── reference.md                   # Retry, logging, error handling
 │
 ├── _caching/
 │   ├── SKILL.md                       # Redis, TTL, graceful degradation
-│   └── reference.md                   # Паттерны, инвалидация, именование
+│   └── reference.md                   # Patterns, invalidation, naming
 │
 ├── _docworkflow/
-│   ├── SKILL.md                       # Пайплайн 6 этапов, чеклист
+│   ├── SKILL.md                       # 6-phase pipeline, checklist
 │   └── reference/
-│       ├── workflow.md                # Полный пайплайн документации
-│       ├── backlog.md                 # Шаблон задачи TASK-NNN
-│       ├── planning.md                # Формат планов
-│       └── git-conventions.md         # Формат коммитов
+│       ├── workflow.md                # Full documentation pipeline
+│       ├── backlog.md                 # TASK-NNN template
+│       ├── planning.md                # Plan format
+│       └── git-conventions.md         # Commit format
 │
-├── _adr/                               # Гибридный триггер: авто + ручной
-│   ├── SKILL.md                       # Шаблон ADR, правила создания
-│   └── reference.md                   # Полный шаблон и статусы
+├── _adr/                               # Hybrid trigger: auto + manual
+│   ├── SKILL.md                       # ADR template, creation rules
+│   └── reference.md                   # Full template and statuses
 │
-├── _report/                            # Гибридный триггер: авто + ручной
-│   ├── SKILL.md                       # Шаблон отчёта, правила
-│   └── reference.md                   # Полный шаблон с метриками
+├── _report/                            # Hybrid trigger: auto + manual
+│   ├── SKILL.md                       # Report template, rules
+│   └── reference.md                   # Full template with metrics
 │
 ├── _init/
-│   └── SKILL.md                       # Интерактивная инициализация (disable-model-invocation)
+│   └── SKILL.md                       # Interactive initialization (disable-model-invocation)
 │
 ├── docs/
 │   └── 2026-03-15-skills-file-convention-architecture.md
 │
-├── CLAUDE.md                          # Каталог skill'ов + workflow (v3.1)
+├── CLAUDE.md                          # Skill catalog + workflow (v3.1)
 └── CHANGELOG.md
 
-~/.claude/skills/                      # Symlinks (деплой) — СОЗДАНО 2026-03-16
+~/.claude/skills/                      # Symlinks (deployment) — CREATED 2026-03-16
 ├── _code-quality → ~/python-ai-skills/_code-quality
 ├── _error-handling → ~/python-ai-skills/_error-handling
 ├── _security → ~/python-ai-skills/_security
@@ -502,130 +502,130 @@ Subagent **может** читать reference файлы через Read — п
 └── _init → ~/python-ai-skills/_init
 ```
 
-### Деплой symlinks
+### Deploying Symlinks
 
-Symlinks создаются вручную (без скрипта). При добавлении нового skill'а — одна команда:
+Symlinks are created manually (no script). When adding a new skill — one command:
 
 ```bash
-# Создание всех symlinks (один раз)
+# Creating all symlinks (one-time)
 mkdir -p ~/.claude/skills
 for skill_dir in ~/Henry_Bud_GitHub/python-ai-skills/_*/; do
     [ -f "$skill_dir/SKILL.md" ] && ln -sfn "$skill_dir" "$HOME/.claude/skills/$(basename "$skill_dir")"
 done
 
-# Добавление нового skill'а (с префиксом _)
+# Adding a new skill (with _ prefix)
 ln -sfn ~/Henry_Bud_GitHub/python-ai-skills/_new-skill ~/.claude/skills/_new-skill
 ```
 
-**Статус:** 15 symlinks создано 2026-03-16.
+**Status:** 15 symlinks created 2026-03-16.
 
 ---
 
-## Cross-project workflow: создание skill'ов из целевого проекта
+## Cross-project Workflow: Creating Skills from a Target Project
 
-### Проблема
+### Problem
 
-Контекст для нового skill'а накапливается в целевом проекте (например, `claude_bot`), но skill'ы живут в `~/python-ai-skills/`. Без исключения в политике $PWD невозможно записать skill из целевого проекта.
+Context for a new skill accumulates in the target project (e.g., `claude_bot`), but skills live in `~/python-ai-skills/`. Without a $PWD policy exception, it is impossible to write a skill from the target project.
 
-### Решение
+### Solution
 
-В глобальном `~/.claude/CLAUDE.md` добавлено whitelist-исключение для `~/python-ai-skills/`. Это позволяет из любого проекта:
+A whitelist exception for `~/python-ai-skills/` was added to global `~/.claude/CLAUDE.md`. This allows from any project:
 
-1. **Создать новый skill** — когда в процессе работы выявлен переиспользуемый паттерн
-2. **Обновить существующий skill** — когда в целевом проекте найден лучший подход
-3. **Добавить reference-материалы** — когда накоплены примеры
+1. **Create a new skill** — when a reusable pattern is identified during work
+2. **Update an existing skill** — when a better approach is found in the target project
+3. **Add reference materials** — when examples have accumulated
 
 ### Workflow
 
 ```
-Проект claude_bot                     ~/python-ai-skills/
+Project claude_bot                     ~/python-ai-skills/
 ┌─────────────────────┐                ┌─────────────────────┐
-│ Работаешь над кодом │                │                     │
-│ Выявляешь паттерн   │ ── запись ──→  │ _error-handling/     │
-│ Контекст на месте   │                │   SKILL.md (новый)  │
+│ Working on code     │                │                     │
+│ Identify pattern    │ ── write ──→   │ _error-handling/     │
+│ Context is here     │                │   SKILL.md (new)    │
 │                     │                │   reference.md      │
 └─────────────────────┘                └─────────────────────┘
                                               │
-                                         symlink в
+                                         symlink in
                                        ~/.claude/skills/
                                               │
                                               ▼
-                                       Доступен во ВСЕХ
-                                       проектах мгновенно
+                                       Available in ALL
+                                       projects instantly
 ```
 
-### Рекомендации по workflow
+### Workflow Recommendations
 
-- **Создавай skill когда паттерн подтверждён** — не после первого использования, а когда он повторился 2-3 раза
-- **Начинай с SKILL.md** — краткая версия (30-50 строк). Reference.md добавишь позже, когда накопятся примеры
-- **Коммить в python-ai-skills отдельно** — не забывай, что запись в чужой репо не создаёт коммит автоматически. После сессии зайди в `~/python-ai-skills/` и закоммить изменения
-
----
-
-## Когда переходить на другой вариант
-
-| Сигнал | Действие |
-|--------|----------|
-| Claude часто загружает не тот skill | Уточнить descriptions. Если не помогает → MCP с поиском (Вариант B) |
-| Skill'ов стало 30+ | Рассмотреть MCP с FTS5 (Вариант B) |
-| Claude всегда читает reference.md | Значит SKILL.md недостаточно информативен — расширить краткую версию |
-| Claude никогда не читает reference.md | Значит reference.md избыточен — можно убрать |
-| Нужна память между сессиями (для skills) | Использовать Claude Code memory или рассмотреть OpenViking |
-| Стоимость токенов критична | Вариант A (MCP тиеринг) — даёт явный контроль L0/L1/L2 |
+- **Create a skill when the pattern is confirmed** — not after first use, but when it has repeated 2-3 times
+- **Start with SKILL.md** — short version (30-50 lines). Add reference.md later when examples accumulate
+- **Commit to python-ai-skills separately** — remember that writing to another repo does not create a commit automatically. After the session, go to `~/python-ai-skills/` and commit changes
 
 ---
 
-## Решения при реализации (2026-03-16)
+## When to Switch to Another Variant
 
-Документ ниже фиксирует ключевые решения, принятые при реализации. Исходный план выше сохранён для контекста.
-
-### Отличия от исходного плана
-
-| Аспект | План | Реализация | Причина |
-|--------|------|-----------|---------|
-| Количество skill'ов | 8 (упомянуто "10 core") | **15** | Все 26 исходных файлов покрыты через группировку |
-| Исходные файлы | Не определено | Перемещены в reference (git mv) | Вариант D — SSoT, нет дублирования |
-| CLAUDE.md | Не упомянут | Каталог skill'ов + workflow (v3.1) | Вариант B — точка входа + навигация |
-| deploy-skills.sh | Скрипт в репо | Ручные symlinks | KISS — 15 команд один раз |
-| security/reference/ | auth.md, injection.md, validation.md | security.md + secrets-management.md | Файлы из плана не существовали |
-| context: fork | Описан, не применён | quality-cascade | Единственный skill для глубокого ревью |
-| init-project | Пустой placeholder | Интерактивный с вопросами | Стандартизация настройки проектов |
-| process/ файлы | 2 файла (adr, completion-report) | 6 файлов → 3 skill'а + workflow | workflow.md, backlog.md, planning.md, git-conventions.md добавлены |
-| Триггерная модель | Отложено | Гибрид: авто (TRIGGER в description) + ручной fallback (workflow) | Баланс: не забудешь, но и без ложных срабатываний |
-| Именование | Без префикса | Префикс `_` для всех skill'ов | Визуальное отличие кастомных skill'ов от встроенных |
-
-### Дополнительные skill'ы (не в плане)
-
-| Skill | Источник | Почему добавлен |
-|-------|---------|----------------|
-| database | development/database.md | Самостоятельная тема: Repository, миграции, N+1 |
-| architecture | architecture/*.md (4 файла) | Фундаментальные паттерны: DDD, Hexagonal, монолит/микросервисы |
-| linters | quality/linters.md + ci-cd.md | Самый большой файл (221 строка), CI pipeline |
-| docker | operations/docker.md + production.md | Контейнеризация + production requirements |
-| http-clients | integrations/http-clients.md | HTTP клиент, Circuit Breaker — самостоятельная тема |
-| caching | integrations/caching.md | Redis, TTL — самостоятельная тема |
-| workflow | process/*.md (4 файла) | Пайплайн документации: 6 этапов |
-
-### Структура reference-файлов
-
-Два варианта в зависимости от количества reference-файлов:
-
-- **Один файл** → `reference.md` (error-handling, logging, testing, database, http-clients, caching, create-adr, completion-report)
-- **Несколько файлов** → `reference/` папка (quality-cascade, security, architecture, linters, docker, workflow)
-
-### Триггерная модель create-adr и completion-report (решено 2026-03-16)
-
-**Модель: гибрид (авто + ручной fallback)**
-
-- Оба skill'а **не имеют** `disable-model-invocation` — Claude может вызвать их автоматически
-- Description содержит конкретные TRIGGER-условия для автоматического срабатывания
-- Если автотриггер не сработал — workflow SKILL.md напоминает вызвать их вручную перед коммитом
-- create-adr: триггер на выбор технологий, архитектурных паттернов, сравнение вариантов
-- completion-report: триггер на завершение фичи, готовность к коммиту
+| Signal | Action |
+|--------|--------|
+| Claude often loads the wrong skill | Refine descriptions. If that doesn't help → MCP with search (Variant B) |
+| Skills grew to 30+ | Consider MCP with FTS5 (Variant B) |
+| Claude always reads reference.md | SKILL.md is not informative enough — expand the short version |
+| Claude never reads reference.md | reference.md is redundant — can be removed |
+| Need memory between sessions (for skills) | Use Claude Code memory or consider OpenViking |
+| Token cost is critical | Variant A (MCP tiering) — gives explicit L0/L1/L2 control |
 
 ---
 
-## Источники
+## Implementation Decisions (2026-03-16)
+
+The section below documents key decisions made during implementation. The original plan above is preserved for context.
+
+### Differences from Original Plan
+
+| Aspect | Plan | Implementation | Reason |
+|--------|------|---------------|--------|
+| Number of skills | 8 (mentioned "10 core") | **15** | All 26 original files covered through grouping |
+| Original files | Not defined | Moved to reference (git mv) | Variant D — SSoT, no duplication |
+| CLAUDE.md | Not mentioned | Skill catalog + workflow (v3.1) | Variant B — entry point + navigation |
+| deploy-skills.sh | Script in repo | Manual symlinks | KISS — 15 commands once |
+| security/reference/ | auth.md, injection.md, validation.md | security.md + secrets-management.md | Files from plan did not exist |
+| context: fork | Described, not applied | quality-cascade | Only skill for deep review |
+| init-project | Empty placeholder | Interactive with questions | Standardizing project setup |
+| process/ files | 2 files (adr, completion-report) | 6 files → 3 skills + workflow | workflow.md, backlog.md, planning.md, git-conventions.md added |
+| Trigger model | Deferred | Hybrid: auto (TRIGGER in description) + manual fallback (workflow) | Balance: won't forget, but no false positives |
+| Naming | No prefix | `_` prefix for all skills | Visual distinction of custom skills from built-in |
+
+### Additional Skills (not in plan)
+
+| Skill | Source | Why added |
+|-------|--------|----------|
+| database | development/database.md | Independent topic: Repository, migrations, N+1 |
+| architecture | architecture/*.md (4 files) | Fundamental patterns: DDD, Hexagonal, monolith/microservices |
+| linters | quality/linters.md + ci-cd.md | Largest file (221 lines), CI pipeline |
+| docker | operations/docker.md + production.md | Containerization + production requirements |
+| http-clients | integrations/http-clients.md | HTTP client, Circuit Breaker — independent topic |
+| caching | integrations/caching.md | Redis, TTL — independent topic |
+| workflow | process/*.md (4 files) | Documentation pipeline: 6 phases |
+
+### Reference File Structure
+
+Two variants depending on the number of reference files:
+
+- **Single file** → `reference.md` (error-handling, logging, testing, database, http-clients, caching, create-adr, completion-report)
+- **Multiple files** → `reference/` folder (quality-cascade, security, architecture, linters, docker, workflow)
+
+### Trigger Model for create-adr and completion-report (decided 2026-03-16)
+
+**Model: hybrid (auto + manual fallback)**
+
+- Both skills **do not have** `disable-model-invocation` — Claude can invoke them automatically
+- Description contains specific TRIGGER conditions for automatic firing
+- If auto-trigger does not fire — the workflow SKILL.md reminds to invoke them manually before commit
+- create-adr: trigger on technology choice, architectural patterns, option comparison
+- completion-report: trigger on feature completion, readiness to commit
+
+---
+
+## Sources
 
 - [Claude Code — Extend Claude with skills](https://code.claude.com/docs/en/skills.md)
 - [Claude API — Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)

@@ -1,43 +1,43 @@
 ---
 name: _caching
 description: >
-  Кэширование в Python (Redis, Cache-Aside, Write-Through, TTL, инвалидация,
-  graceful degradation). Используй при работе с Redis и кэшированием.
+  Python caching (Redis, Cache-Aside, Write-Through, TTL, invalidation,
+  graceful degradation). Use when working with Redis and caching.
 ---
 
-# Кэширование
+# Caching
 
-> Redis как основное хранилище. Graceful degradation — приложение работает без кэша.
+> Redis as the primary store. Graceful degradation — the application works without cache.
 
-## Паттерны
+## Patterns
 
-- **Cache-Aside**: проверить кэш → miss → БД → записать в кэш. Для: часто читается, редко пишется.
-- **Write-Through**: запись → БД + кэш одновременно. Для: данные актуальны сразу.
+- **Cache-Aside**: check cache → miss → DB → write to cache. For: frequently read, rarely written.
+- **Write-Through**: write → DB + cache simultaneously. For: data must be up-to-date immediately.
 
-## TTL (обязательно)
+## TTL (required)
 
-| Тип данных | TTL |
+| Data Type | TTL |
 |-----------|-----|
-| Справочные | 1-24 часа |
-| Пользовательские | 5 мин — 1 час |
-| Сессии | Время жизни сессии |
-| Rate limit | Окно лимита |
+| Reference data | 1-24 hours |
+| User data | 5 min — 1 hour |
+| Sessions | Session lifetime |
+| Rate limit | Limit window |
 
-Без TTL — blocker.
+No TTL — blocker.
 
-## Инвалидация
+## Invalidation
 
-По TTL | По событию (write → invalidate) | Версионирование ключа (массовая)
+By TTL | By event (write → invalidate) | Key versioning (bulk)
 
-## Именование ключей
+## Key Naming
 
-`{service}:{entity}:{id}` — например `users:user:123`
+`{service}:{entity}:{id}` — e.g. `users:user:123`
 
-## Правила
+## Rules
 
-- Единый пул соединений (SSoT)
-- JSON сериализация через Pydantic
-- Graceful degradation: Redis down → приложение работает без кэша (WARNING в логах)
-- Не кэшировать секреты
+- Single connection pool (SSoT)
+- JSON serialization via Pydantic
+- Graceful degradation: Redis down → application works without cache (WARNING in logs)
+- Do not cache secrets
 
-Полная версия: см. [reference.md](reference.md)
+Full version: see [reference.md](reference.md)

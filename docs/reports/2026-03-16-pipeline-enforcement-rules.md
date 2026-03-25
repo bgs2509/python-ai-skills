@@ -1,35 +1,35 @@
 # Completion Report: Pipeline Enforcement Rules
 
-## Метаданные
+## Metadata
 
 - **Task ID**: TASK-003
-- **Дата**: 2026-03-16
-- **Тип**: fix
-- **Статус**: Done
+- **Date**: 2026-03-16
+- **Type**: fix
+- **Status**: Done
 
-## Что сделано
+## What Was Done
 
-Усилены правила в `commands/pipeline.md` для предотвращения ситуаций, когда Lead
-пропускает фазы, подменяет агентов собственным суждением или игнорирует severity
-от агентов.
+Strengthened rules in `commands/pipeline.md` to prevent situations where Lead
+skips phases, substitutes agents with own judgment, or ignores severity
+from agents.
 
-### Изменения
+### Changes
 
-| Секция | Что добавлено |
-|--------|---------------|
-| Phase 3.5 | MANDATORY пометка, Gate 3.5→4 чеклист (агент запущен, результат показан, пользователь подтвердил) |
-| Phase 5 | CRITICAL: ровно 3 агента в одном сообщении, Gate 5→6 чеклист |
-| Phase 6 | BLOCKER/CRITICAL исправляются всегда, Lead не может понизить severity |
-| Phase 8 | Расширенный чеклист: проверка Quality Gate, тестов, py-quality review |
-| Rules for Lead | Новая секция «Железные правила» — 5 правил, нарушение = провал пайплайна |
+| Section | What was added |
+|---------|---------------|
+| Phase 3.5 | MANDATORY label, Gate 3.5→4 checklist (agent launched, result shown, user confirmed) |
+| Phase 5 | CRITICAL: exactly 3 agents in one message, Gate 5→6 checklist |
+| Phase 6 | BLOCKER/CRITICAL are always fixed, Lead cannot downgrade severity |
+| Phase 8 | Extended checklist: Quality Gate check, tests, py-quality review |
+| Rules for Lead | New "Iron Rules" section — 5 rules, violation = pipeline failure |
 
-## Изменения файлов
+## File Changes
 
-| Файл | Действие |
-|------|----------|
-| `commands/pipeline.md` | Изменён — добавлены gate-чеклисты и железные правила |
+| File | Action |
+|------|--------|
+| `commands/pipeline.md` | Modified — added gate checklists and iron rules |
 
-## Итого
+## Summary
 
-- Файлов изменено: 1
-- Строк добавлено: ~50
+- Files changed: 1
+- Lines added: ~50

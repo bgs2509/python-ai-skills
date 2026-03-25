@@ -1,23 +1,22 @@
-# TASK-002: Python Pipeline плагин с оркестрацией и агентами
+# TASK-002: Python Pipeline Plugin with Orchestration and Agents
 
-## Статус
+## Status
 
 Done
 
-## Описание
+## Description
 
-Создать python-pipeline плагин для Claude Code, который оркестрирует 8 фаз
-разработки (intake → commit) с помощью 4 специализированных агентов
-(py-quality, py-security, py-test-writer, py-doc-manager). Плагин автоматически
-применяет skill-стандарты проекта через Routing Table и запускает параллельный
-Quality Gate.
+Create a python-pipeline plugin for Claude Code that orchestrates 8 development
+phases (intake → commit) using 4 specialized agents (py-quality, py-security,
+py-test-writer, py-doc-manager). The plugin automatically applies project
+skill standards via Routing Table and runs a parallel Quality Gate.
 
-## Приоритет
+## Priority
 
 High
 
-## Связанные артефакты
+## Related Artifacts
 
-- План: Нет
-- ADR: Нет (архитектура описана в commands/pipeline.md)
-- Отчёт: docs/reports/2026-03-16-python-pipeline-plugin.md
+- Plan: None
+- ADR: None (architecture described in commands/pipeline.md)
+- Report: docs/reports/2026-03-16-python-pipeline-plugin.md

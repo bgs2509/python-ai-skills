@@ -1,77 +1,77 @@
 # Architecture Decision Records (ADR)
 
-> Фиксация важных архитектурных решений. Документирует ЧТО решили, КАКИЕ альтернативы рассматривались, ПОЧЕМУ выбрали этот вариант.
+> Recording important architectural decisions. Documents WHAT was decided, WHAT alternatives were considered, WHY this option was chosen.
 
 ---
 
-## Когда создавать ADR
+## When to Create an ADR
 
-- Выбор технологии или библиотеки
-- Архитектурный паттерн (монолит vs микросервисы, синхронный vs асинхронный)
-- Отказ от принятого стандарта
-- Решение, которое сложно откатить
-- Решение, о котором спросят через 6 месяцев "почему так?"
+- Choosing a technology or library
+- Architectural pattern (monolith vs microservices, synchronous vs asynchronous)
+- Deviation from an adopted standard
+- Decision that is hard to roll back
+- Decision that someone will ask "why did we do it this way?" about in 6 months
 
 ---
 
-## Шаблон
+## Template
 
 ```markdown
-# ADR-{номер}: {Название решения}
+# ADR-{number}: {Decision Title}
 
 ## Task
 
-{TASK-NNN или "Автономное решение"}
+{TASK-NNN or "Standalone decision"}
 
-## Статус
+## Status
 
 {Proposed | Accepted | Deprecated | Superseded by ADR-XXX}
 
-## Контекст
+## Context
 
-Какая проблема? Какие ограничения? Какие требования?
+What is the problem? What are the constraints? What are the requirements?
 
-## Рассмотренные альтернативы
+## Alternatives Considered
 
-### Вариант 1: {Название}
-- Плюсы: ...
-- Минусы: ...
+### Option 1: {Name}
+- Pros: ...
+- Cons: ...
 
-### Вариант 2: {Название}
-- Плюсы: ...
-- Минусы: ...
+### Option 2: {Name}
+- Pros: ...
+- Cons: ...
 
-## Решение
+## Decision
 
-Выбран вариант {N} потому что {обоснование}.
+Option {N} was chosen because {rationale}.
 
-## Последствия
+## Consequences
 
-- Что станет проще
-- Что станет сложнее
-- Какие ограничения появятся
-- Что нужно будет изменить
+- What becomes easier
+- What becomes harder
+- What new constraints appear
+- What needs to be changed
 ```
 
 ---
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Нумерация | ADR-001, ADR-002, ... — последовательная |
-| Хранение | `docs/adr/` в репозитории проекта |
-| Immutability | Принятый ADR не изменяется — создаётся новый со статусом Superseded |
-| Краткость | Контекст и решение — 3-5 предложений, не эссе |
-| Дата | Дата принятия решения |
+| Rule | Description |
+|------|-------------|
+| Numbering | ADR-001, ADR-002, ... — sequential |
+| Storage | `docs/adr/` in the project repository |
+| Immutability | An accepted ADR is not modified — a new one with Superseded status is created |
+| Brevity | Context and decision — 3-5 sentences, not an essay |
+| Date | Date when the decision was made |
 
 ---
 
-## Статусы
+## Statuses
 
-| Статус | Значение |
-|--------|----------|
-| **Proposed** | Решение предложено, обсуждается |
-| **Accepted** | Решение принято, следуем |
-| **Deprecated** | Решение устарело, но не заменено |
-| **Superseded** | Заменено другим ADR (указать каким) |
+| Status | Meaning |
+|--------|---------|
+| **Proposed** | Decision proposed, under discussion |
+| **Accepted** | Decision accepted, being followed |
+| **Deprecated** | Decision is outdated but not replaced |
+| **Superseded** | Replaced by another ADR (specify which one) |

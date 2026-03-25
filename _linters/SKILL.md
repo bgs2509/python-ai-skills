@@ -1,25 +1,25 @@
 ---
 name: _linters
 description: >
-  Линтеры и статический анализ Python (Ruff, Mypy, Bandit, pre-commit hooks, CI pipeline).
-  Используй при настройке линтеров, CI/CD, pre-commit, проверке качества кода.
+  Python linters and static analysis (Ruff, Mypy, Bandit, pre-commit hooks, CI pipeline).
+  Use when configuring linters, CI/CD, pre-commit, or checking code quality.
 ---
 
-# Линтеры и статический анализ
+# Linters and Static Analysis
 
-> Конфигурация — в `pyproject.toml` (SSoT). Ruff заменяет flake8 + isort + black.
+> Configuration in `pyproject.toml` (SSoT). Ruff replaces flake8 + isort + black.
 
-## Инструменты
+## Tools
 
-| Инструмент | Назначение | Обязательность |
-|------------|-----------|----------------|
-| Ruff | Линтинг + форматирование | Обязательно |
-| Mypy | Статическая типизация | Обязательно |
-| Bandit | Security-анализ | Рекомендуется |
-| Pre-commit | Локальные хуки | Обязательно |
-| Gitleaks | Обнаружение секретов | Обязательно |
+| Tool | Purpose | Required |
+|------|---------|----------|
+| Ruff | Linting + formatting | Required |
+| Mypy | Static typing | Required |
+| Bandit | Security analysis | Recommended |
+| Pre-commit | Local hooks | Required |
+| Gitleaks | Secret detection | Required |
 
-## Команды
+## Commands
 
 ```bash
 ruff check .              # Lint
@@ -30,17 +30,17 @@ bandit -r src/ -ll        # Security
 make ci                   # All checks
 ```
 
-## CI Pipeline порядок
+## CI Pipeline Order
 
 ```
 lint → format → typecheck → tests → coverage (≥90%) → security
 ```
 
-Быстрые проверки первыми — экономия времени при ошибках.
+Fast checks first — saves time when errors occur.
 
-## Pre-commit hooks
+## Pre-commit Hooks
 
-Security: gitleaks + detect-secrets. Python: ruff + mypy. Общие: check-yaml, check-json, no-commit-to-branch.
+Security: gitleaks + detect-secrets. Python: ruff + mypy. General: check-yaml, check-json, no-commit-to-branch.
 
-Полная конфигурация: см. [reference/linters.md](reference/linters.md)
-CI/CD pipeline: см. [reference/ci-cd.md](reference/ci-cd.md)
+Full configuration: see [reference/linters.md](reference/linters.md)
+CI/CD pipeline: see [reference/ci-cd.md](reference/ci-cd.md)

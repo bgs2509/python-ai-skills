@@ -1,47 +1,47 @@
-# Стандарты кода
+# Code Standards
 
-> Единые правила написания кода. Читаемость важнее краткости (KISS). Конвенции проекта важнее личных предпочтений (CoC).
-
----
-
-## Типизация
-
-- Type hints ОБЯЗАТЕЛЬНЫ для всех параметров, возвращаемых значений, атрибутов классов (Explicit > Implicit)
-- Современный синтаксис: `list[User]`, `dict[str, Any]`, `str | None` (не `Optional[str]`)
-- Конфигурация mypy — см. skill `_linters` (_linters/reference/linters.md)
+> Unified rules for writing code. Readability is more important than brevity (KISS). Project conventions are more important than personal preferences (CoC).
 
 ---
 
-## Docstrings (Google-стиль)
+## Typing
 
-- Обязательны для всех публичных функций и классов
-- Секции: Args, Returns, Raises, Examples (при необходимости)
-- Приватные методы — docstring только если логика неочевидна
-
----
-
-## Импорты
-
-- Только absolute imports (никаких relative)
-- Группировка: стандартная библиотека → сторонние → локальные
-- Внутри группы — алфавитный порядок
-- Автоматическая сортировка — ruff (isort) — см. skill `_linters` (_linters/reference/linters.md)
+- Type hints are MANDATORY for all parameters, return values, and class attributes (Explicit > Implicit)
+- Modern syntax: `list[User]`, `dict[str, Any]`, `str | None` (not `Optional[str]`)
+- Mypy configuration — see skill `_linters` (_linters/reference/linters.md)
 
 ---
 
-## Метрики кода
+## Docstrings (Google style)
 
-| Метрика | Порог | Принцип |
-|---------|-------|---------|
-| Длина функции | ≤ 50 строк | KISS |
-| Цикломатическая сложность | < 10 | KISS |
-| Вложенность | ≤ 4 уровня | KISS |
-| Длина файла | < 500 строк | SRP |
+- Mandatory for all public functions and classes
+- Sections: Args, Returns, Raises, Examples (when needed)
+- Private methods — docstring only if the logic is non-obvious
+
+---
+
+## Imports
+
+- Only absolute imports (no relative imports)
+- Grouping: standard library → third-party → local
+- Alphabetical order within groups
+- Automatic sorting — ruff (isort) — see skill `_linters` (_linters/reference/linters.md)
+
+---
+
+## Code Metrics
+
+| Metric | Threshold | Principle |
+|--------|-----------|-----------|
+| Function length | ≤ 50 lines | KISS |
+| Cyclomatic complexity | < 10 | KISS |
+| Nesting depth | ≤ 4 levels | KISS |
+| File length | < 500 lines | SRP |
 
 ---
 
 ## Async-First
 
-- Все I/O операции используют async/await
-- Синхронные блокирующие вызовы в async коде — blocker
-- Для CPU-bound задач — `asyncio.to_thread()` или ProcessPoolExecutor
+- All I/O operations use async/await
+- Synchronous blocking calls in async code — blocker
+- For CPU-bound tasks — `asyncio.to_thread()` or ProcessPoolExecutor

@@ -1,76 +1,76 @@
-# Requirements — управление требованиями
+# Requirements — Requirements Management
 
-> Каждая задача фиксирует функциональные и нефункциональные требования до начала исследования кодовой базы.
+> Every task records functional and non-functional requirements before codebase exploration begins.
 
 ---
 
-## Шаблон документа требований
+## Requirements Document Template
 
 ```markdown
-# REQ-{NNN}: Требования для TASK-{NNN}
+# REQ-{NNN}: Requirements for TASK-{NNN}
 
 ## Task
-TASK-{NNN}: {Название задачи}
+TASK-{NNN}: {Task Title}
 
-## Статус
+## Status
 {Draft | Approved | Changed}
 
-## Функциональные требования (FR)
+## Functional Requirements (FR)
 
-| ID   | Требование | Приоритет |
+| ID   | Requirement | Priority |
 |------|-----------|-----------|
-| FR-1 | {Что система должна делать} | {Must/Should/Could/Won't} |
+| FR-1 | {What the system must do} | {Must/Should/Could/Won't} |
 
-## Нефункциональные требования (NFR)
+## Non-Functional Requirements (NFR)
 
-| ID    | Требование | Категория | Приоритет |
+| ID    | Requirement | Category | Priority |
 |-------|-----------|-----------|-----------|
-| NFR-1 | {Качественный атрибут} | {Категория} | {Must/Should/Could/Won't} |
+| NFR-1 | {Quality attribute} | {Category} | {Must/Should/Could/Won't} |
 ```
 
 ---
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Хранение | `docs/requirements/` в репозитории целевого проекта |
-| Именование файла | `REQ-NNN-{краткое-название}.md` |
-| Нумерация | REQ-001, REQ-002, ... — совпадает с TASK-NNN |
-| Минимум | Хотя бы 1 FR со статусом Must |
-| NFR | Опциональны, но рекомендуются для задач с нетривиальными качественными атрибутами |
-| Одобрение | Пользователь должен явно одобрить требования |
-| Язык | Русский (описание требований, категории, приоритеты) |
-
----
-
-## Приоритеты (MoSCoW)
-
-| Приоритет | Значение |
-|-----------|----------|
-| **Must** | Обязательно. Без этого задача не считается выполненной |
-| **Should** | Важно, но задача может быть выполнена без этого |
-| **Could** | Желательно, если позволяет время и ресурсы |
-| **Won't** | Осознанно исключено из текущей задачи (фиксируется для прозрачности) |
+| Rule | Description |
+|------|-------------|
+| Storage | `docs/requirements/` in the target project repository |
+| File naming | `REQ-NNN-{short-name}.md` |
+| Numbering | REQ-001, REQ-002, ... — matches TASK-NNN |
+| Minimum | At least 1 FR with Must status |
+| NFR | Optional but recommended for tasks with non-trivial quality attributes |
+| Approval | The user must explicitly approve the requirements |
+| Language | Russian (requirement descriptions, categories, priorities) |
 
 ---
 
-## Категории NFR
+## Priorities (MoSCoW)
 
-| Категория | Примеры |
-|-----------|---------|
-| **Performance** | Время отклика, пропускная способность, потребление памяти |
-| **Security** | Аутентификация, авторизация, шифрование, OWASP |
-| **Maintainability** | Читаемость, тестируемость, модульность |
-| **Reliability** | Отказоустойчивость, graceful degradation, retry |
-| **Usability** | UX, API ergonomics, документация |
+| Priority | Meaning |
+|----------|---------|
+| **Must** | Mandatory. The task is not considered complete without this |
+| **Should** | Important, but the task can be completed without it |
+| **Could** | Desirable if time and resources allow |
+| **Won't** | Consciously excluded from the current task (recorded for transparency) |
 
 ---
 
-## Статусы
+## NFR Categories
 
-| Статус | Значение |
-|--------|----------|
-| **Draft** | Требования сформулированы, ожидают одобрения |
-| **Approved** | Пользователь одобрил требования |
-| **Changed** | Требования изменились после одобрения (указать причину) |
+| Category | Examples |
+|----------|---------|
+| **Performance** | Response time, throughput, memory consumption |
+| **Security** | Authentication, authorization, encryption, OWASP |
+| **Maintainability** | Readability, testability, modularity |
+| **Reliability** | Fault tolerance, graceful degradation, retry |
+| **Usability** | UX, API ergonomics, documentation |
+
+---
+
+## Statuses
+
+| Status | Meaning |
+|--------|---------|
+| **Draft** | Requirements formulated, awaiting approval |
+| **Approved** | User approved the requirements |
+| **Changed** | Requirements changed after approval (specify reason) |

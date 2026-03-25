@@ -1,81 +1,81 @@
-# Обновление плагина python-pipeline
+# Updating the python-pipeline Plugin
 
-> Инструкция для AI и пользователя. Выполняется **после каждого изменения** в skill'ах, commands, agents или plugin.json.
-
----
-
-## Почему это нужно
-
-Claude Code кэширует плагины в `~/.claude/plugins/cache/local-plugins/python-pipeline/`.
-Кэш привязан к **версии** из `.claude-plugin/plugin.json`, а не к содержимому файлов.
-Без обновления версии изменения в исходниках **не применяются**.
+> Instructions for AI and user. Execute **after every change** to skills, commands, agents, or plugin.json.
 
 ---
 
-## Процедура обновления
+## Why This Is Needed
 
-### Шаг 1. Поднять версию
+Claude Code caches plugins in `~/.claude/plugins/cache/local-plugins/python-pipeline/`.
+The cache is tied to the **version** from `.claude-plugin/plugin.json`, not to file contents.
+Without a version bump, changes in source files **are not applied**.
 
-Файл: `.claude-plugin/plugin.json`, поле `version`.
+---
 
-Схема версионирования (SemVer):
+## Update Procedure
 
-| Тип изменения | Пример | Когда |
-|----------------|--------|-------|
-| Патч | `1.0.0` → `1.0.1` | Исправления, мелкие правки текста |
-| Минор | `1.0.0` → `1.1.0` | Новый skill, команда, этап pipeline |
-| Мажор | `1.0.0` → `2.0.0` | Ломающие изменения в формате/структуре |
+### Step 1. Bump the version
 
-### Шаг 2. Закоммитить изменения
+File: `.claude-plugin/plugin.json`, field `version`.
+
+Versioning scheme (SemVer):
+
+| Change type | Example | When |
+|-------------|---------|------|
+| Patch | `1.0.0` → `1.0.1` | Fixes, minor text edits |
+| Minor | `1.0.0` → `1.1.0` | New skill, command, pipeline phase |
+| Major | `1.0.0` → `2.0.0` | Breaking changes in format/structure |
+
+### Step 2. Commit changes
 
 ```bash
 git add -A
 git commit -m "chore: bump plugin version to X.Y.Z"
 ```
 
-### Шаг 3. Обновить кэш плагина
+### Step 3. Update the plugin cache
 
 ```bash
 claude plugins update python-pipeline@local-plugins
 ```
 
-Имя плагина **обязательно** с суффиксом `@local-plugins`. Без него — ошибка "not found".
+The plugin name **must** include the `@local-plugins` suffix. Without it — "not found" error.
 
-### Шаг 4. Перезапустить Claude Code
+### Step 4. Restart Claude Code
 
-Текущая сессия использует загруженный при старте кэш. Новый кэш подхватится только после перезапуска.
+The current session uses the cache loaded at startup. The new cache will only be picked up after a restart.
 
 ---
 
-## Экстренное обновление (без поднятия версии)
+## Emergency Update (without version bump)
 
-Если нужно применить изменения без поднятия версии:
+If you need to apply changes without bumping the version:
 
 ```bash
 rm -rf ~/.claude/plugins/cache/local-plugins/python-pipeline
 ```
 
-Затем перезапустить Claude Code. Кэш пересоздастся из исходника.
+Then restart Claude Code. The cache will be recreated from source.
 
-**Недостаток:** метаданные в `~/.claude/plugins/installed_plugins.json` останутся устаревшими (старый SHA, старая дата). Функционально плагин работает, но metadata грязная.
-
----
-
-## Частые ошибки
-
-| # | Симптом | Причина | Решение |
-|---|--------|---------|---------|
-| 1 | AI использует устаревшие skill'ы, не видит новых этапов/шаблонов | Кэш содержит старую версию плагина, изменения в исходниках не применились | Выполнить полную процедуру обновления (шаги 1–4) |
-| 2 | `Plugin "python-pipeline" not found` | Не указан суффикс `@local-plugins` | Использовать полное имя: `python-pipeline@local-plugins` |
-| 3 | `already at the latest version` но файлы изменены | Версия в `plugin.json` не поднята — CLI сравнивает только версию, не содержимое | Поднять версию в `.claude-plugin/plugin.json` (шаг 1) |
-| 4 | После `claude plugins update` изменения всё ещё не видны | Текущая сессия Claude Code загрузила старый кэш при старте | Перезапустить Claude Code (шаг 4) |
-| 5 | После `rm -rf` кэша + перезапуска `installed_plugins.json` показывает старый SHA и дату | `rm -rf` + перезапуск восстанавливает файлы, но не обновляет метаданные | Косметическая проблема. Для чистых метаданных — поднять версию и выполнить `claude plugins update` |
-| 6 | `claude plugins update` без аргументов — `missing required argument` | CLI требует явное имя плагина | Указать полное имя: `claude plugins update python-pipeline@local-plugins` |
+**Drawback:** metadata in `~/.claude/plugins/installed_plugins.json` will remain outdated (old SHA, old date). Functionally the plugin works, but metadata is dirty.
 
 ---
 
-## Правило для AI
+## Common Errors
 
-При коммите изменений в этом проекте — **всегда**:
-1. Поднять версию в `.claude-plugin/plugin.json`
-2. Напомнить пользователю выполнить шаги 3–4
+| # | Symptom | Cause | Solution |
+|---|---------|-------|----------|
+| 1 | AI uses outdated skills, does not see new phases/templates | Cache contains old plugin version, changes in source files are not applied | Perform full update procedure (steps 1-4) |
+| 2 | `Plugin "python-pipeline" not found` | `@local-plugins` suffix not specified | Use full name: `python-pipeline@local-plugins` |
+| 3 | `already at the latest version` but files changed | Version in `plugin.json` not bumped — CLI compares only version, not contents | Bump version in `.claude-plugin/plugin.json` (step 1) |
+| 4 | After `claude plugins update` changes are still not visible | Current Claude Code session loaded old cache at startup | Restart Claude Code (step 4) |
+| 5 | After `rm -rf` cache + restart, `installed_plugins.json` shows old SHA and date | `rm -rf` + restart restores files but does not update metadata | Cosmetic issue. For clean metadata — bump version and run `claude plugins update` |
+| 6 | `claude plugins update` without arguments — `missing required argument` | CLI requires explicit plugin name | Specify full name: `claude plugins update python-pipeline@local-plugins` |
+
+---
+
+## Rule for AI
+
+When committing changes in this project — **always**:
+1. Bump version in `.claude-plugin/plugin.json`
+2. Remind the user to execute steps 3-4

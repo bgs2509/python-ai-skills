@@ -1,48 +1,48 @@
 ---
 name: _architecture
 description: >
-  Архитектура Python-приложений: DDD (слои, сущности, Value Objects), Hexagonal (порты, адаптеры).
-  Выбор между монолитом и микросервисами. Используй при проектировании структуры проекта.
+  Python application architecture: DDD (layers, entities, Value Objects), Hexagonal (ports, adapters).
+  Choosing between monolith and microservices. Use when designing project structure.
 ---
 
-# Архитектура приложений
+# Application Architecture
 
-> Domain-Driven Design + Hexagonal Architecture. Domain — единственный источник бизнес-правил (SSoT).
+> Domain-Driven Design + Hexagonal Architecture. Domain is the single source of business rules (SSoT).
 
-## Слои и зависимости
+## Layers and Dependencies
 
 ```
 api/ → application/ → domain/ ← infrastructure/
 ```
 
-| Слой | Зависит от | Содержит |
-|------|-----------|----------|
-| Domain | Ничего | Сущности, Value Objects, доменные сервисы, интерфейсы |
-| Application | Domain | Use Cases, Application Services, DTO |
-| API | Application | Контроллеры, middleware, HTTP-схемы |
-| Infrastructure | Domain | Репозитории, HTTP-клиенты, БД, кэш |
+| Layer | Depends On | Contains |
+|-------|-----------|----------|
+| Domain | Nothing | Entities, Value Objects, domain services, interfaces |
+| Application | Domain | Use Cases, Application Services, DTOs |
+| API | Application | Controllers, middleware, HTTP schemas |
+| Infrastructure | Domain | Repositories, HTTP clients, DB, cache |
 
-**DIP**: Domain определяет интерфейсы → Infrastructure реализует.
+**DIP**: Domain defines interfaces → Infrastructure implements them.
 
-## Ключевые концепции
+## Key Concepts
 
-- **Entities**: уникальная идентичность, содержат поведение (не анемичные модели)
-- **Value Objects**: immutable, самовалидирующиеся (Money, Email, Address)
-- **Доменные сервисы**: логика между несколькими сущностями, stateless
-- **Ports & Adapters**: входящие (Use Case) и исходящие (Repository) порты
-- **DI**: связывание в точке входа (main.py / dependencies.py)
+- **Entities**: unique identity, contain behavior (not anemic models)
+- **Value Objects**: immutable, self-validating (Money, Email, Address)
+- **Domain Services**: logic spanning multiple entities, stateless
+- **Ports & Adapters**: inbound (Use Case) and outbound (Repository) ports
+- **DI**: binding at the entry point (main.py / dependencies.py)
 
-## Выбор: монолит vs микросервисы
+## Choosing: Monolith vs Microservices
 
-| Критерий | Монолит | Микросервисы |
-|----------|---------|-------------|
-| Команда | 1-5 человек | 5+ человек |
-| Стадия | Начальная | Зрелая |
-| Масштабирование | Единое | Независимое |
-| Деплой | Простой | Сложный |
+| Criterion | Monolith | Microservices |
+|-----------|----------|---------------|
+| Team | 1-5 people | 5+ people |
+| Stage | Early | Mature |
+| Scaling | Unified | Independent |
+| Deployment | Simple | Complex |
 
-Подробнее:
-- DDD (слои, сущности, Bounded Contexts): [reference/ddd.md](reference/ddd.md)
-- Hexagonal (порты, адаптеры, структура): [reference/hexagonal.md](reference/hexagonal.md)
-- Монолит: [reference/monolith.md](reference/monolith.md)
-- Микросервисы: [reference/microservices.md](reference/microservices.md)
+More details:
+- DDD (layers, entities, Bounded Contexts): [reference/ddd.md](reference/ddd.md)
+- Hexagonal (ports, adapters, structure): [reference/hexagonal.md](reference/hexagonal.md)
+- Monolith: [reference/monolith.md](reference/monolith.md)
+- Microservices: [reference/microservices.md](reference/microservices.md)

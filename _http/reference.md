@@ -1,86 +1,86 @@
-# HTTP-клиенты
+# HTTP Clients
 
-> Единый базовый HTTP-клиент (DRY, SSoT). Все исходящие HTTP-вызовы проходят через него. Логирование и обработка ошибок — централизованные.
+> A single base HTTP client (DRY, SSoT). All outgoing HTTP calls go through it. Logging and error handling are centralized.
 
 ---
 
-## Базовый HTTP-клиент (DRY)
+## Base HTTP Client (DRY)
 
-- Один базовый класс для всех HTTP-клиентов
-- Встроенное логирование каждого вызова (DRY — не дублировать в каждом клиенте)
-- Встроенная обработка ошибок (DRY — см. skill `_error-handling` (_error-handling/reference.md))
-- Конкретные клиенты наследуются от базового
+- One base class for all HTTP clients
+- Built-in logging for every call (DRY — do not duplicate in each client)
+- Built-in error handling (DRY — see skill `_error-handling` (_error-handling/reference.md))
+- Concrete clients inherit from the base
 
 ---
 
 ## httpx AsyncClient
 
-- Асинхронный HTTP-клиент (Async-First)
-- Connection pooling — переиспользование соединений
-- Один экземпляр на lifetime приложения (создаётся при старте, закрывается при shutdown)
+- Asynchronous HTTP client (Async-First)
+- Connection pooling — connection reuse
+- One instance per application lifetime (created at startup, closed at shutdown)
 
 ---
 
 ## Timeout
 
-Таймауты задаются явно (Explicit > Implicit):
+Timeouts are set explicitly (Explicit > Implicit):
 
-| Параметр | Назначение | Рекомендация |
-|----------|-----------|--------------|
-| connect | Время на установку соединения | 5s |
-| read | Время на получение ответа | 30s |
-| write | Время на отправку запроса | 10s |
-| pool | Время ожидания свободного соединения | 10s |
+| Parameter | Purpose | Recommendation |
+|-----------|---------|----------------|
+| connect | Time to establish a connection | 5s |
+| read | Time to receive a response | 30s |
+| write | Time to send a request | 10s |
+| pool | Time to wait for an available connection | 10s |
 
-Без таймаута — blocker. Бесконечное ожидание = зависание приложения.
+Without a timeout — blocker. Infinite waiting = application hang.
 
 ---
 
 ## Retry
 
-Базовый HTTP-клиент автоматически применяет retry-стратегии.
+The base HTTP client automatically applies retry strategies.
 
-> Таблица retryable/non-retryable ошибок, параметры backoff — см. skill `_error-handling` (_error-handling/reference.md) секция "Retry-стратегии".
+> Table of retryable/non-retryable errors, backoff parameters — see skill `_error-handling` (_error-handling/reference.md) section "Retry Strategies".
 
 ---
 
-## Централизованное логирование (DRY)
+## Centralized Logging (DRY)
 
-Каждый HTTP-вызов автоматически логируется базовым клиентом:
+Every HTTP call is automatically logged by the base client:
 
-| Поле | Описание |
-|------|----------|
-| service | Название вызываемого сервиса |
-| operation | Операция (get_user, create_order) |
-| method | HTTP метод (GET, POST, ...) |
+| Field | Description |
+|-------|-------------|
+| service | Name of the called service |
+| operation | Operation (get_user, create_order) |
+| method | HTTP method (GET, POST, ...) |
 | endpoint | URL |
-| duration_ms | Время выполнения |
-| status_code | HTTP код ответа |
-| error_type | Тип ошибки (если есть) |
-| is_retryable | Можно ли повторить |
+| duration_ms | Execution time |
+| status_code | HTTP response code |
+| error_type | Error type (if any) |
+| is_retryable | Whether it can be retried |
 
-> Формат логирования — см. skill `_logging` (_logging/reference.md).
+> Logging format — see skill `_logging` (_logging/reference.md).
 
 ---
 
-## Централизованная обработка ошибок (DRY)
+## Centralized Error Handling (DRY)
 
-- HTTP-ошибки маппятся на `ExternalServiceError` (из иерархии `AppException`)
-- Обработка — в базовом клиенте, не в каждом вызове
+- HTTP errors are mapped to `ExternalServiceError` (from the `AppException` hierarchy)
+- Handling is in the base client, not in each individual call
 
-> Иерархия исключений — см. skill `_error-handling` (_error-handling/reference.md).
+> Exception hierarchy — see skill `_error-handling` (_error-handling/reference.md).
 
 ---
 
 ## Circuit Breaker
 
-Для критичных внешних зависимостей:
+For critical external dependencies:
 
-| Состояние | Описание |
-|-----------|----------|
-| **Closed** | Нормальная работа, запросы проходят |
-| **Open** | Порог ошибок превышен, запросы не отправляются (fallback) |
-| **Half-Open** | Пробный запрос для проверки восстановления |
+| State | Description |
+|-------|-------------|
+| **Closed** | Normal operation, requests go through |
+| **Open** | Error threshold exceeded, requests are not sent (fallback) |
+| **Half-Open** | Probe request to check recovery |
 
-- Логирование переходов состояний (см. skill `_logging` (_logging/reference.md) — state transitions)
-- Fallback: кэшированные данные, default значение, или ошибка с понятным сообщением
+- Logging of state transitions (see skill `_logging` (_logging/reference.md) — state transitions)
+- Fallback: cached data, default value, or an error with a clear message

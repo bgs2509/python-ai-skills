@@ -1,6 +1,6 @@
 ---
 description: Full Python development pipeline with skill orchestration and parallel agents
-argument-hint: <описание задачи>
+argument-hint: <task description>
 ---
 
 # Python Development Pipeline
@@ -55,30 +55,30 @@ Task description: `$ARGUMENTS`
 
 ## Phase 1.5: REQUIREMENTS
 
-1. Проанализировать задачу и сформулировать:
-   - **Функциональные требования (FR)** — что система должна делать
-   - **Нефункциональные требования (NFR)** — качественные атрибуты (performance, security, maintainability и др.)
-2. Запустить **py-doc-manager** агента:
-   - Prompt: "Phase 1.5 REQUIREMENTS: Создай документ требований для TASK-NNN. Прочитай _docworkflow/reference/requirements.md для формата. Создай docs/requirements/REQ-NNN-{name}.md. FR: {список}. NFR: {список}. Обнови TASK-NNN — добавь ссылку на REQ-NNN в артефакты."
-3. Вывести таблицу требований пользователю:
-   - FR: таблица (ID, Требование, Приоритет)
-   - NFR: таблица (ID, Требование, Категория, Приоритет)
-   - Минимум 1 FR со статусом Must. NFR опциональны.
+1. Analyze the task and formulate:
+   - **Functional Requirements (FR)** — what the system must do
+   - **Non-Functional Requirements (NFR)** — quality attributes (performance, security, maintainability, etc.)
+2. Launch **py-doc-manager** agent:
+   - Prompt: "Phase 1.5 REQUIREMENTS: Create a requirements document for TASK-NNN. Read _docworkflow/reference/requirements.md for the format. Create docs/requirements/REQ-NNN-{name}.md. FR: {list}. NFR: {list}. Update TASK-NNN — add a reference to REQ-NNN in artifacts."
+3. Present the requirements table to the user:
+   - FR: table (ID, Requirement, Priority)
+   - NFR: table (ID, Requirement, Category, Priority)
+   - At least 1 FR with Must status. NFR are optional.
 
 ---
 
 ## Phase 1.7: REQUIREMENTS APPROVAL
 
-> **⛔ BLOCKER** — без явного одобрения требований Phase 2 ЗАПРЕЩЕНА.
+> **BLOCKER** — without explicit requirements approval, Phase 2 is PROHIBITED.
 
-1. Показать пользователю список требований из Phase 1.5
-2. Спросить: "Требования сформулированы. Одобряете? (или какие изменения нужны?)"
-3. Без явного "да/ок/одобряю/proceed" — вернуться к Phase 1.5 и уточнить
+1. Show the user the requirements list from Phase 1.5
+2. Ask: "Requirements have been formulated. Do you approve? (or what changes are needed?)"
+3. Without an explicit "yes/ok/approve/proceed" — return to Phase 1.5 and clarify
 
-### Gate 1.7 → 2 (проверь перед переходом к Phase 2):
-- [ ] Документ REQ-NNN существует в docs/requirements/
-- [ ] Есть хотя бы 1 FR со статусом Must
-- [ ] Пользователь ЯВНО одобрил требования (слова: "да", "ок", "одобряю", "proceed", "go"). Любой другой ответ = вернуться к Phase 1.5.
+### Gate 1.7 -> 2 (verify before proceeding to Phase 2):
+- [ ] Document REQ-NNN exists in docs/requirements/
+- [ ] There is at least 1 FR with Must status
+- [ ] User has EXPLICITLY approved the requirements (words: "yes", "ok", "approve", "proceed", "go"). Any other response = return to Phase 1.5.
 
 ---
 
@@ -112,27 +112,27 @@ Task description: `$ARGUMENTS`
 
 ## Phase 3.5: PLAN REVIEW
 
-> **MANDATORY** — этот шаг нельзя пропустить или заменить собственной оценкой Lead.
+> **MANDATORY** — this step cannot be skipped or replaced by the Lead's own assessment.
 
 1. Launch **py-quality** agent in read-only plan review mode:
    - Prompt: "Review this feature plan for quality concerns. Check: Does the proposed architecture violate DRY, SRP, SOLID? Are abstractions and layers correct? Is error handling planned? Do names follow conventions? Any scalability issues? Plan file: docs/plans/PLAN-NNN-{name}.md"
 2. Present py-quality's findings to the user
-3. **⛔ BLOCKER: получить ЯВНОЕ одобрение плана от пользователя.**
-   - Ask: "План создан и проверен py-quality. Одобряете план? (или какие изменения нужны?)"
-   - Без явного "да/одобряю/proceed" от пользователя — Phase 4 ЗАПРЕЩЕНА.
-   - Молчание, отсутствие ответа или неясный ответ ≠ одобрение.
+3. **BLOCKER: obtain EXPLICIT plan approval from the user.**
+   - Ask: "The plan has been created and reviewed by py-quality. Do you approve the plan? (or what changes are needed?)"
+   - Without an explicit "yes/approve/proceed" from the user — Phase 4 is PROHIBITED.
+   - Silence, no response, or an unclear answer != approval.
 
-### Gate 3.5 → 4 (проверь перед переходом к Phase 4):
-- [ ] py-quality агент был запущен (не подменён оценкой Lead)
-- [ ] Результаты py-quality показаны пользователю
-- [ ] Пользователь ЯВНО одобрил план (слова: "да", "ок", "одобряю", "proceed", "go"). Любой другой ответ = вернуться к Phase 3.
+### Gate 3.5 -> 4 (verify before proceeding to Phase 4):
+- [ ] py-quality agent was launched (not substituted by the Lead's assessment)
+- [ ] py-quality results were shown to the user
+- [ ] User has EXPLICITLY approved the plan (words: "yes", "ok", "approve", "proceed", "go"). Any other response = return to Phase 3.
 
 ---
 
 ## Phase 4: IMPLEMENTATION
 
-> **PREREQUISITE**: Phase 4 начинается ТОЛЬКО после явного одобрения плана пользователем в Phase 3.5.
-> Если одобрение не получено — СТОП. Вернуться к Phase 3.5 и спросить пользователя.
+> **PREREQUISITE**: Phase 4 begins ONLY after the user explicitly approves the plan in Phase 3.5.
+> If approval was not obtained — STOP. Return to Phase 3.5 and ask the user.
 
 1. Write the code, applying contextual skills:
    - Load relevant skill SKILL.md files for guidance (from the Routing Table)
@@ -142,7 +142,7 @@ Task description: `$ARGUMENTS`
    - For logging: read `_logging/SKILL.md` — structlog, Log-Driven Design
 2. Follow the plan from Phase 3
 3. Apply _code-quality principles throughout:
-   - Functions ≤50 lines, nesting ≤4
+   - Functions <=50 lines, nesting <=4
    - Type hints on all public interfaces
    - snake_case naming, descriptive names
    - No duplicated logic (DRY)
@@ -152,36 +152,36 @@ Task description: `$ARGUMENTS`
 
 ## Phase 5: QUALITY GATE
 
-> **CRITICAL**: В этой фазе запускаются ровно **3 агента** в одном сообщении. Все три ОБЯЗАТЕЛЬНЫ.
-> Перед отправкой сообщения — убедись что в нём **3 вызова Agent tool**. Если меньше — СТОП, добавь недостающих.
+> **CRITICAL**: In this phase, exactly **3 agents** are launched in a single message. All three are MANDATORY.
+> Before sending the message — make sure it contains **3 Agent tool calls**. If fewer — STOP, add the missing ones.
 
 ### Unified Severity Mapping
 
-| Must Fix (блокирует коммит) | Should Fix | Optional |
-|-----------------------------|------------|----------|
+| Must Fix (blocks commit) | Should Fix | Optional |
+|--------------------------|------------|----------|
 | py-quality: BLOCKER | py-quality: WARNING | py-quality: INFO |
 | py-security: CRITICAL | py-security: HIGH | py-security: MEDIUM, LOW |
 
 Launch **exactly 3** agents in a **single message** (all 3 Agent tool calls in one response):
 
 ### Agent 1: py-quality
-- Prompt: "Review these files for code quality: {list of created/modified files}. ОБЯЗАТЕЛЬНО создай ОТДЕЛЬНЫЙ файл docs/reports/QUALITY-NNN-{name}.md по шаблону из твоего agent definition. НЕ встраивай отчёт в другие документы."
+- Prompt: "Review these files for code quality: {list of created/modified files}. You MUST create a SEPARATE file docs/reports/QUALITY-NNN-{name}.md using the template from your agent definition. Do NOT embed the report in other documents."
 
 ### Agent 2: py-security
-- Prompt: "Security review these files: {list of created/modified files}. ОБЯЗАТЕЛЬНО создай ОТДЕЛЬНЫЙ файл docs/reports/SECURITY-NNN-{name}.md по шаблону из твоего agent definition. НЕ встраивай отчёт в другие документы."
+- Prompt: "Security review these files: {list of created/modified files}. You MUST create a SEPARATE file docs/reports/SECURITY-NNN-{name}.md using the template from your agent definition. Do NOT embed the report in other documents."
 
 ### Agent 3: py-test-writer
-- Prompt: "Write tests for these files: {list of created/modified files}. Follow AAA pattern, fixtures in conftest.py, coverage target ≥90%. Create test files, run pytest."
+- Prompt: "Write tests for these files: {list of created/modified files}. Follow AAA pattern, fixtures in conftest.py, coverage target >=90%. Create test files, run pytest."
 
-### Обязательные артефакты Phase 5
+### Mandatory Phase 5 Artifacts
 
-Каждый агент ОБЯЗАН создать ОТДЕЛЬНЫЙ файл отчёта:
-- py-quality → `docs/reports/QUALITY-NNN-{name}.md`
-- py-security → `docs/reports/SECURITY-NNN-{name}.md`
-- py-test-writer → результаты в stdout (тесты + coverage)
+Each agent MUST create a SEPARATE report file:
+- py-quality -> `docs/reports/QUALITY-NNN-{name}.md`
+- py-security -> `docs/reports/SECURITY-NNN-{name}.md`
+- py-test-writer -> results in stdout (tests + coverage)
 
-Lead ОБЯЗАН проверить наличие файлов QUALITY-NNN и SECURITY-NNN перед переходом к Phase 6.
-Если файл отсутствует — вернуть агенту с указанием: "создай отдельный файл отчёта по шаблону".
+Lead MUST verify that QUALITY-NNN and SECURITY-NNN files exist before proceeding to Phase 6.
+If a file is missing — return to the agent with instruction: "create a separate report file using the template".
 
 After **all 3** agents complete:
 1. Consolidate results into a summary table:
@@ -194,23 +194,23 @@ After **all 3** agents complete:
    ```
 2. Present to user: "Quality Gate results. What would you like to fix?"
 
-### Gate 5 → 6 (проверь перед переходом к Phase 6):
-- [ ] py-quality завершён, результат получен
-- [ ] py-security завершён, результат получен
-- [ ] py-test-writer завершён, тесты написаны и запущены
-- [ ] Сводная таблица показана пользователю
+### Gate 5 -> 6 (verify before proceeding to Phase 6):
+- [ ] py-quality completed, results received
+- [ ] py-security completed, results received
+- [ ] py-test-writer completed, tests written and run
+- [ ] Summary table shown to the user
 
 ---
 
 ## Phase 6: FIX
 
-> **Must Fix (см. Unified Severity Mapping выше) — исправляются ВСЕГДА.** Lead не может переопределить severity, назначенную агентом.
-> Если Lead считает что BLOCKER/CRITICAL не применим — он ОБЯЗАН спросить пользователя, а не пропускать молча.
+> **Must Fix (see Unified Severity Mapping above) — are ALWAYS fixed.** The Lead cannot override severity assigned by an agent.
+> If the Lead believes a BLOCKER/CRITICAL is not applicable — they MUST ask the user, not skip it silently.
 
-1. **Must Fix** (BLOCKER от py-quality, CRITICAL от py-security) — исправить все. Пропуск = провал пайплайна.
-2. **Should Fix** (WARNING от py-quality, HIGH от py-security) — показать пользователю, исправить если согласен.
-3. **Optional** (INFO, MEDIUM, LOW) — на усмотрение Lead, не требует действий.
-4. После исправлений — запустить mini quality check (re-launch relevant agent) на изменённых файлах.
+1. **Must Fix** (BLOCKER from py-quality, CRITICAL from py-security) — fix all. Skipping = pipeline failure.
+2. **Should Fix** (WARNING from py-quality, HIGH from py-security) — show to user, fix if they agree.
+3. **Optional** (INFO, MEDIUM, LOW) — at Lead's discretion, no action required.
+4. After fixes — run a mini quality check (re-launch relevant agent) on changed files.
 5. Skip this phase entirely **only if** all 3 agents returned PASS with zero BLOCKERs.
 
 ---
@@ -230,19 +230,19 @@ Output: list of documentation artifacts created
 
 ## Phase 8: COMMIT
 
-1. Verify **full pipeline** checklist (каждый пункт проверяется, результат выводится пользователю):
+1. Verify **full pipeline** checklist (each item is checked, result is shown to the user):
    - [ ] Task in backlog (TASK-NNN)
    - [ ] Requirements approved (REQ-NNN in docs/requirements/)
    - [ ] Plan in docs/plans/
    - [ ] Plan reviewed by py-quality agent (Phase 3.5)
    - [ ] ADR in docs/adr/ (if applicable)
    - [ ] Quality Gate: all 3 agents ran (py-quality, py-security, py-test-writer)
-   - [ ] Quality Gate: отдельные файлы QUALITY-NNN и SECURITY-NNN существуют в docs/reports/
+   - [ ] Quality Gate: separate QUALITY-NNN and SECURITY-NNN files exist in docs/reports/
    - [ ] Quality Gate: zero unresolved BLOCKERs
    - [ ] Tests exist and pass
    - [ ] CHANGELOG.md updated
    - [ ] Completion Report in docs/reports/
-2. **If any checkbox is unchecked — STOP.** Вернуться к соответствующей фазе и доделать.
+2. **If any checkbox is unchecked — STOP.** Return to the corresponding phase and complete it.
 3. Stage all relevant files
 4. Create commit with format:
    ```
@@ -264,7 +264,7 @@ Output: list of documentation artifacts created
 
 ## Phase 9: AUDIT
 
-> Запускается ПОСЛЕ Phase 8 (COMMIT). Не блокирует коммит — проверяет качество работы пайплайна post-hoc.
+> Runs AFTER Phase 8 (COMMIT). Does not block the commit — checks pipeline quality post-hoc.
 
 Launch **py-supervisor** agent:
 - Prompt: "Audit pipeline run for TASK-NNN. Check all artifacts in docs/ (backlog, requirements, plans, reports), CHANGELOG.md, test files, and git diff of the last commit. Generate audit report in docs/metrics/audit-reports/AUDIT-NNN-TASK-NNN.md."
@@ -278,17 +278,17 @@ Output to user:
 
 ## Rules for Lead
 
-### Железные правила (нарушение = провал пайплайна)
+### Iron Rules (violation = pipeline failure)
 
-- **Никогда не подменяй агента собственным суждением.** Если пайплайн говорит "запусти агента" — запусти агента. Lead не является заменой py-quality, py-security или py-test-writer.
-- **Никогда не переопределяй severity.** Если агент сказал BLOCKER — это BLOCKER. Lead не может понизить до WARNING или пропустить.
-- **Никогда не пропускай фазу молча.** Если фаза кажется избыточной — спроси пользователя. Не принимай решение о пропуске самостоятельно.
-- **Phase 5 = ровно 3 агента.** Не 2, не 1. Проверь количество Agent tool calls перед отправкой.
-- **Gate-чеклисты обязательны.** Перед переходом к следующей фазе — проверь gate текущей. Не прошёл gate — не переходи.
-- **Никогда не пиши код без одобрения плана.** Phase 4 начинается ТОЛЬКО после явного "да" от пользователя в Phase 3.5. Это абсолютный BLOCKER.
-- **Никогда не начинай EXPLORATION без утверждённых требований.** Phase 2 начинается ТОЛЬКО после явного одобрения требований пользователем в Phase 1.7.
+- **Never substitute an agent with your own judgment.** If the pipeline says "launch an agent" — launch the agent. The Lead is not a replacement for py-quality, py-security, or py-test-writer.
+- **Never override severity.** If an agent says BLOCKER — it is a BLOCKER. The Lead cannot downgrade it to WARNING or skip it.
+- **Never silently skip a phase.** If a phase seems redundant — ask the user. Do not decide to skip it on your own.
+- **Phase 5 = exactly 3 agents.** Not 2, not 1. Verify the number of Agent tool calls before sending.
+- **Gate checklists are mandatory.** Before proceeding to the next phase — check the current gate. Gate not passed — do not proceed.
+- **Never write code without plan approval.** Phase 4 begins ONLY after an explicit "yes" from the user in Phase 3.5. This is an absolute BLOCKER.
+- **Never start EXPLORATION without approved requirements.** Phase 2 begins ONLY after the user explicitly approves requirements in Phase 1.7.
 
-### Операционные правила
+### Operational Rules
 
 - **Always read skill SKILL.md** before applying its standards — skills evolve, don't rely on cached knowledge
 - **Parallel agents**: launch independent agents together (e.g., Phase 5: all 3 simultaneously)
@@ -298,4 +298,4 @@ Output to user:
 - **Docworkflow is mandatory**: every pipeline run produces TASK, PLAN, CHANGELOG entry, and Completion Report
 - **ADR is optional**: only when an architectural decision was made
 - **Skill paths**: skills are at `~/.claude/skills/_*/SKILL.md` (symlinks to this repo)
-- **Phase 9 обязательна**: после коммита всегда запускай py-supervisor для аудита
+- **Phase 9 is mandatory**: after the commit, always launch py-supervisor for audit

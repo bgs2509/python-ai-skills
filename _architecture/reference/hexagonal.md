@@ -1,92 +1,92 @@
 # Hexagonal Architecture (Ports & Adapters)
 
-> Бизнес-логика изолирована от внешнего мира через порты (интерфейсы) и адаптеры (реализации). Подмена адаптера не требует изменения бизнес-логики (OCP, DIP).
+> Business logic is isolated from the outside world through ports (interfaces) and adapters (implementations). Replacing an adapter does not require changes to business logic (OCP, DIP).
 
 ---
 
-## Направление зависимостей
+## Dependency Direction
 
 ```
 api/ → application/ → domain/ ← infrastructure/
 ```
 
-Все зависимости направлены ВНУТРЬ — к Domain. Domain не знает о внешнем мире.
+All dependencies point INWARD — toward Domain. Domain knows nothing about the outside world.
 
 ---
 
-## Порты и адаптеры
+## Ports and Adapters
 
-### Порты (интерфейсы)
+### Ports (interfaces)
 
-- Определяются в Domain или Application (SSoT)
-- Описывают ЧТО нужно, но не КАК
-- Абстрактные базовые классы (ABC) или Protocol
+- Defined in Domain or Application (SSoT)
+- Describe WHAT is needed, not HOW
+- Abstract base classes (ABC) or Protocol
 
-| Тип | Направление | Пример |
-|-----|-------------|--------|
-| **Входящий порт** | Внешний мир → Приложение | Use Case интерфейс |
-| **Исходящий порт** | Приложение → Внешний мир | Repository интерфейс, HTTP-клиент интерфейс |
+| Type | Direction | Example |
+|------|-----------|---------|
+| **Inbound port** | Outside world → Application | Use Case interface |
+| **Outbound port** | Application → Outside world | Repository interface, HTTP client interface |
 
-### Адаптеры (реализации)
+### Adapters (implementations)
 
-- Реализуют порты конкретной технологией
-- Определяются в Infrastructure или API
-- Легко заменяемы (OCP — открыт для расширения)
+- Implement ports with a specific technology
+- Defined in Infrastructure or API
+- Easily replaceable (OCP — open for extension)
 
-| Тип | Слой | Пример |
-|-----|------|--------|
-| **Входящий адаптер** | API | FastAPI роутер, CLI команда, Event handler |
-| **Исходящий адаптер** | Infrastructure | PostgreSQL-репозиторий, Redis-кэш, httpx-клиент |
+| Type | Layer | Example |
+|------|-------|---------|
+| **Inbound adapter** | API | FastAPI router, CLI command, Event handler |
+| **Outbound adapter** | Infrastructure | PostgreSQL repository, Redis cache, httpx client |
 
 ---
 
 ## Dependency Injection
 
-- Связывание портов с адаптерами — в точке входа (main.py или dependencies.py)
-- Единое место конфигурации зависимостей (SSoT)
-- Позволяет подменять адаптеры для тестов (Testability)
+- Binding ports to adapters — at the entry point (main.py or dependencies.py)
+- Single place for dependency configuration (SSoT)
+- Allows replacing adapters for tests (Testability)
 
-**Правила**:
-- Бизнес-логика зависит от интерфейса, не от реализации (DIP)
-- Прямой import конкретного класса в бизнес-логике — blocker
-- Невозможность подменить зависимость для тестов — blocker
+**Rules**:
+- Business logic depends on the interface, not the implementation (DIP)
+- Direct import of a concrete class in business logic — blocker
+- Inability to replace a dependency for tests — blocker
 
 ---
 
-## Структура директорий
+## Directory Structure
 
 ```
 src/
-├── api/                     # Входящие адаптеры (HTTP)
-│   ├── v1/                  # Версионирование API
-│   └── dependencies.py      # Dependency Injection (SSoT для связей)
+├── api/                     # Inbound adapters (HTTP)
+│   ├── v1/                  # API versioning
+│   └── dependencies.py      # Dependency Injection (SSoT for bindings)
 ├── application/             # Use Cases
 │   ├── services/            # Application Services
 │   └── dtos/                # Data Transfer Objects
-├── domain/                  # Чистая бизнес-логика (НЕ зависит ни от чего)
-│   ├── entities/            # Сущности с идентичностью
-│   ├── value_objects/       # Объекты-значения (immutable)
-│   ├── services/            # Доменные сервисы
-│   └── repositories/        # Интерфейсы репозиториев (ABC)
-├── infrastructure/          # Исходящие адаптеры
-│   ├── database/            # Реализации репозиториев
-│   ├── http/                # HTTP-клиенты к внешним API
-│   └── cache/               # Кэш
-├── schemas/                 # Pydantic-схемы API
-├── core/                    # Конфигурация, логирование, исключения
-│   ├── config.py            # Settings (SSoT для конфигурации)
-│   ├── logging.py           # Централизованное логирование (SSoT)
-│   └── exceptions.py        # Иерархия исключений (SSoT)
-└── main.py                  # Точка входа
+├── domain/                  # Pure business logic (depends on NOTHING)
+│   ├── entities/            # Entities with identity
+│   ├── value_objects/       # Value objects (immutable)
+│   ├── services/            # Domain services
+│   └── repositories/        # Repository interfaces (ABC)
+├── infrastructure/          # Outbound adapters
+│   ├── database/            # Repository implementations
+│   ├── http/                # HTTP clients to external APIs
+│   └── cache/               # Cache
+├── schemas/                 # Pydantic API schemas
+├── core/                    # Configuration, logging, exceptions
+│   ├── config.py            # Settings (SSoT for configuration)
+│   ├── logging.py           # Centralized logging (SSoT)
+│   └── exceptions.py        # Exception hierarchy (SSoT)
+└── main.py                  # Entry point
 ```
 
 ---
 
-## Преимущества
+## Benefits
 
-| Свойство | Как достигается |
-|----------|----------------|
-| Тестируемость | Подмена адаптеров моками через DI |
-| Гибкость | Смена БД/кэша/API без изменения бизнес-логики |
-| Изоляция | Domain не зависит от фреймворков и библиотек |
-| Читаемость | Чёткое разделение ответственностей (SoC) |
+| Property | How it is achieved |
+|----------|-------------------|
+| Testability | Replacing adapters with mocks via DI |
+| Flexibility | Changing DB/cache/API without modifying business logic |
+| Isolation | Domain does not depend on frameworks or libraries |
+| Readability | Clear separation of concerns (SoC) |

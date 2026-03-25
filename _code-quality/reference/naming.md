@@ -1,54 +1,54 @@
-# Конвенции именования
+# Naming Conventions
 
-> Единообразие важнее личных предпочтений (CoC). Имена должны быть явными и описательными (Explicit > Implicit).
+> Uniformity is more important than personal preferences (CoC). Names should be explicit and descriptive (Explicit > Implicit).
 
 ---
 
 ## Python
 
-| Элемент | Стиль | Пример |
-|---------|-------|--------|
-| Модуль/файл | snake_case | `user_service.py` |
-| Класс | PascalCase | `UserService`, `OrderRepository` |
-| Функция/метод | snake_case | `get_user_by_id()` |
-| Переменная | snake_case | `user_name`, `is_active` |
-| Константа | UPPER_SNAKE | `MAX_RETRIES`, `DEFAULT_PAGE_SIZE` |
-| Приватный | _prefix | `_internal_method()` |
-| Исключение | PascalCase + Error | `NotFoundError`, `ValidationError` |
-| Pydantic-схема | PascalCase | `UserCreate`, `UserResponse` |
+| Element | Style | Example |
+|---------|-------|---------|
+| Module/file | snake_case | `user_service.py` |
+| Class | PascalCase | `UserService`, `OrderRepository` |
+| Function/method | snake_case | `get_user_by_id()` |
+| Variable | snake_case | `user_name`, `is_active` |
+| Constant | UPPER_SNAKE | `MAX_RETRIES`, `DEFAULT_PAGE_SIZE` |
+| Private | _prefix | `_internal_method()` |
+| Exception | PascalCase + Error | `NotFoundError`, `ValidationError` |
+| Pydantic schema | PascalCase | `UserCreate`, `UserResponse` |
 | DTO | PascalCase + DTO | `CreateUserDTO`, `UserDTO` |
 
 ---
 
-## Паттерны именования по слоям
+## Naming Patterns by Layer
 
-| Слой | Паттерн | Пример |
-|------|---------|--------|
-| Domain Entity | Существительное | `User`, `Order`, `Payment` |
-| Value Object | Концепт | `Money`, `Email`, `DateRange` |
+| Layer | Pattern | Example |
+|-------|---------|---------|
+| Domain Entity | Noun | `User`, `Order`, `Payment` |
+| Value Object | Concept | `Money`, `Email`, `DateRange` |
 | Repository | Entity + Repository | `UserRepository`, `OrderRepository` |
-| Application Service | Действие + Service | `UserService`, `PaymentService` |
-| Use Case | Глагол + Существительное | `CreateUser`, `ProcessPayment` |
-| API Router | Множественное число | `/users`, `/orders` |
-| Middleware | Назначение + Middleware | `RequestLoggingMiddleware` |
+| Application Service | Action + Service | `UserService`, `PaymentService` |
+| Use Case | Verb + Noun | `CreateUser`, `ProcessPayment` |
+| API Router | Plural | `/users`, `/orders` |
+| Middleware | Purpose + Middleware | `RequestLoggingMiddleware` |
 
 ---
 
-## Именование сервисов (микросервисы)
+## Service Naming (microservices)
 
-- По Bounded Context: `user-service`, `order-service`
-- Формат: kebab-case для имён сервисов
+- By Bounded Context: `user-service`, `order-service`
+- Format: kebab-case for service names
 - Docker: `{context}-api`, `{context}-data`
-- Переменные окружения: `{CONTEXT}_API_URL`
+- Environment variables: `{CONTEXT}_API_URL`
 
 ---
 
-## Антипаттерны
+## Anti-patterns
 
-| Плохо | Хорошо | Почему |
-|-------|--------|--------|
-| `data`, `info`, `temp` | `user_data`, `order_info` | Неинформативно (Explicit) |
-| `do_stuff()` | `send_notification()` | Не описывает действие |
-| `Manager`, `Handler` (без контекста) | `UserService`, `PaymentProcessor` | Слишком общее |
-| `utils.py` (свалка) | Конкретные модули по назначению | Нарушает SRP |
-| `process()` | `validate_order()` | Скрывает намерение |
+| Bad | Good | Why |
+|-----|------|-----|
+| `data`, `info`, `temp` | `user_data`, `order_info` | Uninformative (Explicit) |
+| `do_stuff()` | `send_notification()` | Does not describe the action |
+| `Manager`, `Handler` (without context) | `UserService`, `PaymentProcessor` | Too generic |
+| `utils.py` (junk drawer) | Specific modules by purpose | Violates SRP |
+| `process()` | `validate_order()` | Hides intent |

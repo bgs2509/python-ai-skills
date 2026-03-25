@@ -1,57 +1,57 @@
 ---
 name: _code-quality
 description: >
-  17 принципов качества Python-кода (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
-  Используй при ревью кода, рефакторинге, написании новых модулей.
-  Проверяет code-standards и naming conventions.
+  17 Python code quality principles (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
+  Use for code reviews, refactoring, and writing new modules.
+  Checks code standards and naming conventions.
 context: fork
 agent: Explore
 ---
 
-# Quality Cascade — 17 принципов качества
+# Quality Cascade — 17 Quality Principles
 
-> Все 17 принципов применяются ВСЕГДА. Нарушение любого — blocker.
+> All 17 principles apply ALWAYS. Violation of any one is a blocker.
 
-## Базовые (1-7)
+## Basic (1-7)
 
-1. **DRY** — нет дублирования логики. Общая логика — в переиспользуемых модулях.
-2. **KISS** — простые решения. Функция ≤50 строк, вложенность ≤4, цикломатическая сложность <10.
-3. **YAGNI** — только необходимое. Никакого кода "на будущее".
-4. **SoC** — разделяй ответственности. Бизнес-логика отдельно от I/O.
-5. **SSoT** — каждый тип данных определён в одном месте.
-6. **CoC** — следуй конвенциям проекта.
-7. **Security** — безопасность на всех уровнях.
+1. **DRY** — no logic duplication. Shared logic goes into reusable modules.
+2. **KISS** — simple solutions. Function ≤50 lines, nesting ≤4, cyclomatic complexity <10.
+3. **YAGNI** — only what's needed. No "just in case" code.
+4. **SoC** — separate concerns. Business logic apart from I/O.
+5. **SSoT** — each data type is defined in one place.
+6. **CoC** — follow project conventions.
+7. **Security** — security at all levels.
 
 ## SOLID (8-12)
 
-8. **SRP** — одна функция = одна задача. Класс ≤500 строк.
-9. **OCP** — открыт для расширения, закрыт для модификации.
-10. **LSP** — подтипы заменяют родительские типы без нарушений.
-11. **ISP** — маленькие специфичные интерфейсы.
-12. **DIP** — зависимость от абстракций, инжекция зависимостей.
+8. **SRP** — one function = one task. Class ≤500 lines.
+9. **OCP** — open for extension, closed for modification.
+10. **LSP** — subtypes replace parent types without breaking behavior.
+11. **ISP** — small, specific interfaces.
+12. **DIP** — depend on abstractions, inject dependencies.
 
-## Дополнительные (13-17)
+## Additional (13-17)
 
-13. **LoD** — минимальная связанность, нет цепочек `a.b.c.d`.
-14. **Fail Fast** — валидируй на входе, guard clauses.
-15. **Explicit > Implicit** — type hints, именованные константы.
-16. **Composition > Inheritance** — наследование глубиной ≤2-3.
-17. **Testability** — зависимости инжектируются, нет глобального состояния.
+13. **LoD** — minimal coupling, no `a.b.c.d` chains.
+14. **Fail Fast** — validate at entry, guard clauses.
+15. **Explicit > Implicit** — type hints, named constants.
+16. **Composition > Inheritance** — inheritance depth ≤2-3.
+17. **Testability** — dependencies are injected, no global state.
 
-## Красные флаги
+## Red Flags
 
-`except: pass` | God class >500 строк | magic numbers | copy-paste | `*args/**kwargs` без необходимости
+`except: pass` | God class >500 lines | magic numbers | copy-paste | `*args/**kwargs` without necessity
 
-## Централизация (SSoT + DRY)
+## Centralization (SSoT + DRY)
 
-| Аспект | Где |
-|--------|-----|
-| Конфигурация | `core/config.py` (Pydantic Settings) |
-| Логирование | `core/logging.py` (structlog) |
-| Обработка ошибок | `core/exceptions.py` + единый handler |
+| Aspect | Location |
+|--------|----------|
+| Configuration | `core/config.py` (Pydantic Settings) |
+| Logging | `core/logging.py` (structlog) |
+| Error handling | `core/exceptions.py` + single handler |
 | DI | `api/dependencies.py` |
-| Валидация | Pydantic-схемы на границах |
+| Validation | Pydantic schemas at boundaries |
 
-Полные принципы с примерами: см. [reference/quality-cascade.md](reference/quality-cascade.md)
-Стандарты кода: см. [reference/code-standards.md](reference/code-standards.md)
-Именование: см. [reference/naming.md](reference/naming.md)
+Full principles with examples: see [reference/quality-cascade.md](reference/quality-cascade.md)
+Code standards: see [reference/code-standards.md](reference/code-standards.md)
+Naming: see [reference/naming.md](reference/naming.md)

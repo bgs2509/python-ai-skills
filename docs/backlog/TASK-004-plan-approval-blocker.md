@@ -1,21 +1,21 @@
-# TASK-004: Обязательное одобрение плана перед написанием кода
+# TASK-004: Mandatory Plan Approval Before Writing Code
 
-## Статус
+## Status
 
 Done
 
-## Описание
+## Description
 
-Добавить строгое требование: Phase 4 (IMPLEMENTATION) запрещена без явного
-одобрения плана пользователем в Phase 3.5. Добавлен BLOCKER в Phase 3.5,
-PREREQUISITE в Phase 4, усилен gate-чеклист и добавлено железное правило.
+Add a strict requirement: Phase 4 (IMPLEMENTATION) is prohibited without
+explicit plan approval by the user in Phase 3.5. Added a BLOCKER in Phase 3.5,
+PREREQUISITE in Phase 4, strengthened gate checklist and added an iron rule.
 
-## Приоритет
+## Priority
 
 High
 
-## Связанные артефакты
+## Related Artifacts
 
-- План: Нет
-- ADR: Нет
-- Отчёт: docs/reports/2026-03-16-plan-approval-blocker.md
+- Plan: None
+- ADR: None
+- Report: docs/reports/2026-03-16-plan-approval-blocker.md

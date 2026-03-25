@@ -1,61 +1,61 @@
 ---
 name: _docworkflow
 description: >
-  Пайплайн обязательной документации: backlog → requirements → planning → ADR → changelog →
-  completion report → commit. Нумерация TASK/REQ/PLAN/ADR. Git conventions.
-  Используй при начале новой задачи или перед коммитом.
+  Mandatory documentation pipeline: backlog → requirements → planning → ADR → changelog →
+  completion report → commit. TASK/REQ/PLAN/ADR numbering. Git conventions.
+  Use when starting a new task or before committing.
 ---
 
-# Пайплайн документации
+# Documentation Pipeline
 
-> Каждая реализованная задача проходит эти этапы.
+> Every implemented task goes through these stages.
 
-## 7 этапов
-
-```
-1. BACKLOG              → docs/backlog/TASK-NNN-*.md (обязательно)
-1.5. REQUIREMENTS       → docs/requirements/REQ-NNN-*.md (обязательно)
-2. PLANNING (опц.)      → docs/plans/PLAN-NNN-*.md
-3. ADR (опц.)           → docs/adr/ADR-NNN-*.md
-4. CHANGELOG            → CHANGELOG.md секция Unreleased (обязательно)
-5. COMPLETION REPORT    → docs/reports/{дата}-{фича}.md (обязательно)
-6. COMMIT               → TASK-NNN: <type>: <description> (обязательно)
-```
-
-## Связность
-
-Task ID (TASK-NNN) проходит через все артефакты: план, ADR, отчёт, коммит.
-
-## Формат коммита
+## 7 Stages
 
 ```
-TASK-NNN: <type>: <краткий заголовок>
-
-<Подробное описание: что, зачем, как>
-
-Изменения:
-- <файл>: <что сделано>
+1. BACKLOG              → docs/backlog/TASK-NNN-*.md (required)
+1.5. REQUIREMENTS       → docs/requirements/REQ-NNN-*.md (required)
+2. PLANNING (optional)  → docs/plans/PLAN-NNN-*.md
+3. ADR (optional)       → docs/adr/ADR-NNN-*.md
+4. CHANGELOG            → CHANGELOG.md Unreleased section (required)
+5. COMPLETION REPORT    → docs/reports/{date}-{feature}.md (required)
+6. COMMIT               → TASK-NNN: <type>: <description> (required)
 ```
 
-Типы: feat, fix, refactor, docs, test, ci, chore.
+## Traceability
 
-## Чеклист (перед коммитом)
+Task ID (TASK-NNN) flows through all artifacts: plan, ADR, report, commit.
 
-- [ ] Задача в backlog (TASK-NNN)
-- [ ] Требования одобрены пользователем (REQ-NNN)
-- [ ] План в docs/plans/ (если был)
-- [ ] ADR в docs/adr/ (если нужен) — если не создан автоматически, вызови `/_adr`
-- [ ] Запись в CHANGELOG.md
-- [ ] Completion Report в docs/reports/ — если не создан автоматически, вызови `/_report`
-- [ ] Язык документации — русский (commit messages — английский)
-- [ ] Коммит с Task ID
+## Commit Format
 
-> **Напоминание:** create-adr и completion-report могут сработать автоматически по контексту.
-> Если этого не произошло — вызови их вручную перед коммитом.
+```
+TASK-NNN: <type>: <short title>
 
-Подробнее:
-- Пайплайн: [reference/workflow.md](reference/workflow.md)
+<Detailed description: what, why, how>
+
+Changes:
+- <file>: <what was done>
+```
+
+Types: feat, fix, refactor, docs, test, ci, chore.
+
+## Checklist (before committing)
+
+- [ ] Task in backlog (TASK-NNN)
+- [ ] Requirements approved by user (REQ-NNN)
+- [ ] Plan in docs/plans/ (if applicable)
+- [ ] ADR in docs/adr/ (if needed) — if not created automatically, invoke `/_adr`
+- [ ] Entry in CHANGELOG.md
+- [ ] Completion Report in docs/reports/ — if not created automatically, invoke `/_report`
+- [ ] Documentation language — Russian (commit messages — English)
+- [ ] Commit with Task ID
+
+> **Reminder:** create-adr and completion-report may trigger automatically based on context.
+> If they did not — invoke them manually before committing.
+
+More details:
+- Pipeline: [reference/workflow.md](reference/workflow.md)
 - Backlog: [reference/backlog.md](reference/backlog.md)
-- Требования: [reference/requirements.md](reference/requirements.md)
-- Планирование: [reference/planning.md](reference/planning.md)
+- Requirements: [reference/requirements.md](reference/requirements.md)
+- Planning: [reference/planning.md](reference/planning.md)
 - Git: [reference/git-conventions.md](reference/git-conventions.md)

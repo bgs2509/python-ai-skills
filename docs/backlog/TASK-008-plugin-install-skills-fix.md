@@ -1,22 +1,22 @@
-# TASK-008: Исправление документации установки — скиллы vs плагин
+# TASK-008: Fix Installation Documentation — Skills vs Plugin
 
-## Статус: Done
+## Status: Done
 
-## Приоритет: High
+## Priority: High
 
-## Описание
+## Description
 
-При установке плагина на новой машине скиллы (`/_docworkflow`, `/_code-quality` и т.д.) не видны как slash-команды. Причина: плагин регистрирует только commands и agents, а скиллы — отдельный механизм через симлинки в `~/.claude/skills/`.
+When installing the plugin on a new machine, skills (`/_docworkflow`, `/_code-quality`, etc.) are not visible as slash commands. Reason: the plugin registers only commands and agents, while skills are a separate mechanism via symlinks in `~/.claude/skills/`.
 
-Документация `docs/plugin-install.md` не описывала этот шаг, что приводило к ошибке `Unknown skill: _docworkflow`.
+The documentation `docs/plugin-install.md` did not describe this step, leading to `Unknown skill: _docworkflow` error.
 
-## Изменения
+## Changes
 
-- Переписана секция «Архитектура» — разделение плагин vs скиллы
-- Добавлен шаг 4: создание симлинков `~/.claude/skills/`
-- Добавлена ошибка 4: `Unknown skill` с диагностикой и решением
-- Обновлена секция диагностики: проверка симлинков скиллов
+- Rewrote the "Architecture" section — separation of plugin vs skills
+- Added step 4: creating `~/.claude/skills/` symlinks
+- Added error 4: `Unknown skill` with diagnostics and resolution
+- Updated the diagnostics section: skills symlink verification
 
-## Связанные артефакты
+## Related Artifacts
 
 - docs/plugin-install.md

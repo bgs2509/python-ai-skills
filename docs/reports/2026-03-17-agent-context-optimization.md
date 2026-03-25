@@ -1,46 +1,46 @@
-# Completion Report: Оптимизация контекста агентов пайплайна
+# Completion Report: Pipeline Agent Context Optimization
 
-## Метаданные
+## Metadata
 
 - **Task ID:** TASK-006
-- **План:** Нет (план в claude plans)
-- **ADR:** Нет
-- **Дата:** 2026-03-17
+- **Plan:** None (plan in claude plans)
+- **ADR:** None
+- **Date:** 2026-03-17
 
 ## Executive Summary
 
-Устранена корневая причина пропуска инструкций агентами пайплайна — раздутый контекст из-за обязательного чтения 2-4 skill-файлов при каждом запуске. Применён паттерн "Critical rules inline, details on demand". Дополнительно решена проблема несогласованности severity между агентами через Unified Severity Mapping.
+Eliminated the root cause of agents missing instructions in the pipeline — bloated context due to mandatory reading of 2-4 skill files on each launch. Applied the "Critical rules inline, details on demand" pattern. Additionally resolved the severity inconsistency issue across agents via Unified Severity Mapping.
 
-## Изменения
+## Changes
 
-| Файл | Что сделано |
-|------|-------------|
-| `agents/py-quality.md` | Inline: top-5 проверок (DRY, KISS, Fail Fast, AppException, no print) + severity. Убрано чтение 4 файлов |
-| `agents/py-security.md` | Inline: top-5 (secrets, SQL injection, .gitignore, validation, OWASP) + severity. Убрано чтение 2 файлов |
-| `agents/py-test-writer.md` | Inline: AAA, naming, fixtures, coverage, антипаттерны. Убрано чтение 1 файла |
-| `agents/py-doc-manager.md` | Inline: нумерация, структура плана (4 раздела + 6 вопросов), формат коммита. Убрано чтение 4 файлов |
-| `commands/pipeline.md` | Unified Severity Mapping, упрощённые промпты Phase 5, обновлённые правила Phase 6 |
+| File | What was done |
+|------|---------------|
+| `agents/py-quality.md` | Inline: top-5 checks (DRY, KISS, Fail Fast, AppException, no print) + severity. Removed reading of 4 files |
+| `agents/py-security.md` | Inline: top-5 (secrets, SQL injection, .gitignore, validation, OWASP) + severity. Removed reading of 2 files |
+| `agents/py-test-writer.md` | Inline: AAA, naming, fixtures, coverage, anti-patterns. Removed reading of 1 file |
+| `agents/py-doc-manager.md` | Inline: numbering, plan structure (4 sections + 6 questions), commit format. Removed reading of 4 files |
+| `commands/pipeline.md` | Unified Severity Mapping, simplified Phase 5 prompts, updated Phase 6 rules |
 
-## Метрики
+## Metrics
 
-| Метрика | До | После |
-|---------|-----|-------|
-| Tool calls на старте агента | 4-8 | 0-1 |
-| Токенов знаний в контексте | 4000-12000 | 300-500 |
-| Время старта агента | 15-30 сек | 2-5 сек |
-| Severity таблиц | 2 разные | 1 единая |
+| Metric | Before | After |
+|--------|--------|-------|
+| Tool calls on agent startup | 4-8 | 0-1 |
+| Knowledge tokens in context | 4,000-12,000 | 300-500 |
+| Agent startup time | 15-30 sec | 2-5 sec |
+| Severity tables | 2 different | 1 unified |
 
-## Ревью чеклист
+## Review Checklist
 
-- [x] Quality Cascade: DRY (inline правила ≠ полное копирование), KISS (≤120 строк на агента)
-- [x] Security: нет секретов, нет уязвимостей
-- [x] Линтеры: N/A (markdown файлы)
+- [x] Quality Cascade: DRY (inline rules ≠ full copy), KISS (≤120 lines per agent)
+- [x] Security: no secrets, no vulnerabilities
+- [x] Linters: N/A (markdown files)
 
-## Тесты
+## Tests
 
-- N/A — изменения в markdown конфигурационных файлах, не в коде
+- N/A — changes in markdown configuration files, not in code
 
 ## Known Limitations
 
-- Inline правила = частичное дублирование с skill-файлами (~15 строк на агента). При обновлении skill'а нужно обновить и агента.
-- Ссылки "читай по необходимости" зависят от поведения модели — Sonnet может не прочитать детали.
+- Inline rules = partial duplication with skill files (~15 lines per agent). When updating a skill, the agent must also be updated.
+- "Read on demand" references depend on model behavior — Sonnet may not read the details.

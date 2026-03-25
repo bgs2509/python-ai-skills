@@ -1,44 +1,44 @@
 ---
 name: _logging
 description: >
-  Централизованное логирование Python (structlog, JSON, Log-Driven Design 11 принципов,
-  AI-Readable Logging, Correlation ID, санитизация). Используй при настройке логирования, добавлении логов.
+  Centralized Python logging (structlog, JSON, Log-Driven Design 11 principles,
+  AI-Readable Logging, Correlation ID, sanitization). Use when configuring logging or adding log statements.
 ---
 
-# Централизованное логирование
+# Centralized Logging
 
-> Единая конфигурация в `core/logging.py` (SSoT). structlog + JSON в production.
+> Single configuration in `core/logging.py` (SSoT). structlog + JSON in production.
 
-## Log-Driven Design — ключевые принципы
+## Log-Driven Design — Key Principles
 
-1. **Уровни**: DEBUG (отладка), INFO (нормальный ход), WARNING (проблемы), ERROR (внимание), CRITICAL (система неработоспособна)
-2. **Сквозная идентификация**: request_id + correlation_id + user_id во всех логах
-3. **JSON в production**: парсятся автоматически
-4. **Логирование решений**: decision (ACCEPT/REJECT/RETRY), reason, conditions
-5. **Переходы состояний**: entity, from_state → to_state, reason
-6. **ContextVars**: request_id/user_id через все слои без явной передачи
+1. **Levels**: DEBUG (debugging), INFO (normal flow), WARNING (issues), ERROR (attention needed), CRITICAL (system inoperable)
+2. **End-to-end identification**: request_id + correlation_id + user_id in all logs
+3. **JSON in production**: automatically parseable
+4. **Decision logging**: decision (ACCEPT/REJECT/RETRY), reason, conditions
+5. **State transitions**: entity, from_state → to_state, reason
+6. **ContextVars**: request_id/user_id propagated across all layers without explicit passing
 
-## Централизованное логирование по слоям
+## Centralized Logging by Layer
 
-| Слой | Кто логирует |
-|------|-------------|
-| Входящие HTTP | RequestLoggingMiddleware (автоматически) |
-| Исходящие HTTP | Базовый HTTP-клиент (автоматически) |
-| БД | BaseRepository (автоматически) |
-| Бизнес-логика | Application Services (явно) |
-| Ошибки | Exception handler (автоматически) |
+| Layer | Who Logs |
+|-------|----------|
+| Incoming HTTP | RequestLoggingMiddleware (automatic) |
+| Outgoing HTTP | Base HTTP client (automatic) |
+| Database | BaseRepository (automatic) |
+| Business logic | Application Services (explicit) |
+| Errors | Exception handler (automatic) |
 
-## Санитизация
+## Sanitization
 
-Автоматическая маскировка `***REDACTED***`: password, token, secret, api_key, authorization, credit_card, ssn.
+Automatic masking `***REDACTED***`: password, token, secret, api_key, authorization, credit_card, ssn.
 
-## Запреты (blocker)
+## Prohibitions (blocker)
 
-- `print()` вместо `logger`
-- Бесполезные логи ("Entering function")
-- Логирование больших объектов целиком
-- Логирование в цикле (N записей вместо одной)
-- Каждый модуль настраивает логирование по-своему
-- Логирование секретов
+- `print()` instead of `logger`
+- Useless logs ("Entering function")
+- Logging large objects in their entirety
+- Logging inside loops (N entries instead of one)
+- Each module configuring logging independently
+- Logging secrets
 
-Полная версия (AI-Readable Logging, structlog конфиг): см. [reference.md](reference.md)
+Full version (AI-Readable Logging, structlog config): see [reference.md](reference.md)

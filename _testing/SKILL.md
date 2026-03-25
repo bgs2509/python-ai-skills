@@ -1,48 +1,48 @@
 ---
 name: _testing
 description: >
-  Тестирование Python (pytest, 3 уровня тестов, покрытие ≥90%, AAA-паттерн,
-  фикстуры, моки, Testcontainers). Используй при написании тестов, настройке test infrastructure.
+  Python testing (pytest, 3 test levels, coverage ≥90%, AAA pattern,
+  fixtures, mocks, Testcontainers). Use when writing tests or setting up test infrastructure.
 ---
 
-# Тестирование
+# Testing
 
-> Зависимости инжектируются (DIP), глобального состояния нет (Testability).
+> Dependencies are injected (DIP), no global state (Testability).
 
-## Три уровня
+## Three Levels
 
-| Уровень | Что | Где | Зависимости |
-|---------|-----|-----|-------------|
-| Unit | Изолированная логика | `tests/unit/` | Моки |
-| Integration | Взаимодействие | `tests/integration/` | Testcontainers |
-| E2E | Полные сценарии | `tests/e2e/` | Реальная инфраструктура |
+| Level | What | Where | Dependencies |
+|-------|------|-------|--------------|
+| Unit | Isolated logic | `tests/unit/` | Mocks |
+| Integration | Interactions | `tests/integration/` | Testcontainers |
+| E2E | Full scenarios | `tests/e2e/` | Real infrastructure |
 
-## Покрытие: ≥90%
+## Coverage: ≥90%
 
 `pytest --cov=src --cov-fail-under=90`
 
-## Паттерн: Arrange-Act-Assert
+## Pattern: Arrange-Act-Assert
 
-Каждый тест — три блока: подготовка → действие → проверка.
+Each test has three blocks: setup → action → verification.
 
-## Именование
+## Naming
 
-`test_{что}_{сценарий}_{результат}` — например `test_create_user_duplicate_email_raises_error`
+`test_{what}_{scenario}_{result}` — e.g. `test_create_user_duplicate_email_raises_error`
 
-## Ключевые правила
+## Key Rules
 
-- Фикстуры в `conftest.py` каждого уровня (DRY)
-- Фабрики в `tests/factories.py` (SSoT для тестовых данных)
-- Моки — только для внешних зависимостей
-- `@pytest.mark.parametrize` для нескольких вариантов
-- Testcontainers: PostgreSQL, Redis на session scope
+- Fixtures in `conftest.py` at each level (DRY)
+- Factories in `tests/factories.py` (SSoT for test data)
+- Mocks — only for external dependencies
+- `@pytest.mark.parametrize` for multiple variants
+- Testcontainers: PostgreSQL, Redis on session scope
 
-## Обязательно покрывать
+## Must Be Covered
 
-Application Services, Domain Entities, Repositories, API endpoints, валидация, exception handler
+Application Services, Domain Entities, Repositories, API endpoints, validation, exception handler
 
-## Антипаттерны (blocker)
+## Anti-patterns (blocker)
 
-Тест без assert | зависимость от порядка | внешние сервисы | слишком много моков
+Test without assert | order dependency | external services | too many mocks
 
-Полная версия: см. [reference.md](reference.md)
+Full version: see [reference.md](reference.md)

@@ -1,137 +1,137 @@
-# Пайплайн обязательной документации
+# Mandatory Documentation Pipeline
 
-> Каждая реализованная задача проходит эти документационные этапы. Пайплайн применяется к ЛЮБОЙ задаче: фича, рефакторинг, настройка тестов, линтеров, логирования и т.д.
-
----
-
-## Этапы
-
-```
-1. BACKLOG              → Задача зафиксирована
-1.5. REQUIREMENTS       → Требования зафиксированы → docs/requirements/
-2. PLANNING (опц.)      → Файл плана создан → docs/plans/
-3. ADR (опц.)           → Архитектурное решение → docs/adr/
-4. CHANGELOG            → Запись о сделанном
-5. COMPLETION REPORT    → Отчёт со ссылками → docs/reports/
-6. COMMIT               → Фиксация в git
-```
+> Every implemented task goes through these documentation stages. The pipeline applies to ANY task: feature, refactoring, test setup, linters, logging, etc.
 
 ---
 
-## Нумерация и связность артефактов
+## Stages
 
-Каждый артефакт имеет свой префикс нумерации:
+```
+1. BACKLOG              → Task recorded
+1.5. REQUIREMENTS       → Requirements recorded → docs/requirements/
+2. PLANNING (opt.)      → Plan file created → docs/plans/
+3. ADR (opt.)           → Architecture decision → docs/adr/
+4. CHANGELOG            → Record of what was done
+5. COMPLETION REPORT    → Report with references → docs/reports/
+6. COMMIT               → Committed to git
+```
 
-| Артефакт | Префикс | Пример | Хранение |
-|----------|---------|--------|----------|
-| Задача | TASK- | TASK-001 | `docs/backlog/` |
-| Требования | REQ- | REQ-001 | `docs/requirements/` |
-| План | PLAN- | PLAN-001 | `docs/plans/` |
+---
+
+## Numbering and Artifact Traceability
+
+Each artifact has its own numbering prefix:
+
+| Artifact | Prefix | Example | Storage |
+|----------|--------|---------|---------|
+| Task | TASK- | TASK-001 | `docs/backlog/` |
+| Requirements | REQ- | REQ-001 | `docs/requirements/` |
+| Plan | PLAN- | PLAN-001 | `docs/plans/` |
 | ADR | ADR- | ADR-001 | `docs/adr/` |
-| Completion Report | — | по дате | `docs/reports/` |
+| Completion Report | — | by date | `docs/reports/` |
 
-### Связность
+### Traceability
 
-Сквозной идентификатор **Task ID** проходит через все артефакты:
+A cross-cutting **Task ID** passes through all artifacts:
 
-- Требования ссылаются на задачу: `Task: TASK-001`
-- План ссылается на задачу: `Task: TASK-001`
-- ADR ссылается на задачу: `Task: TASK-001`
-- Completion Report ссылается на задачу, план и ADR
-- Коммит содержит Task ID: `TASK-001: описание`
+- Requirements reference the task: `Task: TASK-001`
+- Plan references the task: `Task: TASK-001`
+- ADR references the task: `Task: TASK-001`
+- Completion Report references the task, plan, and ADR
+- Commit contains the Task ID: `TASK-001: description`
 
 ---
 
-## Подробно по этапам
+## Stage Details
 
 ### 1. BACKLOG
 
-**Обязательный этап.**
+**Mandatory stage.**
 
-- Задача фиксируется в `docs/backlog/` по шаблону из skill `_docworkflow` (_docworkflow/reference/backlog.md)
-- Присваивается номер TASK-NNN (следующий по порядку)
-- Без записи в backlog задача не начинается
+- The task is recorded in `docs/backlog/` using the template from skill `_docworkflow` (_docworkflow/reference/backlog.md)
+- Assigned the number TASK-NNN (next in sequence)
+- Without a backlog entry, work on the task does not start
 
 ### 1.5. REQUIREMENTS
 
-**Обязательный этап.**
+**Mandatory stage.**
 
-- Lead анализирует задачу и формулирует функциональные (FR) и нефункциональные (NFR) требования
-- Документ создаётся в `docs/requirements/` по шаблону из `_docworkflow/reference/requirements.md`
-- Именование: `REQ-NNN-{краткое-название}.md`
-- Нумерация совпадает с TASK-NNN
-- Минимум 1 FR со статусом Must
-- **⛔ BLOCKER**: пользователь должен явно одобрить требования до перехода к следующим этапам
+- The lead analyzes the task and formulates functional (FR) and non-functional (NFR) requirements
+- The document is created in `docs/requirements/` using the template from `_docworkflow/reference/requirements.md`
+- Naming: `REQ-NNN-{short-name}.md`
+- Numbering matches TASK-NNN
+- At least 1 FR with Must status
+- **BLOCKER**: the user must explicitly approve requirements before proceeding to the next stages
 
-### 2. PLANNING (опциональный)
+### 2. PLANNING (optional)
 
-**Когда нужен:** Claude создал файл плана = этап планирования состоялся.
+**When needed:** Claude created a plan file = the planning stage has occurred.
 
-- Формат плана: см. skill `_docworkflow` (_docworkflow/reference/planning.md)
-- Файл плана сохраняется в `docs/plans/` целевого проекта
-- Именование: `PLAN-NNN-{краткое-название}.md`
-- План ссылается на задачу: `Task: TASK-NNN`
+- Plan format: see skill `_docworkflow` (_docworkflow/reference/planning.md)
+- The plan file is saved in `docs/plans/` of the target project
+- Naming: `PLAN-NNN-{short-name}.md`
+- The plan references the task: `Task: TASK-NNN`
 
-**Когда не нужен:** мелкие задачи, где реализация очевидна.
+**When not needed:** small tasks where the implementation is obvious.
 
-> **Примечание:** планирование может вестись и вне этого пайплайна (ресёрч, оценка, "делать/не делать"). Такие планы не попадают в `docs/plans/`.
+> **Note:** planning can also happen outside this pipeline (research, estimation, "do or don't"). Such plans do not go into `docs/plans/`.
 
-### 3. ADR (опциональный)
+### 3. ADR (optional)
 
-**Когда нужен:** см. критерии в skill `_adr` (_adr/reference.md).
+**When needed:** see criteria in skill `_adr` (_adr/reference.md).
 
-- ADR ссылается на задачу: `Task: TASK-NNN`
-- Хранение: `docs/adr/`
-- Именование: `ADR-NNN-{краткое-название}.md`
+- ADR references the task: `Task: TASK-NNN`
+- Storage: `docs/adr/`
+- Naming: `ADR-NNN-{short-name}.md`
 
-**Когда не нужен:** нет выбора между альтернативами, решение очевидно или легко откатить.
+**When not needed:** no choice between alternatives, the decision is obvious or easy to roll back.
 
 ### 4. CHANGELOG
 
-**Обязательный этап.**
+**Mandatory stage.**
 
-- Формат: [Keep a Changelog](https://keepachangelog.com/)
-- Добавить запись в секцию `Unreleased` файла `CHANGELOG.md`
-- Секции: Added, Changed, Deprecated, Removed, Fixed, Security
-- Каждая запись содержит Task ID: `- Описание (TASK-NNN)`
+- Format: [Keep a Changelog](https://keepachangelog.com/)
+- Add an entry to the `Unreleased` section of `CHANGELOG.md`
+- Sections: Added, Changed, Deprecated, Removed, Fixed, Security
+- Each entry contains the Task ID: `- Description (TASK-NNN)`
 
 ### 5. COMPLETION REPORT
 
-**Обязательный этап.**
+**Mandatory stage.**
 
-- Формат: см. skill `_report` (_report/reference.md)
-- Содержит ссылки на: задачу, план (если был), ADR (если были)
-- Хранение: `docs/reports/{дата}-{фича}.md`
+- Format: see skill `_report` (_report/reference.md)
+- Contains references to: the task, the plan (if any), ADRs (if any)
+- Storage: `docs/reports/{date}-{feature}.md`
 
 ### 6. COMMIT
 
-**Обязательный этап.**
+**Mandatory stage.**
 
-- Формат: см. skill `_docworkflow` (_docworkflow/reference/git-conventions.md)
-- Коммит содержит Task ID
-- Язык: английский
+- Format: see skill `_docworkflow` (_docworkflow/reference/git-conventions.md)
+- Commit contains the Task ID
+- Language: English
 
 ---
 
-## Структура docs/
+## docs/ Structure
 
 ```
 docs/
-├── backlog/        # Задачи (TASK-NNN)
-├── requirements/   # Требования (REQ-NNN)
-├── plans/          # Планы реализации (PLAN-NNN)
-├── adr/            # Архитектурные решения (ADR-NNN)
-└── reports/        # Отчёты о выполнении
+├── backlog/        # Tasks (TASK-NNN)
+├── requirements/   # Requirements (REQ-NNN)
+├── plans/          # Implementation plans (PLAN-NNN)
+├── adr/            # Architecture decisions (ADR-NNN)
+└── reports/        # Completion reports
 ```
 
 ---
 
-## Чеклист (перед коммитом)
+## Checklist (before commit)
 
-- [ ] Задача зафиксирована в backlog (TASK-NNN)
-- [ ] Требования зафиксированы и одобрены (REQ-NNN)
-- [ ] План создан и сохранён в `docs/plans/` (если был)
-- [ ] ADR создан и сохранён в `docs/adr/` (если нужен)
-- [ ] Запись в CHANGELOG.md добавлена
-- [ ] Completion Report написан в `docs/reports/`
-- [ ] Коммит содержит Task ID
+- [ ] Task recorded in backlog (TASK-NNN)
+- [ ] Requirements recorded and approved (REQ-NNN)
+- [ ] Plan created and saved in `docs/plans/` (if applicable)
+- [ ] ADR created and saved in `docs/adr/` (if needed)
+- [ ] Entry added to CHANGELOG.md
+- [ ] Completion Report written in `docs/reports/`
+- [ ] Commit contains the Task ID

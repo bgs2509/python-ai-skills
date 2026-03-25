@@ -1,15 +1,15 @@
-# Обработка ошибок
+# Error Handling
 
-> **Централизованная** обработка — единый exception handler (SSoT, DRY). Исключения определяются в одном месте. Дублирование try/except блоков — blocker.
+> **Centralized** handling — a single exception handler (SSoT, DRY). Exceptions are defined in one place. Duplicated try/except blocks — blocker.
 
 ---
 
-## Иерархия исключений (SSoT)
+## Exception Hierarchy (SSoT)
 
-Все исключения определяются в `core/exceptions.py`:
+All exceptions are defined in `core/exceptions.py`:
 
 ```
-AppException (базовый)
+AppException (base)
 ├── DomainError
 │   ├── EntityNotFoundError
 │   ├── BusinessRuleViolationError
@@ -25,20 +25,20 @@ AppException (базовый)
 └── AuthorizationError
 ```
 
-**Правила (SRP)**:
-- Каждое исключение — один тип ошибки
-- Исключение содержит: error_code, message, details (опционально)
-- Наследование от `AppException` — никаких голых `Exception`
+**Rules (SRP)**:
+- Each exception represents one error type
+- An exception contains: error_code, message, details (optional)
+- Inherits from `AppException` — no bare `Exception`
 
 ---
 
-## Централизованный exception handler (DRY)
+## Centralized Exception Handler (DRY)
 
-- Один handler для всего приложения — в middleware или app-level
-- Преобразование исключений в стандартизированный HTTP-ответ
-- Дублирование try/except в контроллерах — blocker
+- One handler for the entire application — in middleware or at the app level
+- Converts exceptions into a standardized HTTP response
+- Duplicated try/except in controllers — blocker
 
-### Стандартизированный формат ответа
+### Standardized Response Format
 
 ```json
 {
@@ -50,60 +50,60 @@ AppException (базовый)
 }
 ```
 
-### Маппинг исключений на HTTP-коды
+### Exception to HTTP Code Mapping
 
-| Исключение | HTTP код |
-|------------|----------|
+| Exception | HTTP Code |
+|-----------|-----------|
 | `InputValidationError` | 400 |
 | `AuthenticationError` | 401 |
 | `AuthorizationError` | 403 |
 | `EntityNotFoundError` | 404 |
 | `BusinessRuleViolationError` | 409/422 |
 | `ExternalServiceError` | 502 |
-| Неизвестное исключение | 500 |
+| Unknown exception | 500 |
 
 ---
 
 ## Fail Fast
 
-- Валидация на входе — guard clauses вместо глубокой вложенности
-- Pydantic для валидации на границах системы (API, конфигурация)
-- Невалидные данные не должны проникать в бизнес-логику
-- Сообщения об ошибках — понятные, с контекстом
+- Validate at input — guard clauses instead of deep nesting
+- Pydantic for validation at system boundaries (API, configuration)
+- Invalid data must not penetrate into business logic
+- Error messages should be clear and include context
 
 ---
 
 ## Stack Trace
 
-- В production (DEBUG=False): только error_code + message
-- В development (DEBUG=True): полный stack trace
-- Stack trace НИКОГДА не отдаётся клиенту в production
+- In production (DEBUG=False): only error_code + message
+- In development (DEBUG=True): full stack trace
+- Stack trace is NEVER returned to the client in production
 
 ---
 
-## Retry-стратегии
+## Retry Strategies
 
-| Тип ошибки | Retryable? | Стратегия |
-|------------|-----------|-----------|
-| 4xx (клиентская) | Нет | Вернуть ошибку сразу |
-| 5xx (серверная) | Да | Exponential backoff |
-| Timeout | Да | Retry с увеличенным timeout |
-| Connection error | Да | Retry с backoff |
-| Rate limit (429) | Да | Retry после Retry-After |
+| Error Type | Retryable? | Strategy |
+|------------|-----------|----------|
+| 4xx (client) | No | Return error immediately |
+| 5xx (server) | Yes | Exponential backoff |
+| Timeout | Yes | Retry with increased timeout |
+| Connection error | Yes | Retry with backoff |
+| Rate limit (429) | Yes | Retry after Retry-After |
 
 - Exponential backoff: 1s → 2s → 4s → max 30s
-- Максимум 3-5 попыток
-- Jitter для предотвращения thundering herd
+- Maximum 3-5 attempts
+- Jitter to prevent thundering herd
 
 ---
 
-## Запреты (blocker)
+## Prohibitions (blocker)
 
-| Антипаттерн | Почему плохо |
-|-------------|-------------|
-| `except: pass` | Тихое проглатывание ошибок — невозможно диагностировать |
-| `except Exception` без логирования | Ошибка теряется |
-| try/except в каждом контроллере | Дублирование (DRY) — используй централизованный handler |
-| Возврат None вместо исключения | Скрытая ошибка, NullPointerException позже |
-| Строковые ошибки вместо типизированных | Невозможно обработать программно |
-| Логирование + проброс одной ошибки дважды | Дублирование в логах (DRY) |
+| Anti-pattern | Why it is bad |
+|--------------|---------------|
+| `except: pass` | Silent error swallowing — impossible to diagnose |
+| `except Exception` without logging | Error is lost |
+| try/except in every controller | Duplication (DRY) — use the centralized handler |
+| Returning None instead of raising an exception | Hidden error, NullPointerException later |
+| String errors instead of typed ones | Cannot be handled programmatically |
+| Logging + re-raising the same error twice | Duplication in logs (DRY) |

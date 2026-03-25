@@ -1,101 +1,101 @@
-# Работа с базой данных
+# Database
 
-> Repository — единственная точка доступа к данным (SSoT, DIP). Бизнес-логика НИКОГДА не обращается к БД напрямую (SoC).
+> Repository is the single point of data access (SSoT, DIP). Business logic NEVER accesses the DB directly (SoC).
 
 ---
 
-## Repository-паттерн
+## Repository Pattern
 
-- Интерфейс определяется в Domain (ABC/Protocol) — DIP
-- Реализация — в Infrastructure
-- Один Repository на одну сущность (SRP)
-- Repository возвращает доменные сущности, не ORM-модели
-- Базовый Repository с общими операциями (CRUD) — DRY
+- Interface is defined in Domain (ABC/Protocol) — DIP
+- Implementation — in Infrastructure
+- One Repository per entity (SRP)
+- Repository returns domain entities, not ORM models
+- Base Repository with common operations (CRUD) — DRY
 
-### Базовый Repository (DRY)
+### Base Repository (DRY)
 
-Общие операции определяются один раз в базовом классе:
+Common operations are defined once in the base class:
 - `get_by_id(id) -> Entity | None`
 - `get_all(filters, pagination) -> list[Entity]`
 - `create(entity) -> Entity`
 - `update(entity) -> Entity`
 - `delete(id) -> None`
 
-Специфичные операции — в конкретных Repository:
+Specific operations — in concrete Repositories:
 - `UserRepository.get_by_email(email) -> User | None`
 - `OrderRepository.get_by_status(status) -> list[Order]`
 
 ---
 
-## Миграции (Alembic)
+## Migrations (Alembic)
 
-- Alembic как единственный инструмент миграций (SSoT)
-- Автогенерация: `alembic revision --autogenerate -m "description"`
-- Каждая миграция — атомарная, откатываемая (downgrade)
-- Именование: `{номер}_{описание}.py`
-- Миграции хранятся в git
-- Запрет ручного изменения БД в production — только через миграции
+- Alembic as the sole migration tool (SSoT)
+- Auto-generation: `alembic revision --autogenerate -m "description"`
+- Each migration is atomic and reversible (downgrade)
+- Naming: `{number}_{description}.py`
+- Migrations are stored in git
+- Manual DB changes in production are prohibited — only through migrations
 
 ---
 
 ## Connection Pooling
 
-- Пул соединений настраивается централизованно (SSoT)
-- Параметры: pool_size, max_overflow, pool_timeout, pool_recycle
-- Закрытие соединений при graceful shutdown
-- Мониторинг: количество активных/ожидающих соединений
+- Connection pool is configured centrally (SSoT)
+- Parameters: pool_size, max_overflow, pool_timeout, pool_recycle
+- Connections closed on graceful shutdown
+- Monitoring: count of active/waiting connections
 
 ---
 
-## Параметризованные запросы
+## Parameterized Queries
 
 - SQL injection — blocker
-- Всегда использовать параметризованные запросы (SQLAlchemy bindparams)
-- Никакого форматирования строк для SQL
-- ORM предпочтительнее raw SQL
+- Always use parameterized queries (SQLAlchemy bindparams)
+- No string formatting for SQL
+- ORM is preferred over raw SQL
 
 ---
 
-## Транзакции
+## Transactions
 
-- Явные границы транзакций — в Application Service (SoC)
-- Repository не управляет транзакциями — это ответственность Application слоя
-- Unit of Work паттерн для согласованных операций
-- Компенсирующие транзакции для откатов в распределённых системах
-
----
-
-## N+1 проблема
-
-- Обнаружение: WARNING в логах при > N запросов к одной таблице за один request
-- Решение: joinedload (eager loading) или selectinload (subquery)
-- Правило: для связей, которые всегда нужны — joinedload, для опциональных — selectinload
-- Мониторинг количества запросов на request
+- Explicit transaction boundaries — in Application Service (SoC)
+- Repository does not manage transactions — that is the responsibility of the Application layer
+- Unit of Work pattern for consistent operations
+- Compensating transactions for rollbacks in distributed systems
 
 ---
 
-## Логирование операций с БД (DRY)
+## N+1 Problem
 
-Логирование реализуется в базовом Repository — автоматически для всех операций:
+- Detection: WARNING in logs when > N queries to the same table per request
+- Solution: joinedload (eager loading) or selectinload (subquery)
+- Rule: for relations that are always needed — joinedload, for optional ones — selectinload
+- Monitor query count per request
 
-| Поле | Описание |
-|------|----------|
+---
+
+## DB Operation Logging (DRY)
+
+Logging is implemented in the base Repository — automatically for all operations:
+
+| Field | Description |
+|-------|-------------|
 | operation | create/read/update/delete |
-| table | Имя таблицы |
+| table | Table name |
 | query_type | SELECT/INSERT/UPDATE/DELETE |
-| duration_ms | Время выполнения |
-| found | Найдена ли запись (для SELECT) |
-| entity_id | ID сущности |
+| duration_ms | Execution time |
+| found | Whether the record was found (for SELECT) |
+| entity_id | Entity ID |
 
-Медленные запросы (> порога) — WARNING.
+Slow queries (> threshold) — WARNING.
 
-> Подробнее о формате логирования — см. skill `_logging` (_logging/reference.md).
+> For more on the logging format — see skill `_logging` (_logging/reference.md).
 
 ---
 
-## ORM-модели vs Domain Entities
+## ORM Models vs Domain Entities
 
-- ORM-модели — в Infrastructure (привязаны к БД)
-- Domain Entities — в Domain (чистая бизнес-логика)
-- Маппинг ORM ↔ Entity — в Repository (SoC)
-- ORM-модели не проникают выше Infrastructure слоя
+- ORM models — in Infrastructure (tied to the DB)
+- Domain Entities — in Domain (pure business logic)
+- ORM ↔ Entity mapping — in Repository (SoC)
+- ORM models do not leak above the Infrastructure layer

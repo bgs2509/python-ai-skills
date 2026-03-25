@@ -1,70 +1,70 @@
-# Quality Cascade — 17 принципов качества
+# Quality Cascade — 17 Quality Principles
 
-> **Все 17 принципов применяются ВСЕГДА** — при написании кода, ревью, рефакторинге. Нарушение любого принципа — blocker.
+> **All 17 principles apply ALWAYS** — when writing code, during review, and while refactoring. Violating any principle is a blocker.
 
 ---
 
-## Базовые принципы
+## Foundational Principles
 
-| # | Принцип | Суть | Красные флаги |
-|---|---------|------|---------------|
-| 1 | **DRY** | Не дублируй код. Общая логика — в переиспользуемых модулях. | Copy-paste между файлами; одинаковая логика в разных местах; константы определены дважды. |
-| 2 | **KISS** | Простые решения без over-engineering. Читаемость важнее краткости. | Функция > 50 строк; вложенность > 4 уровней; цикломатическая сложность > 10; абстракция ради абстракции. |
-| 3 | **YAGNI** | Реализуй только необходимое. Никакого кода "на будущее". | Методы "про запас"; параметры без текущего использования; закомментированный код; абстракции без клиентов. |
-| 4 | **SoC** | Разделяй ответственности. Бизнес-логика отдельно от I/O, валидация отдельно от обработки. | Функция смешивает уровни абстракции; контроллер содержит бизнес-логику; один файл — несколько тем. |
-| 5 | **SSoT** | Каждый тип данных определён в одном месте. Конфигурация — в settings. | Константы дублируются; типы определены в нескольких модулях; конфиг разбросан по файлам. |
-| 6 | **CoC** | Следуй конвенциям проекта. Минимум новых правил. | Именование непоследовательно; структура отличается от существующей; новый стиль без обоснования. |
-| 7 | **Security** | Безопасность на всех уровнях — от ввода до логов. | Hardcoded секреты; отсутствие валидации; логирование паролей; SQL без параметризации. |
+| # | Principle | Essence | Red Flags |
+|---|-----------|---------|-----------|
+| 1 | **DRY** | Do not duplicate code. Shared logic goes into reusable modules. | Copy-paste between files; identical logic in different places; constants defined twice. |
+| 2 | **KISS** | Simple solutions without over-engineering. Readability is more important than brevity. | Function > 50 lines; nesting > 4 levels; cyclomatic complexity > 10; abstraction for the sake of abstraction. |
+| 3 | **YAGNI** | Implement only what is needed. No code "for the future." | Methods "just in case"; parameters without current usage; commented-out code; abstractions without clients. |
+| 4 | **SoC** | Separate concerns. Business logic separate from I/O, validation separate from processing. | Function mixes abstraction levels; controller contains business logic; one file covers multiple topics. |
+| 5 | **SSoT** | Each data type is defined in one place. Configuration is in settings. | Constants duplicated; types defined in multiple modules; config scattered across files. |
+| 6 | **CoC** | Follow project conventions. Minimize new rules. | Naming is inconsistent; structure differs from existing patterns; new style without justification. |
+| 7 | **Security** | Security at all levels — from input to logs. | Hardcoded secrets; missing validation; logging passwords; SQL without parameterization. |
 
 ---
 
 ## SOLID
 
-| # | Принцип | Суть | Красные флаги |
-|---|---------|------|---------------|
-| 8 | **SRP** | Одна функция — одна задача. Одна ответственность на класс. | Название с "and" (do_x_and_y); класс > 500 строк; God-объекты; изменение требования ломает несколько модулей. |
-| 9 | **OCP** | Открыт для расширения, закрыт для модификации. | Добавление варианта требует переписывания; длинные if/elif цепочки; breaking changes при расширении. |
-| 10 | **LSP** | Подтипы полностью заменяют родительские типы. | Подкласс бросает исключения, которых нет у родителя; переопределённый метод меняет контракт. |
-| 11 | **ISP** | Маленькие специфичные интерфейсы. Клиент зависит только от того, что использует. | Толстые интерфейсы; заглушки NotImplemented; клиент использует 2 из 10 методов. |
-| 12 | **DIP** | Зависимость от абстракций, не от конкретных реализаций. Инжекция зависимостей. | Прямой import конкретного класса в бизнес-логике; невозможно подменить зависимость для тестов; hardcoded зависимости. |
+| # | Principle | Essence | Red Flags |
+|---|-----------|---------|-----------|
+| 8 | **SRP** | One function — one task. One responsibility per class. | Name contains "and" (do_x_and_y); class > 500 lines; God objects; changing a requirement breaks multiple modules. |
+| 9 | **OCP** | Open for extension, closed for modification. | Adding a variant requires rewriting; long if/elif chains; breaking changes on extension. |
+| 10 | **LSP** | Subtypes fully replace parent types. | Subclass throws exceptions the parent does not; overridden method changes the contract. |
+| 11 | **ISP** | Small, specific interfaces. A client depends only on what it uses. | Fat interfaces; NotImplemented stubs; client uses 2 out of 10 methods. |
+| 12 | **DIP** | Depend on abstractions, not on concrete implementations. Dependency injection. | Direct import of a concrete class in business logic; unable to replace a dependency for tests; hardcoded dependencies. |
 
 ---
 
-## Дополнительные принципы
+## Additional Principles
 
-| # | Принцип | Суть | Красные флаги |
-|---|---------|------|---------------|
-| 13 | **LoD** | Минимальная связанность. Модуль не лезет во внутренности другого. | Цепочки вызовов a.b.c.d; доступ к внутренним структурам; избыточные импорты. |
-| 14 | **Fail Fast** | Валидируй на входе, падай явно и рано с понятным сообщением. | `except: pass`; тихие ошибки; глубокая вложенность вместо guard clauses; невнятные сообщения. |
-| 15 | **Explicit > Implicit** | Явный код без магии. Type hints, именованные константы, задокументированные побочные эффекты. | Магические числа; `*args/**kwargs` без необходимости; скрытые побочные эффекты; нет type hints. |
-| 16 | **Composition > Inheritance** | Предпочитай композицию. Наследование — только для is-a, глубина ≤ 2-3. | Глубокие иерархии; множественное наследование (кроме mixins); diamond problem. |
-| 17 | **Testability** | Код можно тестировать изолированно. Зависимости инжектируются, нет глобального состояния. | Нельзя написать unit-тест без сложного setup; глобальный state; недетерминированные функции. |
-
----
-
-## Централизация (SSoT + DRY)
-
-Следующие аспекты ДОЛЖНЫ быть централизованы — определены в одном месте:
-
-| Аспект | Где определяется | Красный флаг |
-|--------|-----------------|--------------|
-| Конфигурация | `core/config.py` (Pydantic Settings) | Конфиг разбросан по файлам |
-| Логирование | `core/logging.py` (structlog) | Каждый модуль настраивает логирование по-своему |
-| Обработка ошибок | `core/exceptions.py` + единый handler | Дублирование try/except блоков в разных модулях |
-| Dependency Injection | `api/dependencies.py` | Зависимости создаются в разных местах |
-| Валидация | Pydantic-схемы на границах системы | Валидация в бизнес-логике вместо входного слоя |
+| # | Principle | Essence | Red Flags |
+|---|-----------|---------|-----------|
+| 13 | **LoD** | Minimal coupling. A module does not reach into the internals of another. | Call chains a.b.c.d; accessing internal structures; excessive imports. |
+| 14 | **Fail Fast** | Validate at the input, fail explicitly and early with a clear message. | `except: pass`; silent errors; deep nesting instead of guard clauses; unclear messages. |
+| 15 | **Explicit > Implicit** | Explicit code without magic. Type hints, named constants, documented side effects. | Magic numbers; `*args/**kwargs` without necessity; hidden side effects; missing type hints. |
+| 16 | **Composition > Inheritance** | Prefer composition. Inheritance only for is-a, depth ≤ 2-3. | Deep hierarchies; multiple inheritance (except mixins); diamond problem. |
+| 17 | **Testability** | Code can be tested in isolation. Dependencies are injected, no global state. | Cannot write a unit test without complex setup; global state; non-deterministic functions. |
 
 ---
 
-## Где принципы раскрыты детально
+## Centralization (SSoT + DRY)
 
-| Принцип | Файл |
-|---------|------|
-| DIP, SoC, SRP (архитектура слоёв) | skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md) |
-| SSoT, DRY (логирование) | skill `_logging` (_logging/reference.md) |
-| SSoT, DRY (обработка ошибок) | skill `_error-handling` (_error-handling/reference.md) |
-| SSoT, DIP (работа с БД) | skill `_database` (_database/reference.md) |
-| CoC (именование) | skill `_code-quality` (_code-quality/reference/naming.md) |
-| KISS, Explicit (стандарты кода) | skill `_code-quality` (_code-quality/reference/code-standards.md) |
+The following aspects MUST be centralized — defined in one place:
+
+| Aspect | Where it is defined | Red Flag |
+|--------|-------------------|----------|
+| Configuration | `core/config.py` (Pydantic Settings) | Config scattered across files |
+| Logging | `core/logging.py` (structlog) | Each module configures logging differently |
+| Error handling | `core/exceptions.py` + single handler | Duplicated try/except blocks in different modules |
+| Dependency Injection | `api/dependencies.py` | Dependencies created in different places |
+| Validation | Pydantic schemas at system boundaries | Validation in business logic instead of the input layer |
+
+---
+
+## Where Principles are Detailed
+
+| Principle | File |
+|-----------|------|
+| DIP, SoC, SRP (layer architecture) | skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md) |
+| SSoT, DRY (logging) | skill `_logging` (_logging/reference.md) |
+| SSoT, DRY (error handling) | skill `_error-handling` (_error-handling/reference.md) |
+| SSoT, DIP (database) | skill `_database` (_database/reference.md) |
+| CoC (naming) | skill `_code-quality` (_code-quality/reference/naming.md) |
+| KISS, Explicit (code standards) | skill `_code-quality` (_code-quality/reference/code-standards.md) |
 | Security | skill `_security` (_security/reference/security.md) |
 | Testability | skill `_testing` (_testing/reference.md) |

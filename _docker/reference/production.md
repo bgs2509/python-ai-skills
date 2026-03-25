@@ -1,72 +1,72 @@
 # Production Requirements
 
-> Требования для production-ready приложения. Конфигурация через Pydantic Settings (SSoT).
+> Requirements for a production-ready application. Configuration via Pydantic Settings (SSoT).
 
 ---
 
 ## Health Checks
 
-- Endpoint `/health` возвращает HTTP 200 при здоровом состоянии, 503 при проблемах
-- Проверка подключения к БД, Redis, внешним зависимостям
-- Формат ответа: `{"status": "healthy", "checks": {"database": "ok", "redis": "ok"}}`
-- Используется оркестратором для перезапуска (см. skill `_docker` (_docker/reference/docker.md))
+- Endpoint `/health` returns HTTP 200 when healthy, 503 when there are issues
+- Checks connectivity to DB, Redis, external dependencies
+- Response format: `{"status": "healthy", "checks": {"database": "ok", "redis": "ok"}}`
+- Used by the orchestrator for restarts (see skill `_docker` (_docker/reference/docker.md))
 
 ---
 
 ## Graceful Shutdown
 
-- Обработка сигналов SIGTERM и SIGINT
-- Завершение текущих HTTP-запросов перед остановкой
-- Закрытие соединений с БД и кэшем
-- Таймаут на завершение (30 секунд)
-- Логирование начала и завершения shutdown (см. skill `_logging` (_logging/reference.md))
+- Handling SIGTERM and SIGINT signals
+- Completing current HTTP requests before stopping
+- Closing DB and cache connections
+- Timeout for shutdown (30 seconds)
+- Logging the start and completion of shutdown (see skill `_logging` (_logging/reference.md))
 
 ---
 
 ## Configuration Management (SSoT)
 
-- Все настройки — через Pydantic Settings (единая точка конфигурации)
-- Все секреты — через environment variables (см. skill `_security` (_security/reference/secrets-management.md))
-- Валидация конфигурации при старте (Fail Fast): обязательные поля без default
-- Значения по умолчанию только для опциональных параметров
-- Разделение dev/staging/prod через `ENVIRONMENT` переменную
+- All settings via Pydantic Settings (single configuration point)
+- All secrets via environment variables (see skill `_security` (_security/reference/secrets-management.md))
+- Configuration validation at startup (Fail Fast): required fields without defaults
+- Default values only for optional parameters
+- dev/staging/prod separation via the `ENVIRONMENT` variable
 
 ---
 
 ## Error Handling
 
-- Централизованная обработка исключений (см. skill `_error-handling` (_error-handling/reference.md) — DRY)
-- Стандартизированный формат ошибок: `{error: {code, message, request_id}}`
-- Stack trace только в dev (settings.DEBUG)
-- Все необработанные исключения логируются
+- Centralized exception handling (see skill `_error-handling` (_error-handling/reference.md) — DRY)
+- Standardized error format: `{error: {code, message, request_id}}`
+- Stack trace only in dev (settings.DEBUG)
+- All unhandled exceptions are logged
 
 ---
 
-## Мониторинг
+## Monitoring
 
-- Метрики запросов: count, latency (p50, p95, p99), errors
-- Метрики бизнес-логики (custom counters)
-- `/metrics` endpoint (Prometheus-совместимый)
-- Алерты на критические ошибки
+- Request metrics: count, latency (p50, p95, p99), errors
+- Business logic metrics (custom counters)
+- `/metrics` endpoint (Prometheus-compatible)
+- Alerts on critical errors
 
 ---
 
-## Контекст при старте
+## Startup Context
 
-При запуске приложения логировать (INFO):
+On application startup, log (INFO):
 - service_name, version
 - environment (dev/staging/prod)
 - python_version
 - feature_flags
-- зависимости (versions)
+- dependencies (versions)
 
-> Формат логирования — см. skill `_logging` (_logging/reference.md).
+> Logging format — see skill `_logging` (_logging/reference.md).
 
 ---
 
-## Метрики производительности
+## Performance Metrics
 
-| Метрика | Порог |
-|---------|-------|
-| Время отклика API | < 500ms (p95) |
-| Доступность | 99% |
+| Metric | Threshold |
+|--------|-----------|
+| API response time | < 500ms (p95) |
+| Availability | 99% |

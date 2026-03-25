@@ -1,55 +1,55 @@
-# Backlog — управление задачами
+# Backlog — Task Management
 
-> Каждая задача фиксируется до начала работы. Без записи в backlog задача не начинается.
+> Every task is recorded before work begins. Without a backlog entry, work on a task does not start.
 
 ---
 
-## Шаблон задачи
+## Task Template
 
 ```markdown
-# TASK-{NNN}: {Название задачи}
+# TASK-{NNN}: {Task Title}
 
-## Статус
+## Status
 
 {New | Requirements | In Progress | Done | Cancelled}
 
-## Описание
+## Description
 
-{Что нужно сделать и зачем. 2-5 предложений.}
+{What needs to be done and why. 2-5 sentences.}
 
-## Приоритет
+## Priority
 
 {Critical | High | Medium | Low}
 
-## Связанные артефакты
+## Related Artifacts
 
-- Требования: {REQ-NNN или "Нет"}
-- План: {PLAN-NNN или "Нет"}
-- ADR: {ADR-NNN или "Нет"}
-- Отчёт: {ссылка на docs/reports/ или "Нет"}
+- Requirements: {REQ-NNN or "None"}
+- Plan: {PLAN-NNN or "None"}
+- ADR: {ADR-NNN or "None"}
+- Report: {link to docs/reports/ or "None"}
 ```
 
 ---
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Хранение | `docs/backlog/` в репозитории целевого проекта |
-| Именование файла | `TASK-NNN-{краткое-название}.md` |
-| Нумерация | TASK-001, TASK-002, ... — последовательная |
-| Статусы | New → Requirements → In Progress → Done / Cancelled |
-| Обновление | Статус обновляется при переходе между этапами пайплайна |
-| Язык | Русский (описание, комментарии, статусы) |
+| Rule | Description |
+|------|-------------|
+| Storage | `docs/backlog/` in the target project repository |
+| File naming | `TASK-NNN-{short-name}.md` |
+| Numbering | TASK-001, TASK-002, ... — sequential |
+| Statuses | New → Requirements → In Progress → Done / Cancelled |
+| Updates | Status is updated when transitioning between pipeline stages |
+| Language | Russian (description, comments, statuses) |
 
 ---
 
-## Статусы
+## Statuses
 
-| Статус | Значение |
-|--------|----------|
-| **New** | Задача создана, работа не начата |
-| **Requirements** | Требования формулируются или ожидают одобрения |
-| **In Progress** | Задача в работе |
-| **Done** | Задача завершена, все артефакты созданы |
-| **Cancelled** | Задача отменена (указать причину в описании) |
+| Status | Meaning |
+|--------|---------|
+| **New** | Task created, work has not started |
+| **Requirements** | Requirements are being formulated or awaiting approval |
+| **In Progress** | Task is in progress |
+| **Done** | Task completed, all artifacts created |
+| **Cancelled** | Task cancelled (specify reason in description) |

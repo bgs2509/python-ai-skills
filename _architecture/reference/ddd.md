@@ -1,96 +1,96 @@
 # Domain-Driven Design (DDD)
 
-> Организация кода вокруг бизнес-домена. Domain — единственный источник бизнес-правил (SSoT).
+> Organizing code around the business domain. Domain is the single source of business rules (SSoT).
 
 ---
 
-## Слои и направление зависимостей
+## Layers and Dependency Direction
 
 ```
 api/ → application/ → domain/ ← infrastructure/
 ```
 
-| Слой | Зависит от | Содержит |
-|------|-----------|----------|
-| **Domain** | Ничего | Сущности, Value Objects, доменные сервисы, интерфейсы репозиториев |
+| Layer | Depends on | Contains |
+|-------|-----------|----------|
+| **Domain** | Nothing | Entities, Value Objects, domain services, repository interfaces |
 | **Application** | Domain | Use Cases, Application Services, DTO |
-| **API** | Application, Domain | Контроллеры/роутеры, middleware, HTTP-схемы |
-| **Infrastructure** | Application, Domain | Реализации репозиториев, HTTP-клиенты, БД, кэш |
+| **API** | Application, Domain | Controllers/routers, middleware, HTTP schemas |
+| **Infrastructure** | Application, Domain | Repository implementations, HTTP clients, DB, cache |
 
-**Принцип (DIP)**: Domain определяет интерфейсы. Infrastructure реализует их. Domain никогда не зависит от Infrastructure.
+**Principle (DIP)**: Domain defines interfaces. Infrastructure implements them. Domain never depends on Infrastructure.
 
 ---
 
-## Сущности (Entities)
+## Entities
 
-- Имеют уникальную идентичность (id)
-- Содержат поведение, а не только данные (SRP — запрет анемичных моделей)
-- Инкапсулируют бизнес-правила и инварианты
-- Валидируют своё состояние при создании и изменении (Fail Fast)
+- Have unique identity (id)
+- Contain behavior, not just data (SRP — anemic models are prohibited)
+- Encapsulate business rules and invariants
+- Validate their state on creation and modification (Fail Fast)
 
-**Красные флаги**:
-- Сущность без методов — только поля (анемичная модель)
-- Бизнес-логика в сервисах, которая должна быть в сущности
-- Прямое изменение полей извне без валидации
+**Red flags**:
+- Entity without methods — only fields (anemic model)
+- Business logic in services that should be in the entity
+- Direct modification of fields from outside without validation
 
 ---
 
 ## Value Objects
 
-- Не имеют идентичности — сравниваются по значению
-- Immutable — после создания не изменяются
-- Самовалидирующиеся — невозможно создать невалидный объект (Fail Fast)
-- Примеры: Money, Email, Address, DateRange
+- Have no identity — compared by value
+- Immutable — cannot be changed after creation
+- Self-validating — impossible to create an invalid object (Fail Fast)
+- Examples: Money, Email, Address, DateRange
 
-**Правила**:
-- Если концепт не имеет идентичности — это Value Object
-- Value Object определяется в Domain (SSoT)
-- Переиспользуется во всех слоях (DRY)
-
----
-
-## Доменные сервисы
-
-- Логика, которая не принадлежит одной сущности
-- Координация между несколькими сущностями
-- Не содержат состояния (stateless)
-- Определяются в Domain
-
-**Когда использовать**: операция затрагивает несколько сущностей и не может принадлежать ни одной из них.
+**Rules**:
+- If a concept has no identity — it is a Value Object
+- Value Object is defined in Domain (SSoT)
+- Reused across all layers (DRY)
 
 ---
 
-## Repository интерфейсы
+## Domain Services
 
-- Интерфейс определяется в Domain (DIP)
-- Реализация — в Infrastructure
-- Repository — единственная точка доступа к данным для каждой сущности (SSoT)
-- Бизнес-логика НИКОГДА не обращается к БД напрямую (SoC)
+- Logic that does not belong to a single entity
+- Coordination between multiple entities
+- Stateless
+- Defined in Domain
+
+**When to use**: an operation involves multiple entities and cannot belong to any single one.
+
+---
+
+## Repository Interfaces
+
+- Interface is defined in Domain (DIP)
+- Implementation — in Infrastructure
+- Repository is the single point of data access for each entity (SSoT)
+- Business logic NEVER accesses the DB directly (SoC)
 
 ```
 domain/
     repositories/
-        user_repository.py          # Интерфейс (ABC)
+        user_repository.py          # Interface (ABC)
 
 infrastructure/
     database/
-        user_repository_impl.py     # Реализация
+        user_repository_impl.py     # Implementation
 ```
 
 ---
 
-## Граф зависимостей
+## Dependency Graph
 
-- Явный, направленный, без циклов
-- Если A зависит от B, то B НЕ может зависеть от A
-- Циклическая зависимость — архитектурный blocker
-- Решение циклов: выделение интерфейса в Domain (DIP) или создание нового модуля
+- Explicit, directed, acyclic
+- If A depends on B, then B CANNOT depend on A
+- Circular dependency — architectural blocker
+- Resolving cycles: extracting an interface into Domain (DIP) or creating a new module
 
 ---
 
 ## Bounded Contexts
 
-- Каждый контекст имеет свою модель предметной области
-- Одна и та же концепция может иметь разное представление в разных контекстах
-- Контексты взаимодействуют через явные интерфейсы (Anti-Corruption Layer)
-- В монолите — разделение по модулям, в микросервисах — по сервисам
+- Each context has its own domain model
+- The same concept may have different representations in different contexts
+- Contexts interact through explicit interfaces (Anti-Corruption Layer)
+- In a monolith — separation by modules, in microservices — by services

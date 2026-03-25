@@ -1,67 +1,67 @@
 ---
 name: _report
 description: >
-  Создание отчёта о завершении фичи, рефакторинга или критического бага.
-  Шаблон с результатами ревью и тестов. Вызывай после завершения значимой работы.
-  TRIGGER когда: фича реализована и готова к коммиту, рефакторинг завершён,
-  критический баг исправлен, пользователь говорит "готово/done/закоммить".
+  Create a completion report for a feature, refactoring, or critical bug fix.
+  Template with review and test results. Invoke after completing significant work.
+  TRIGGER when: feature is implemented and ready to commit, refactoring is complete,
+  critical bug is fixed, user says "done/ready/commit".
 ---
 
 # Completion Report
 
-> Отчёт после завершения фичи. Фиксирует что сделано, проверено, что не работает.
+> Report after completing a feature. Records what was done, what was verified, what doesn't work.
 
-## Когда создавать
+## When to Create
 
-- После завершения значимой фичи
-- После рефакторинга
-- После исправления критического бага
-- Перед merge в main
+- After completing a significant feature
+- After refactoring
+- After fixing a critical bug
+- Before merging into main
 
-## Действия
+## Actions
 
-1. Спроси пользователя о Task ID (если не очевиден)
-2. Собери данные: изменённые файлы, тесты, покрытие
-3. Создай файл по шаблону ниже
-4. Сохрани в `docs/reports/{дата}-{фича}.md`
+1. Ask the user for the Task ID (if not obvious)
+2. Gather data: changed files, tests, coverage
+3. Create a file using the template below
+4. Save to `docs/reports/{date}-{feature}.md`
 
-## Шаблон
+## Template
 
 ```markdown
-# Completion Report: {Название}
+# Completion Report: {Title}
 
 ## Task
 - Task ID: {TASK-NNN}
-- План: {PLAN-NNN или "Нет"}
-- ADR: {ADR-NNN или "Нет"}
+- Plan: {PLAN-NNN or "None"}
+- ADR: {ADR-NNN or "None"}
 
 ## Executive Summary
-{1-3 предложения: что сделано и зачем}
+{1-3 sentences: what was done and why}
 
-## Изменения
-### Добавлено / Изменено / Удалено
+## Changes
+### Added / Changed / Removed
 
-## Результаты ревью
-- [ ] Quality Cascade — проверено
-- [ ] Security чеклист — проверено
-- [ ] Линтеры пройдены
+## Review Results
+- [ ] Quality Cascade — verified
+- [ ] Security checklist — verified
+- [ ] Linters passed
 
-## Результаты тестов
+## Test Results
 - Unit: {passed}/{total}
 - Integration: {passed}/{total}
 - Coverage: {N}%
 
 ## Known Limitations
-{Что не работает, workarounds, или "Нет"}
+{What doesn't work, workarounds, or "None"}
 
-## Метрики
-- Файлов изменено / Строк добавлено / удалено / Тестов добавлено
+## Metrics
+- Files changed / Lines added / removed / Tests added
 ```
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Язык | Русский |
+| Rule | Description |
+|------|-------------|
+| Language | Russian |
 
-Полная версия: см. [reference.md](reference.md)
+Full version: see [reference.md](reference.md)

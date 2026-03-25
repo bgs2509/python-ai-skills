@@ -1,96 +1,96 @@
 # python-ai-skills — Claude Code Skills
 
-> Коллекция skill'ов для качественной разработки Python 3.11+ приложений.
-> Каждый skill — папка с `SKILL.md` (краткая версия) + `reference.md` (полная версия).
-> Префикс `_` отличает кастомные skill'ы от встроенных.
+> A collection of skills for high-quality Python 3.11+ application development.
+> Each skill is a folder with `SKILL.md` (short version) + `reference.md` (full version).
+> The `_` prefix distinguishes custom skills from built-in ones.
 
 ---
 
-## Каталог skill'ов
+## Skill Catalog
 
-| Skill | Вызов | Описание |
-|-------|-------|----------|
-| _code-quality | `/_code-quality` | 17 принципов качества (DRY, KISS, YAGNI, SOLID) |
-| _error-handling | `/_error-handling` | Иерархия исключений, HTTP-маппинг, retry |
-| _security | `/_security` | OWASP Top 10, валидация, секреты |
-| _logging | `/_logging` | Structured logging, Correlation ID, санитизация |
-| _testing | `/_testing` | 3 уровня тестов, покрытие ≥90%, pytest |
-| _database | `/_database` | Repository-паттерн, миграции, транзакции |
-| _architecture | `/_architecture` | DDD, Hexagonal, монолит vs микросервисы |
+| Skill | Command | Description |
+|-------|---------|-------------|
+| _code-quality | `/_code-quality` | 17 quality principles (DRY, KISS, YAGNI, SOLID) |
+| _error-handling | `/_error-handling` | Exception hierarchy, HTTP mapping, retry |
+| _security | `/_security` | OWASP Top 10, validation, secrets |
+| _logging | `/_logging` | Structured logging, Correlation ID, sanitization |
+| _testing | `/_testing` | 3 test levels, coverage ≥90%, pytest |
+| _database | `/_database` | Repository pattern, migrations, transactions |
+| _architecture | `/_architecture` | DDD, Hexagonal, monolith vs microservices |
 | _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
 | _docker | `/_docker` | Dockerfile, Compose, health checks, production |
 | _http | `/_http` | httpx, timeout, retry, Circuit Breaker |
-| _caching | `/_caching` | Redis, TTL, инвалидация, graceful degradation |
-| _docworkflow | `/_docworkflow` | Пайплайн документации: backlog → commit |
-| _adr | `/_adr` | Генератор Architecture Decision Record |
-| _report | `/_report` | Генератор отчёта о завершении фичи |
-| _init | `/_init` | Инициализация нового проекта |
-| py-supervisor | (agent) | Post-hoc аудит compliance пайплайна |
+| _caching | `/_caching` | Redis, TTL, invalidation, graceful degradation |
+| _docworkflow | `/_docworkflow` | Documentation pipeline: backlog → commit |
+| _adr | `/_adr` | Architecture Decision Record generator |
+| _report | `/_report` | Feature completion report generator |
+| _init | `/_init` | New project initialization |
+| py-supervisor | (agent) | Post-hoc pipeline compliance audit |
 
 ---
 
-## Когда какой skill использовать
+## When to Use Each Skill
 
-| Задача | Skill'ы |
-|--------|---------|
-| Пишешь код | _code-quality, _error-handling |
-| Ревью кода | _code-quality, _security, _linters |
-| Работа с БД | _database, _error-handling |
-| HTTP интеграции | _http, _caching |
-| Настройка CI | _linters |
-| Деплой | _docker, _security |
-| Тестирование | _testing |
-| Новый проект | _init, _architecture |
-| Архитектурное решение | _architecture, _adr |
-| Фича завершена | _report, _docworkflow |
-| Аудит пайплайна | py-supervisor |
-| Начало задачи | _docworkflow |
+| Task | Skills |
+|------|--------|
+| Writing code | _code-quality, _error-handling |
+| Code review | _code-quality, _security, _linters |
+| Database work | _database, _error-handling |
+| HTTP integrations | _http, _caching |
+| CI setup | _linters |
+| Deployment | _docker, _security |
+| Testing | _testing |
+| New project | _init, _architecture |
+| Architecture decision | _architecture, _adr |
+| Feature completed | _report, _docworkflow |
+| Pipeline audit | py-supervisor |
+| Starting a task | _docworkflow |
 
 ---
 
-## Обязательный workflow
+## Required Workflow
 
-### Verify Before Act (ПЕРЕД каждым изменением кода)
+### Verify Before Act (BEFORE every code change)
 
-| Действие | Проверка ПЕРЕД выполнением |
-|----------|---------------------------|
-| Создание файла | Файл НЕ существует |
-| Редактирование | Сначала прочитать текущее содержимое |
-| Удаление | Проверить все зависимости и ссылки |
-| Написание кода | Нет похожего кода (DRY) |
-| Добавление фичи | Это нужно СЕЙЧАС (YAGNI) |
+| Action | Check BEFORE executing |
+|--------|------------------------|
+| Creating a file | File does NOT exist |
+| Editing | Read current content first |
+| Deleting | Check all dependencies and references |
+| Writing code | No similar code exists (DRY) |
+| Adding a feature | It is needed NOW (YAGNI) |
 
 ### Changelog
 
-- Формат: [Keep a Changelog](https://keepachangelog.com/)
-- Секции: Added, Changed, Deprecated, Removed, Fixed, Security
-- Каждое изменение → запись в `Unreleased`
+- Format: [Keep a Changelog](https://keepachangelog.com/)
+- Sections: Added, Changed, Deprecated, Removed, Fixed, Security
+- Every change → entry in `Unreleased`
 
-### Установка и обновление плагина
+### Plugin Installation and Update
 
-- Установка с нуля: [`docs/plugin-install.md`](docs/plugin-install.md)
-- Обновление после изменений: [`docs/plugin-update.md`](docs/plugin-update.md)
+- Fresh install: [`docs/plugin-install.md`](docs/plugin-install.md)
+- Update after changes: [`docs/plugin-update.md`](docs/plugin-update.md)
 
-> **ОБЯЗАТЕЛЬНО** после любых изменений в skill'ах, commands, agents или plugin.json — обновить плагин.
+> **REQUIRED** after any changes to skills, commands, agents, or plugin.json — update the plugin.
 
-**Кратко:** поднять версию в `.claude-plugin/plugin.json` → закоммитить → `claude plugins update python-pipeline@local-plugins` → перезапустить Claude Code.
+**In short:** bump version in `.claude-plugin/plugin.json` → commit → `claude plugins update python-pipeline@local-plugins` → restart Claude Code.
 
-При коммите изменений в этом проекте — **всегда** поднять версию и напомнить пользователю обновить кэш плагина.
-
----
-
-## Языковые стандарты
-
-| Что | Язык | Пример |
-|-----|------|--------|
-| Документация (все артефакты пайплайна) | Русский | TASK, REQ, PLAN, ADR, отчёты, CHANGELOG |
-| Комментарии в коде | Русский | `# Проверяем TTL сессии` |
-| Commit messages | Английский | `TASK-003: feat: add user sender service` |
-| Названия файлов, переменных, функций | Английский | `user_sender.py`, `def send_outreach()` |
-
-> **Правило**: вся документация, генерируемая skill'ами этого проекта, должна быть на русском языке.
-> Commit messages — единственное исключение (английский, согласно git-conventions).
+When committing changes in this project — **always** bump the version and remind the user to update the plugin cache.
 
 ---
 
-**Версия**: 3.4
+## Language Standards
+
+| What | Language | Example |
+|------|----------|---------|
+| Documentation (all pipeline artifacts) | English | TASK, REQ, PLAN, ADR, reports, CHANGELOG |
+| Code comments | English | `# Check session TTL` |
+| Commit messages | English | `TASK-003: feat: add user sender service` |
+| File names, variables, functions | English | `user_sender.py`, `def send_outreach()` |
+
+> **Rule**: all documentation generated by this project's skills must be in English.
+> All content in this project is in English.
+
+---
+
+**Version**: 3.5

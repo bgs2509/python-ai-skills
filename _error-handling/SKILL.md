@@ -1,20 +1,20 @@
 ---
 name: _error-handling
 description: >
-  Централизованная обработка ошибок Python (AppException иерархия, HTTP-маппинг,
-  retry-стратегии, Fail Fast). Используй при написании exception handling, middleware, retry логики.
+  Centralized Python error handling (AppException hierarchy, HTTP mapping,
+  retry strategies, Fail Fast). Use when writing exception handling, middleware, or retry logic.
 ---
 
-# Обработка ошибок
+# Error Handling
 
-> Централизованная обработка — единый exception handler (SSoT, DRY). Дублирование try/except — blocker.
+> Centralized handling — a single exception handler (SSoT, DRY). Duplicated try/except is a blocker.
 
-## Иерархия исключений
+## Exception Hierarchy
 
-Все в `core/exceptions.py`:
+All in `core/exceptions.py`:
 
 ```
-AppException (базовый)
+AppException (base)
 ├── DomainError (EntityNotFound, BusinessRuleViolation, InvalidState)
 ├── InfrastructureError (Database, ExternalService, Cache)
 ├── ValidationError (InputValidation, SchemaValidation)
@@ -22,35 +22,35 @@ AppException (базовый)
 └── AuthorizationError
 ```
 
-## HTTP-маппинг
+## HTTP Mapping
 
-| Исключение | HTTP |
-|------------|------|
+| Exception | HTTP |
+|-----------|------|
 | InputValidationError | 400 |
 | AuthenticationError | 401 |
 | AuthorizationError | 403 |
 | EntityNotFoundError | 404 |
 | BusinessRuleViolation | 409/422 |
 | ExternalServiceError | 502 |
-| Неизвестное | 500 |
+| Unknown | 500 |
 
-## Retry-стратегии
+## Retry Strategies
 
-| Ошибка | Retry? | Стратегия |
-|--------|--------|-----------|
-| 4xx | Нет | Вернуть сразу |
-| 5xx, Timeout, Connection | Да | Exponential backoff (1→2→4→max 30s), 3-5 попыток, jitter |
-| Rate limit (429) | Да | После Retry-After |
+| Error | Retry? | Strategy |
+|-------|--------|----------|
+| 4xx | No | Return immediately |
+| 5xx, Timeout, Connection | Yes | Exponential backoff (1→2→4→max 30s), 3-5 attempts, jitter |
+| Rate limit (429) | Yes | After Retry-After |
 
-## Правила
+## Rules
 
-- Один handler для всего приложения (middleware)
-- Наследование от `AppException`, не голых `Exception`
-- Fail Fast: guard clauses, Pydantic на границах
-- Stack trace только в dev (DEBUG=True)
+- One handler for the entire application (middleware)
+- Inherit from `AppException`, not bare `Exception`
+- Fail Fast: guard clauses, Pydantic at boundaries
+- Stack trace only in dev (DEBUG=True)
 
-## Запреты (blocker)
+## Prohibitions (blocker)
 
-`except: pass` | `except Exception` без логирования | try/except в каждом контроллере | возврат None вместо исключения
+`except: pass` | `except Exception` without logging | try/except in every controller | returning None instead of raising an exception
 
-Полная версия: см. [reference.md](reference.md)
+Full version: see [reference.md](reference.md)

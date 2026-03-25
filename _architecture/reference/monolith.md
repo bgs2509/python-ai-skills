@@ -1,36 +1,36 @@
-# Специфика монолитной архитектуры
+# Monolithic Architecture Specifics
 
-> Все компоненты работают в одном процессе. Внутренняя структура организована по DDD/Hexagonal (см. skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)) — те же слои, та же изоляция.
-
----
-
-## Когда монолит — правильный выбор
-
-- Небольшая команда (1-5 разработчиков)
-- Начальная стадия проекта — домен ещё не устоялся
-- Нет необходимости в независимом масштабировании компонентов
-- Простота деплоя важнее гибкости
+> All components run in a single process. Internal structure follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)) — same layers, same isolation.
 
 ---
 
-## Модульные границы
+## When a Monolith is the Right Choice
 
-- Разделение по Bounded Contexts внутри одного процесса
-- Каждый модуль имеет свою структуру: domain/, application/, infrastructure/
-- Модули взаимодействуют через публичные интерфейсы, не через внутренние классы (LoD)
+- Small team (1-5 developers)
+- Early stage of the project — the domain is not yet well-defined
+- No need for independent scaling of components
+- Deployment simplicity is more important than flexibility
+
+---
+
+## Module Boundaries
+
+- Separation by Bounded Contexts within a single process
+- Each module has its own structure: domain/, application/, infrastructure/
+- Modules interact through public interfaces, not through internal classes (LoD)
 
 ```
 src/
-├── users/                   # Модуль Users
+├── users/                   # Users module
 │   ├── domain/
 │   ├── application/
 │   └── infrastructure/
-├── orders/                  # Модуль Orders
+├── orders/                  # Orders module
 │   ├── domain/
 │   ├── application/
 │   └── infrastructure/
-├── core/                    # Общее: конфиг, логирование, исключения (SSoT)
-├── api/                     # Единый API слой
+├── core/                    # Shared: config, logging, exceptions (SSoT)
+├── api/                     # Unified API layer
 └── main.py
 ```
 
@@ -38,37 +38,37 @@ src/
 
 ## Shared Database
 
-- Единая БД, разделение по схемам или префиксам таблиц
-- Каждый модуль обращается ТОЛЬКО к своим таблицам через свой Repository (SSoT)
-- Запрет прямого доступа к таблицам другого модуля — только через его Application Service (SoC)
-- Миграции: единый Alembic, но миграции группируются по модулям
+- Single DB, separation by schemas or table prefixes
+- Each module accesses ONLY its own tables through its own Repository (SSoT)
+- Direct access to another module's tables is prohibited — only through its Application Service (SoC)
+- Migrations: single Alembic, but migrations are grouped by module
 
 ---
 
-## Внутренние вызовы
+## Internal Calls
 
-- Прямые импорты через интерфейсы (DIP), не через HTTP
-- Модуль A вызывает Application Service модуля B, не его Repository напрямую (LoD)
-- Единый exception handler для всего приложения (SSoT, DRY)
-- Единая конфигурация логирования (SSoT, DRY)
-
----
-
-## Модульный монолит (подготовка к split)
-
-- Если модули соблюдают границы — разделение на микросервисы минимально болезненно
-- Замена прямого вызова на HTTP-вызов
-- Замена shared DB на отдельные БД
-- Признак готовности к split: модули не имеют циклических зависимостей
+- Direct imports through interfaces (DIP), not through HTTP
+- Module A calls Module B's Application Service, not its Repository directly (LoD)
+- Single exception handler for the entire application (SSoT, DRY)
+- Single logging configuration (SSoT, DRY)
 
 ---
 
-## Риски и антипаттерны
+## Modular Monolith (Preparation for Split)
 
-| Риск | Описание | Как избежать |
-|------|----------|-------------|
-| God-объект | Один класс/модуль знает обо всём | SRP — одна ответственность |
-| Циклические зависимости | Модуль A → B → A | DIP — выделить интерфейс |
-| Shared mutable state | Глобальные переменные между модулями | SSoT — состояние в одном месте |
-| Отсутствие границ | Модули напрямую импортируют внутренности друг друга | LoD — только публичные интерфейсы |
-| Единая точка отказа | Падение одного модуля роняет всё | Изоляция ошибок, graceful degradation |
+- If modules respect boundaries — splitting into microservices is minimally painful
+- Replacing direct calls with HTTP calls
+- Replacing shared DB with separate DBs
+- Readiness indicator for split: modules have no circular dependencies
+
+---
+
+## Risks and Anti-patterns
+
+| Risk | Description | How to avoid |
+|------|-------------|-------------|
+| God object | A single class/module knows about everything | SRP — single responsibility |
+| Circular dependencies | Module A → B → A | DIP — extract an interface |
+| Shared mutable state | Global variables between modules | SSoT — state in one place |
+| Missing boundaries | Modules directly import each other's internals | LoD — only public interfaces |
+| Single point of failure | One module crash brings down everything | Error isolation, graceful degradation |

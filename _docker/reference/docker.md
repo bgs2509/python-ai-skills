@@ -1,50 +1,50 @@
 # Docker
 
-> Контейнеризация приложения. Минимальный размер, безопасность, кэширование слоёв.
+> Application containerization. Minimal size, security, layer caching.
 
 ---
 
-## Dockerfile — Multi-stage build
+## Dockerfile — Multi-stage Build
 
-### Принципы
+### Principles
 
-| Правило | Описание |
-|---------|----------|
-| Multi-stage build | Builder (зависимости) → Runtime (минимальный образ) |
-| Non-root user | Приложение работает от непривилегированного пользователя |
-| Порядок слоёв | Зависимости → Код (кэширование: зависимости меняются реже) |
-| Минимальный размер | python:3.11-slim, не python:3.11 |
-| Без dev-зависимостей | В production только runtime зависимости |
+| Rule | Description |
+|------|-------------|
+| Multi-stage build | Builder (dependencies) → Runtime (minimal image) |
+| Non-root user | Application runs as a non-privileged user |
+| Layer order | Dependencies → Code (caching: dependencies change less frequently) |
+| Minimal size | python:3.11-slim, not python:3.11 |
+| No dev dependencies | Only runtime dependencies in production |
 
-### Порядок слоёв (кэширование)
+### Layer Order (caching)
 
 ```dockerfile
-# 1. Базовый образ (меняется редко)
+# 1. Base image (changes rarely)
 FROM python:3.11-slim as builder
 
-# 2. Системные зависимости (меняются редко)
+# 2. System dependencies (change rarely)
 RUN apt-get update && apt-get install -y --no-install-recommends ...
 
-# 3. Python зависимости (меняются иногда)
+# 3. Python dependencies (change occasionally)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Код приложения (меняется часто)
+# 4. Application code (changes frequently)
 COPY src/ ./src/
 
 # Runtime stage
 FROM python:3.11-slim
-# ...копируем только нужное из builder
+# ...copy only what is needed from builder
 ```
 
 ---
 
 ## Docker Compose
 
-- Сервисы, сети, volumes
-- Healthcheck для каждого сервиса
-- Depends_on с condition: service_healthy
-- Секреты через environment — см. skill `_security` (_security/reference/secrets-management.md)
+- Services, networks, volumes
+- Healthcheck for each service
+- Depends_on with condition: service_healthy
+- Secrets via environment — see skill `_security` (_security/reference/secrets-management.md)
 
 ```yaml
 services:
@@ -78,10 +78,10 @@ services:
 
 ## Security
 
-| Правило | Как |
-|---------|-----|
+| Rule | How |
+|------|-----|
 | Non-root user | `RUN adduser --disabled-password appuser` + `USER appuser` |
-| Без секретов в image | Не COPY .env, не ARG для секретов |
+| No secrets in image | Do not COPY .env, do not use ARG for secrets |
 
 ---
 
@@ -108,21 +108,21 @@ docs/
 
 ---
 
-## Полезные команды
+## Useful Commands
 
 ```bash
-# Сборка
+# Build
 docker compose build
 
-# Запуск
+# Start
 docker compose up -d
 
-# Логи
+# Logs
 docker compose logs -f app
 
-# Остановка
+# Stop
 docker compose down
 
-# Пересборка без кэша
+# Rebuild without cache
 docker compose build --no-cache
 ```

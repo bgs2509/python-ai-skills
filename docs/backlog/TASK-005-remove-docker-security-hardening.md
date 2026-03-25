@@ -1,21 +1,21 @@
-# TASK-005: Удалить security hardening из _docker skill
+# TASK-005: Remove Security Hardening from _docker Skill
 
-## Описание
+## Description
 
-Удалить правила `no-new-privileges`, `cap_drop: ALL`, `read_only: true` из skill'а `_docker`.
+Remove `no-new-privileges`, `cap_drop: ALL`, `read_only: true` rules from the `_docker` skill.
 
-## Причина
+## Reason
 
-`no-new-privileges:true` + `cap_drop: ALL` запрещают nginx worker'ам вызывать `setgid()`.
-Worker'ы падают, master принимает TCP-соединения, но некому их обрабатывать — curl зависает.
-Аналогичная проблема с postgres и другими сервисами, использующими `setuid()`/`setgid()`.
+`no-new-privileges:true` + `cap_drop: ALL` prevent nginx workers from calling `setgid()`.
+Workers crash, master accepts TCP connections, but there is no one to handle them — curl hangs.
+Similar issue with postgres and other services using `setuid()`/`setgid()`.
 
-## Критерии готовности
+## Acceptance Criteria
 
-- [ ] Убрано упоминание "security hardening" из описания skill'а
-- [ ] Убраны правила `no-new-privileges`, `cap_drop: ALL`, `read_only: true`
-- [ ] Остались безопасные правила: non-root user, запрет секретов в image
+- [ ] Removed "security hardening" mention from the skill description
+- [ ] Removed `no-new-privileges`, `cap_drop: ALL`, `read_only: true` rules
+- [ ] Safe rules remain: non-root user, no secrets in image
 
-## Приоритет
+## Priority
 
-Высокий — правила ломают production.
+High — rules break production.

@@ -1,6 +1,6 @@
 {
   "name": "python-pipeline",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Python development pipeline — orchestrates 9 phases, 15 skills, 5 agents via Agent Teams",
   "author": { "name": "bgs" }
 }

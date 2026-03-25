@@ -1,71 +1,71 @@
-# Тестирование
+# Testing
 
-> Код можно тестировать изолированно (Testability). Зависимости инжектируются (DIP), глобального состояния нет.
-
----
-
-## Три уровня
-
-| Уровень | Что тестирует | Где | Зависимости |
-|---------|---------------|-----|-------------|
-| **Unit** | Изолированная логика | `tests/unit/` | Моки |
-| **Integration** | Взаимодействие компонентов | `tests/integration/` | Testcontainers (PostgreSQL, Redis) |
-| **E2E** | Полные сценарии от API до БД | `tests/e2e/` | Реальная инфраструктура |
+> Code can be tested in isolation (Testability). Dependencies are injected (DIP), there is no global state.
 
 ---
 
-## Покрытие
+## Three Levels
 
-- Минимум: ≥90%
-- Команда: `pytest --cov=src --cov-fail-under=90`
-- CI pipeline: coverage gate — pipeline fails если < 90% (см. skill `_linters` (_linters/reference/ci-cd.md))
+| Level | What it tests | Where | Dependencies |
+|-------|--------------|-------|-------------|
+| **Unit** | Isolated logic | `tests/unit/` | Mocks |
+| **Integration** | Component interaction | `tests/integration/` | Testcontainers (PostgreSQL, Redis) |
+| **E2E** | Full scenarios from API to DB | `tests/e2e/` | Real infrastructure |
 
 ---
 
-## Именование
+## Coverage
 
-Формат: `test_{что}_{сценарий}_{результат}` (общие конвенции именования — см. skill `_code-quality` (_code-quality/reference/naming.md))
+- Minimum: ≥90%
+- Command: `pytest --cov=src --cov-fail-under=90`
+- CI pipeline: coverage gate — pipeline fails if < 90% (see skill `_linters` (_linters/reference/ci-cd.md))
 
-Примеры:
+---
+
+## Naming
+
+Format: `test_{what}_{scenario}_{result}` (general naming conventions — see skill `_code-quality` (_code-quality/reference/naming.md))
+
+Examples:
 - `test_create_user_valid_data_returns_user`
 - `test_create_user_duplicate_email_raises_error`
 - `test_get_user_not_found_returns_none`
 
 ---
 
-## Паттерн: Arrange-Act-Assert
+## Pattern: Arrange-Act-Assert
 
-Каждый тест — три чётких блока:
-1. **Arrange** — подготовка данных и зависимостей
-2. **Act** — выполнение тестируемого действия
-3. **Assert** — проверка результата
-
----
-
-## Фикстуры
-
-- `conftest.py` в каждом уровне (`tests/unit/conftest.py`, `tests/integration/conftest.py`)
-- Scope: function (default), module, session — в зависимости от стоимости создания
-- Параметризация: `@pytest.mark.parametrize` для тестирования нескольких вариантов
-- Общие фикстуры: `tests/conftest.py` (DRY)
+Every test has three clear blocks:
+1. **Arrange** — prepare data and dependencies
+2. **Act** — execute the action under test
+3. **Assert** — verify the result
 
 ---
 
-## Фабрики тестовых данных
+## Fixtures
 
-- Фабрики в `tests/factories.py` (SSoT для тестовых данных, DRY)
-- Создание сущностей с валидными данными по умолчанию
-- Переопределение только тех полей, которые важны для теста
+- `conftest.py` at each level (`tests/unit/conftest.py`, `tests/integration/conftest.py`)
+- Scope: function (default), module, session — depending on creation cost
+- Parameterization: `@pytest.mark.parametrize` for testing multiple variants
+- Shared fixtures: `tests/conftest.py` (DRY)
 
 ---
 
-## Мокирование
+## Test Data Factories
 
-- `unittest.mock.AsyncMock` для async зависимостей
-- `unittest.mock.patch` для подмены
-- Моки — только для внешних зависимостей (DIP позволяет подменять через интерфейс)
-- Не мокать внутренние классы и функции — тестируй через публичный интерфейс
-- Чрезмерное мокирование — признак плохой архитектуры
+- Factories in `tests/factories.py` (SSoT for test data, DRY)
+- Creating entities with valid default data
+- Override only the fields that matter for the test
+
+---
+
+## Mocking
+
+- `unittest.mock.AsyncMock` for async dependencies
+- `unittest.mock.patch` for substitution
+- Mock only external dependencies (DIP enables substitution through interfaces)
+- Do not mock internal classes and functions — test through the public interface
+- Excessive mocking is a sign of bad architecture
 
 ---
 
@@ -73,40 +73,40 @@
 
 - PostgreSQL: `testcontainers.postgres.PostgresContainer`
 - Redis: `testcontainers.redis.RedisContainer`
-- Используются в integration тестах
-- Контейнер создаётся на session scope, rollback между тестами
+- Used in integration tests
+- Container is created at session scope, rollback between tests
 
 ---
 
-## Что покрывать обязательно
+## What to Cover Mandatorily
 
-- Application Services (бизнес-логика)
+- Application Services (business logic)
 - Domain Services
-- Domain Entities (валидация, бизнес-правила)
-- Repositories (CRUD, специфичные запросы)
+- Domain Entities (validation, business rules)
+- Repositories (CRUD, specific queries)
 - API endpoints (status codes, response format)
-- Валидация схем (Pydantic)
-- Обработка ошибок (все ветки exception handler — см. skill `_error-handling` (_error-handling/reference.md))
+- Schema validation (Pydantic)
+- Error handling (all branches of the exception handler — see skill `_error-handling` (_error-handling/reference.md))
 
 ---
 
-## Что можно исключить
+## What Can Be Excluded
 
 - `__init__.py`
-- Конфигурационные файлы
-- Абстрактные базовые классы (ABC)
-- Простые getters/setters
-- Код, сгенерированный Alembic (миграции)
+- Configuration files
+- Abstract base classes (ABC)
+- Simple getters/setters
+- Alembic-generated code (migrations)
 
 ---
 
-## Антипаттерны
+## Anti-patterns
 
-| Антипаттерн | Почему плохо |
-|-------------|-------------|
-| Тест без assert | Ничего не проверяет |
-| Тест зависит от порядка выполнения | Нестабильный, ломается при параллельном запуске |
-| Тест обращается к внешним сервисам | Нестабильный, зависит от сети |
-| Слишком много моков | Тест тестирует моки, не код |
-| Один assert на весь файл | Не локализует ошибку |
-| Тестовые данные в коде теста (без фабрик) | Дублирование (DRY) |
+| Anti-pattern | Why it is bad |
+|--------------|---------------|
+| Test without assert | Verifies nothing |
+| Test depends on execution order | Unstable, breaks on parallel runs |
+| Test accesses external services | Unstable, depends on the network |
+| Too many mocks | Test tests mocks, not code |
+| One assert for an entire file | Does not localize the error |
+| Test data in test code (without factories) | Duplication (DRY) |

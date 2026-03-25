@@ -1,109 +1,109 @@
-# Кэширование
+# Caching
 
-> Redis как основное хранилище кэша. Graceful degradation — если кэш недоступен, приложение работает без него.
+> Redis as the primary cache store. Graceful degradation — if the cache is unavailable, the application works without it.
 
 ---
 
 ## Redis — Connection Pooling
 
-- Единый пул соединений (SSoT)
-- Настройка: max_connections, timeout
-- Закрытие при graceful shutdown
-- Health check: ping при старте
+- Single connection pool (SSoT)
+- Configuration: max_connections, timeout
+- Closed on graceful shutdown
+- Health check: ping on startup
 
 ---
 
-## Паттерны кэширования
+## Caching Patterns
 
 ### Cache-Aside (Lazy Loading)
 
-1. Запрос → проверить кэш
-2. Cache hit → вернуть данные
-3. Cache miss → запросить из БД → записать в кэш → вернуть
+1. Request → check cache
+2. Cache hit → return data
+3. Cache miss → query from DB → write to cache → return
 
-Использовать когда: данные читаются часто, пишутся редко.
+Use when: data is read frequently, written rarely.
 
 ### Write-Through
 
-1. Запись → обновить БД + обновить кэш одновременно
-2. Чтение → всегда из кэша
+1. Write → update DB + update cache simultaneously
+2. Read → always from cache
 
-Использовать когда: данные должны быть актуальны в кэше сразу после записи.
+Use when: data must be up-to-date in the cache immediately after writing.
 
 ---
 
 ## TTL
 
-- Явный TTL для каждого ключа (Explicit > Implicit)
-- Без бесконечного кэша — всегда задавать TTL
-- Разные TTL для разных типов данных:
-  - Справочные данные: 1 час — 24 часа
-  - Пользовательские данные: 5 минут — 1 час
-  - Сессии: время жизни сессии
-  - Rate limit counters: окно лимита
+- Explicit TTL for every key (Explicit > Implicit)
+- No infinite caching — always set a TTL
+- Different TTLs for different data types:
+  - Reference data: 1 hour — 24 hours
+  - User data: 5 minutes — 1 hour
+  - Sessions: session lifetime
+  - Rate limit counters: limit window
 
 ---
 
-## Инвалидация
+## Invalidation
 
-| Стратегия | Когда |
-|-----------|-------|
-| По TTL | Данные устаревают по времени |
-| По событию | Данные изменились (write → invalidate cache) |
-| Версионирование ключа | Массовая инвалидация (increment version) |
-
----
-
-## Именование ключей (CoC)
-
-Формат: `{service}:{entity}:{id}:{version}`
-
-Примеры:
-- `users:user:123` — пользователь 123
-- `orders:user_orders:456` — заказы пользователя 456
-- `config:feature_flags:v2` — feature flags версии 2
+| Strategy | When |
+|----------|------|
+| By TTL | Data expires over time |
+| By event | Data changed (write → invalidate cache) |
+| Key versioning | Mass invalidation (increment version) |
 
 ---
 
-## Сериализация
+## Key Naming (CoC)
 
-- JSON как формат (SSoT — единый формат)
-- Pydantic модели → JSON → Redis
-- Redis → JSON → Pydantic модели
+Format: `{service}:{entity}:{id}:{version}`
+
+Examples:
+- `users:user:123` — user 123
+- `orders:user_orders:456` — orders for user 456
+- `config:feature_flags:v2` — feature flags version 2
+
+---
+
+## Serialization
+
+- JSON as the format (SSoT — single format)
+- Pydantic models → JSON → Redis
+- Redis → JSON → Pydantic models
 
 ---
 
 ## Graceful Degradation
 
-- Если Redis недоступен — приложение работает без кэша
-- Cache miss = запрос в БД (медленнее, но работает)
-- Логирование: WARNING при недоступности кэша
-- Не падать из-за проблем с кэшем
+- If Redis is unavailable — the application works without cache
+- Cache miss = query to DB (slower, but works)
+- Logging: WARNING when cache is unavailable
+- Do not crash due to cache issues
 
 ---
 
-## Логирование (DRY)
+## Logging (DRY)
 
-Автоматическое логирование в базовом cache-клиенте:
+Automatic logging in the base cache client:
 
-| Поле | Описание |
-|------|----------|
+| Field | Description |
+|-------|-------------|
 | operation | get/set/delete/invalidate |
-| key | Ключ (без sensitive данных) |
-| hit | true/false (для get) |
-| ttl | Время жизни (для set) |
-| duration_ms | Время операции |
+| key | Key (without sensitive data) |
+| hit | true/false (for get) |
+| ttl | Time-to-live (for set) |
+| duration_ms | Operation duration |
 
-> Формат логирования — см. skill `_logging` (_logging/reference.md).
+> Logging format — see skill `_logging` (_logging/reference.md).
 
 ---
 
-## Антипаттерны
+## Anti-patterns
 
-| Антипаттерн | Почему плохо |
-|-------------|-------------|
-| Кэш без TTL | Данные устаревают навсегда |
-| Кэш секретов | Утечка через Redis |
-| Кэш без graceful degradation | Падение Redis = падение приложения |
-| Инвалидация по расписанию вместо по событию | Несогласованность данных |
-| Магические ключи без конвенции | Невозможно найти и отладить |
+| Anti-pattern | Why it is bad |
+|--------------|---------------|
+| Cache without TTL | Data becomes stale forever |
+| Caching secrets | Leak through Redis |
+| Cache without graceful degradation | Redis crash = application crash |
+| Schedule-based invalidation instead of event-based | Data inconsistency |
+| Magic keys without a naming convention | Impossible to find and debug |

@@ -1,28 +1,28 @@
 # Git Conventions
 
-> Правила оформления коммитов и работы с git.
+> Rules for commit formatting and working with git.
 
 ---
 
-## Формат коммит-сообщения
+## Commit Message Format
 
 ```
 TASK-NNN: <type>: <description>
 ```
 
-### Типы (type)
+### Types (type)
 
-| Тип | Когда |
-|-----|-------|
-| `feat` | Новая функциональность |
-| `fix` | Исправление бага |
-| `refactor` | Рефакторинг без изменения поведения |
-| `docs` | Изменения в документации |
-| `test` | Добавление или изменение тестов |
-| `ci` | Изменения CI/CD |
-| `chore` | Прочее (зависимости, конфиги) |
+| Type | When |
+|------|------|
+| `feat` | New functionality |
+| `fix` | Bug fix |
+| `refactor` | Refactoring without behavior change |
+| `docs` | Documentation changes |
+| `test` | Adding or modifying tests |
+| `ci` | CI/CD changes |
+| `chore` | Miscellaneous (dependencies, configs) |
 
-### Примеры
+### Examples
 
 ```
 TASK-001: feat: add user authentication via JWT
@@ -33,37 +33,37 @@ TASK-012: refactor: extract validation to separate module
 
 ---
 
-## Правила
+## Rules
 
-| Правило | Описание |
-|---------|----------|
-| Язык | Английский (commit messages). Документация — русский |
-| Task ID | Обязателен в начале сообщения |
-| Заголовок | Первая строка ≤ 72 символа — краткое "что сделано" |
-| Императив | Использовать повелительное наклонение: "add", не "added" |
-| Тело | **ОБЯЗАТЕЛЬНО**. Через пустую строку после заголовка. Подробное описание: что изменено, зачем, какие файлы затронуты, какие решения приняты |
+| Rule | Description |
+|------|-------------|
+| Language | English (commit messages). Documentation — Russian |
+| Task ID | Mandatory at the beginning of the message |
+| Header | First line ≤ 72 characters — brief "what was done" |
+| Imperative | Use imperative mood: "add", not "added" |
+| Body | **MANDATORY**. Separated by a blank line after the header. Detailed description: what changed, why, which files are affected, what decisions were made |
 
 ---
 
-## Тело коммита (description)
+## Commit Body (description)
 
-> **Цель:** по `git log` можно восстановить полную историю развития проекта без чтения кода.
+> **Goal:** from `git log` alone, the full project development history can be reconstructed without reading the code.
 
-Тело коммита должно отвечать на вопросы:
+The commit body should answer these questions:
 
-1. **Что сделано** — какие конкретные изменения внесены (файлы, модули, функции)
-2. **Зачем** — какую проблему решает, какая задача из backlog
-3. **Как** — ключевые решения и подход (не весь код, а суть)
-4. **Что затронуто** — список изменённых/созданных/удалённых файлов с пояснением
+1. **What was done** — what specific changes were made (files, modules, functions)
+2. **Why** — what problem it solves, which backlog task it addresses
+3. **How** — key decisions and approach (not the entire code, but the essence)
+4. **What is affected** — list of changed/created/deleted files with explanations
 
-### Атомарность коммитов
+### Commit Atomicity
 
-- Коммит должен быть **маленьким** — минимальное количество файлов, одно логическое изменение
-- Если задача затрагивает много файлов — разбивать на несколько коммитов по логическим группам
-- Каждый коммит должен оставлять проект в рабочем состоянии
-- Один коммит = одна мысль, которую можно понять из `git log`
+- A commit should be **small** — minimal number of files, one logical change
+- If a task affects many files — split into multiple commits by logical groups
+- Each commit should leave the project in a working state
+- One commit = one idea that can be understood from `git log`
 
-Примеры разбиения большой задачи:
+Examples of splitting a large task:
 ```
 TASK-007: docs: add workflow and backlog process
 TASK-007: docs: add planning format and git conventions
@@ -71,19 +71,19 @@ TASK-007: docs: update ADR and completion report templates with Task ID
 TASK-007: docs: add CHANGELOG.md and update routing table
 ```
 
-### Формат тела
+### Body Format
 
 ```
-TASK-NNN: <type>: <краткий заголовок>
+TASK-NNN: <type>: <brief header>
 
-<Подробное описание: что, зачем, как>
+<Detailed description: what, why, how>
 
-Изменения:
-- <файл/модуль>: <что сделано и зачем>
-- <файл/модуль>: <что сделано и зачем>
+Changes:
+- <file/module>: <what was done and why>
+- <file/module>: <what was done and why>
 ```
 
-### Пример
+### Example
 
 ```
 TASK-007: docs: add mandatory documentation pipeline
@@ -95,13 +95,13 @@ Introduce TASK-NNN / PLAN-NNN / ADR-NNN numbering system
 with cross-references between all artifacts.
 Extract planning format from global CLAUDE.md into process/planning.md (DRY).
 
-Изменения:
-- process/workflow.md: сквозной пайплайн 6 этапов с чеклистом
-- process/backlog.md: шаблон задачи с нумерацией TASK-NNN
-- process/planning.md: формат плана (вынесен из ~/.claude/CLAUDE.md)
-- process/git-conventions.md: формат коммитов с Task ID
-- CHANGELOG.md: создан в корне проекта
-- process/adr.md: добавлено поле Task ID
-- process/completion-report.md: добавлен блок Task (ID, план, ADR)
-- CLAUDE.md: добавлен workflow в маршрутную таблицу
+Changes:
+- process/workflow.md: end-to-end 6-stage pipeline with checklist
+- process/backlog.md: task template with TASK-NNN numbering
+- process/planning.md: plan format (extracted from ~/.claude/CLAUDE.md)
+- process/git-conventions.md: commit format with Task ID
+- CHANGELOG.md: created in project root
+- process/adr.md: added Task ID field
+- process/completion-report.md: added Task block (ID, plan, ADR)
+- CLAUDE.md: added workflow to the routing table
 ```

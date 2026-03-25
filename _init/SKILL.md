@@ -1,44 +1,44 @@
 ---
 name: _init
 description: >
-  Инициализация нового Python-проекта для Claude Code. Создаёт CLAUDE.md, CHANGELOG.md,
-  структуру docs/. Вызывай при старте нового проекта.
+  Initialize a new Python project for Claude Code. Creates CLAUDE.md, CHANGELOG.md,
+  docs/ structure. Invoke when starting a new project.
 disable-model-invocation: true
 ---
 
-# Инициализация проекта
+# Project Initialization
 
-> Настройка нового Python-проекта для работы с Claude Code и python-ai-skills.
+> Setting up a new Python project for use with Claude Code and python-ai-skills.
 
-## Обязательные вопросы пользователю
+## Required Questions for the User
 
-Перед созданием файлов задай эти вопросы:
+Before creating files, ask these questions:
 
-1. **Название проекта** — как называется проект?
-2. **Тип архитектуры** — монолит или микросервисы?
-3. **Фреймворк** — FastAPI, Django, CLI, библиотека?
-4. **База данных** — PostgreSQL, SQLite, без БД?
-5. **Кэш** — Redis, без кэша?
-6. **Описание** — 1-2 предложения: что делает проект?
+1. **Project name** — what is the project called?
+2. **Architecture type** — monolith or microservices?
+3. **Framework** — FastAPI, Django, CLI, library?
+4. **Database** — PostgreSQL, SQLite, no database?
+5. **Cache** — Redis, no cache?
+6. **Description** — 1-2 sentences: what does the project do?
 
-## Создаваемые файлы
+## Files to Create
 
-### 1. CLAUDE.md (в корне проекта)
+### 1. CLAUDE.md (in project root)
 
 ```markdown
-# {Название проекта}
+# {Project Name}
 
-## Описание
-{Описание из ответа пользователя}
+## Description
+{Description from user's answer}
 
-## Архитектура
-- Тип: {монолит/микросервисы}
-- Фреймворк: {FastAPI/Django/...}
-- БД: {PostgreSQL/SQLite/нет}
-- Кэш: {Redis/нет}
+## Architecture
+- Type: {monolith/microservices}
+- Framework: {FastAPI/Django/...}
+- DB: {PostgreSQL/SQLite/none}
+- Cache: {Redis/none}
 
-## Стандарты
-Этот проект следует стандартам python-ai-skills (глобальные skill'ы).
+## Standards
+This project follows python-ai-skills standards (global skills).
 ```
 
 ### 2. CHANGELOG.md
@@ -46,26 +46,26 @@ disable-model-invocation: true
 ```markdown
 # Changelog
 
-Формат: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Версионирование: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
-- Инициализация проекта
+- Project initialization
 ```
 
-### 3. Структура docs/
+### 3. docs/ Structure
 
 ```
 docs/
-├── backlog/     # Задачи (TASK-NNN)
-├── plans/       # Планы реализации
-├── adr/         # Архитектурные решения
-└── reports/     # Отчёты о выполнении
+├── backlog/     # Tasks (TASK-NNN)
+├── plans/       # Implementation plans
+├── adr/         # Architecture Decision Records
+└── reports/     # Completion reports
 ```
 
-### 4. .claude/settings.local.json (если не существует)
+### 4. .claude/settings.local.json (if it doesn't exist)
 
 ```json
 {
@@ -75,9 +75,9 @@ docs/
 }
 ```
 
-## После создания
+## After Creation
 
-Сообщи пользователю:
-- Какие файлы созданы
-- Какие skill'ы доступны глобально (перечисли основные)
-- Как вызвать skill: `/_code-quality`, `/_adr` и т.д.
+Inform the user:
+- Which files were created
+- Which skills are available globally (list the main ones)
+- How to invoke a skill: `/_code-quality`, `/_adr`, etc.

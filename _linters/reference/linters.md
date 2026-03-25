@@ -1,14 +1,14 @@
-# Линтеры и статический анализ
+# Linters and Static Analysis
 
-> Единый набор инструментов для проверки качества кода. Конфигурация — в `pyproject.toml` (SSoT).
+> Unified set of tools for code quality checking. Configuration in `pyproject.toml` (SSoT).
 
 ---
 
-## Ruff — линтинг + форматирование (SSoT)
+## Ruff — Linting + Formatting (SSoT)
 
-Единый инструмент вместо flake8 + isort + black + pyupgrade.
+A single tool replacing flake8 + isort + black + pyupgrade.
 
-### Конфигурация (`pyproject.toml`)
+### Configuration (`pyproject.toml`)
 
 ```toml
 [tool.ruff]
@@ -33,20 +33,20 @@ ignore = [
 known-first-party = ["src"]
 ```
 
-### Команды
+### Commands
 
 ```bash
-ruff check .              # Проверка
-ruff check --fix .        # Автоисправление
-ruff format .             # Форматирование
-ruff format --check .     # Проверка форматирования (CI)
+ruff check .              # Check
+ruff check --fix .        # Auto-fix
+ruff format .             # Format
+ruff format --check .     # Check formatting (CI)
 ```
 
 ---
 
-## Mypy — статическая проверка типов
+## Mypy — Static Type Checking
 
-### Конфигурация (`pyproject.toml`)
+### Configuration (`pyproject.toml`)
 
 ```toml
 [tool.mypy]
@@ -61,41 +61,41 @@ module = "tests.*"
 disallow_untyped_defs = false
 ```
 
-### Команды
+### Commands
 
 ```bash
-mypy src/                 # Проверка типов
-mypy src/ --strict        # Строгий режим
+mypy src/                 # Type checking
+mypy src/ --strict        # Strict mode
 ```
 
 ---
 
-## Bandit — security-сканер
+## Bandit — Security Scanner
 
-- Находит распространённые уязвимости в Python-коде
-- 0 high/critical issues = обязательно
+- Detects common vulnerabilities in Python code
+- 0 high/critical issues = mandatory
 
 ```bash
-bandit -r src/ -ll        # Проверка (low + medium + high)
+bandit -r src/ -ll        # Check (low + medium + high)
 ```
 
 ---
 
-## Pre-commit hooks
+## Pre-commit Hooks
 
-Автоматические проверки перед каждым коммитом. Установка: `pip install pre-commit && pre-commit install`.
+Automatic checks before every commit. Installation: `pip install pre-commit && pre-commit install`.
 
-### Security: обнаружение секретов
+### Security: Secret Detection
 
 ```yaml
-# Gitleaks — быстрый сканер секретов
+# Gitleaks — fast secret scanner
 - repo: https://github.com/gitleaks/gitleaks
   rev: v8.18.1
   hooks:
     - id: gitleaks
       exclude: \.env\.example$
 
-# Detect-secrets — дополнительный сканер
+# Detect-secrets — additional scanner
 - repo: https://github.com/Yelp/detect-secrets
   rev: v1.4.0
   hooks:
@@ -109,10 +109,10 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
         )$
 ```
 
-### Python: качество кода
+### Python: Code Quality
 
 ```yaml
-# Ruff — линтинг + форматирование
+# Ruff — linting + formatting
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.1.9
   hooks:
@@ -120,7 +120,7 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
       args: ["--fix", "--exit-non-zero-on-fix"]
     - id: ruff-format
 
-# Mypy — статическая проверка типов
+# Mypy — static type checking
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.8.0
   hooks:
@@ -130,7 +130,7 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
       files: ^src/.*\.py$
 ```
 
-### Общие проверки
+### General Checks
 
 ```yaml
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -150,7 +150,7 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
     - id: check-case-conflict
 ```
 
-### Блокировка секретных файлов
+### Blocking Secret Files
 
 ```yaml
 - repo: local
@@ -172,7 +172,7 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
       pass_filenames: false
 ```
 
-### Docker: lint Dockerfile
+### Docker: Dockerfile Linting
 
 ```yaml
 - repo: https://github.com/hadolint/hadolint
@@ -184,37 +184,37 @@ bandit -r src/ -ll        # Проверка (low + medium + high)
 
 ---
 
-## Makefile команды (DRY)
+## Makefile Commands (DRY)
 
 ```makefile
-lint:           ## Проверить код линтером
+lint:           ## Check code with linter
 	ruff check .
 
-lint-fix:       ## Исправить ошибки линтера
+lint-fix:       ## Fix linter errors
 	ruff check . --fix
 
-format:         ## Отформатировать код
+format:         ## Format code
 	ruff format .
 
-format-check:   ## Проверить форматирование
+format-check:   ## Check formatting
 	ruff format . --check
 
-type-check:     ## Проверка типов
+type-check:     ## Type checking
 	mypy src/
 
-ci:             ## Запустить все проверки локально
+ci:             ## Run all checks locally
 	ruff check . && ruff format . --check && mypy src/ && pytest --cov=src --cov-fail-under=90
 ```
 
 ---
 
-## Итоговая таблица
+## Summary Table
 
-| Инструмент | Назначение | Конфиг | Обязательность |
-|------------|-----------|--------|----------------|
-| Ruff | Линтинг + форматирование | `[tool.ruff]` | Обязательно |
-| Mypy | Статическая типизация | `[tool.mypy]` | Обязательно |
-| Bandit | Security-анализ | — | Рекомендуется |
-| Pre-commit | Локальные хуки | `.pre-commit-config.yaml` | Обязательно |
-| Gitleaks | Обнаружение секретов | В pre-commit | Обязательно |
-| Hadolint | Lint Dockerfile | В pre-commit | Рекомендуется |
+| Tool | Purpose | Config | Mandatory |
+|------|---------|--------|-----------|
+| Ruff | Linting + formatting | `[tool.ruff]` | Mandatory |
+| Mypy | Static typing | `[tool.mypy]` | Mandatory |
+| Bandit | Security analysis | — | Recommended |
+| Pre-commit | Local hooks | `.pre-commit-config.yaml` | Mandatory |
+| Gitleaks | Secret detection | In pre-commit | Mandatory |
+| Hadolint | Dockerfile linting | In pre-commit | Recommended |

@@ -1,93 +1,93 @@
-# Специфика микросервисной архитектуры
+# Microservices Architecture Specifics
 
-> Каждый сервис — изолированный Bounded Context. Коммуникация только через сеть. Внутри каждого сервиса — та же структура (см. skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)).
-
----
-
-## Принципы изоляции
-
-| Правило | Описание |
-|---------|----------|
-| Изоляция кода | Каждый сервис — отдельный репозиторий или директория, свой pyproject.toml |
-| Изоляция данных | Каждый сервис владеет своей БД. Shared DB — blocker (SSoT) |
-| Изоляция деплоя | Каждый сервис деплоится независимо |
-| Изоляция команды | Команда владеет сервисом целиком |
+> Each service is an isolated Bounded Context. Communication only over the network. Inside each service — the same structure (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)).
 
 ---
 
-## Data API как единственная точка доступа
+## Isolation Principles
 
-- Данные доступны ТОЛЬКО через API сервиса-владельца (SSoT)
-- Никаких прямых подключений к чужой БД
-- Business API → Data API через HTTP (DIP — зависимость от интерфейса)
-- Data API предоставляет CRUD + специфичные операции
+| Rule | Description |
+|------|-------------|
+| Code isolation | Each service is a separate repository or directory, with its own pyproject.toml |
+| Data isolation | Each service owns its own DB. Shared DB — blocker (SSoT) |
+| Deployment isolation | Each service is deployed independently |
+| Team isolation | A team owns the entire service |
+
+---
+
+## Data API as the Single Point of Access
+
+- Data is accessible ONLY through the owning service's API (SSoT)
+- No direct connections to another service's DB
+- Business API → Data API via HTTP (DIP — dependency on interface)
+- Data API provides CRUD + domain-specific operations
 
 ```
 Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
-(бизнес-логика)          (доступ к данным)    (данные)
+(business logic)         (data access)       (data)
 ```
 
 ---
 
-## Коммуникация между сервисами
+## Inter-Service Communication
 
-### Синхронная (HTTP)
+### Synchronous (HTTP)
 
-- REST или gRPC
-- Timeout обязателен для каждого вызова (Fail Fast)
-- Retry только для idempotent операций и retryable ошибок
-- Circuit Breaker для защиты от каскадных сбоев
+- REST or gRPC
+- Timeout is mandatory for every call (Fail Fast)
+- Retry only for idempotent operations and retryable errors
+- Circuit Breaker to protect against cascading failures
 
-> Детали HTTP-клиентов (timeout, retry, circuit breaker) — см. skill `_http` (_http/reference.md).
+> HTTP client details (timeout, retry, circuit breaker) — see skill `_http` (_http/reference.md).
 
-### Асинхронная (Events)
+### Asynchronous (Events)
 
 - Message broker (RabbitMQ, Kafka, Redis Streams)
-- Eventual consistency — данные согласуются не мгновенно
-- Idempotent consumers — повторная обработка события безопасна
-- Dead Letter Queue для необработанных сообщений
+- Eventual consistency — data is not synchronized instantly
+- Idempotent consumers — reprocessing an event is safe
+- Dead Letter Queue for unprocessed messages
 
 ---
 
-## Correlation ID для трейсинга
+## Correlation ID for Tracing
 
-- Каждый запрос получает уникальный `request_id` на входе (API Gateway)
-- `correlation_id` передаётся между сервисами через HTTP-заголовок `X-Correlation-ID`
-- Все логи содержат `correlation_id` — восстановление цепочки вызовов (DRY — см. skill `_logging` (_logging/reference.md))
-- Единый формат логирования во всех сервисах (SSoT)
+- Each request receives a unique `request_id` at the entry point (API Gateway)
+- `correlation_id` is passed between services via the `X-Correlation-ID` HTTP header
+- All logs contain `correlation_id` — reconstructing the call chain (DRY — see skill `_logging` (_logging/reference.md))
+- Unified logging format across all services (SSoT)
 
 ---
 
-## Паттерны
+## Patterns
 
 ### API Gateway
 
-- Единая точка входа для клиентов (SSoT для маршрутизации)
-- Маршрутизация, аутентификация, rate limiting
-- Nginx или dedicated API Gateway
+- Single entry point for clients (SSoT for routing)
+- Routing, authentication, rate limiting
+- Nginx or dedicated API Gateway
 
 ### Circuit Breaker
 
-> Детали паттерна (состояния, fallback) — см. skill `_http` (_http/reference.md).
+> Pattern details (states, fallback) — see skill `_http` (_http/reference.md).
 
 ### Retry
 
-> Retry-стратегии (retryable/non-retryable, backoff, jitter) — см. skill `_error-handling` (_error-handling/reference.md).
+> Retry strategies (retryable/non-retryable, backoff, jitter) — see skill `_error-handling` (_error-handling/reference.md).
 
 ---
 
 ## Eventual Consistency
 
-- Данные между сервисами согласуются асинхронно
-- Компенсирующие транзакции (Saga) для откатов
-- Idempotency key для дедупликации
-- Мониторинг задержки согласования
+- Data between services is synchronized asynchronously
+- Compensating transactions (Saga) for rollbacks
+- Idempotency key for deduplication
+- Monitoring synchronization delay
 
 ---
 
-## Структура сервиса
+## Service Structure
 
-Каждый сервис внутри — DDD/Hexagonal (см. skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)):
+Each service internally follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)):
 
 ```
 service-name/
@@ -96,7 +96,7 @@ service-name/
 │   ├── application/
 │   ├── domain/
 │   ├── infrastructure/
-│   ├── core/                # Конфиг, логирование, исключения (SSoT внутри сервиса)
+│   ├── core/                # Config, logging, exceptions (SSoT within the service)
 │   └── main.py
 ├── tests/
 ├── Dockerfile
@@ -106,12 +106,12 @@ service-name/
 
 ---
 
-## Риски и антипаттерны
+## Risks and Anti-patterns
 
-| Риск | Описание | Как избежать |
-|------|----------|-------------|
-| Distributed monolith | Микросервисы с tight coupling | Изоляция данных, асинхронная коммуникация |
-| Shared DB | Несколько сервисов пишут в одну БД | Каждый сервис — своя БД (SSoT) |
-| Отсутствие трейсинга | Невозможно отследить запрос | Correlation ID во всех сервисах |
-| Каскадный сбой | Сбой одного сервиса роняет все | Circuit Breaker, timeout, fallback |
-| Over-splitting | Слишком мелкие сервисы | Один сервис = один Bounded Context |
+| Risk | Description | How to avoid |
+|------|-------------|-------------|
+| Distributed monolith | Microservices with tight coupling | Data isolation, asynchronous communication |
+| Shared DB | Multiple services write to a single DB | Each service has its own DB (SSoT) |
+| Missing tracing | Unable to trace a request | Correlation ID across all services |
+| Cascading failure | One service failure brings down all others | Circuit Breaker, timeout, fallback |
+| Over-splitting | Services that are too granular | One service = one Bounded Context |
