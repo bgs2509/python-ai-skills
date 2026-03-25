@@ -19,4 +19,7 @@ The documentation `docs/plugin-install.md` did not describe this step, leading t
 
 ## Related Artifacts
 
-- docs/plugin-install.md
+- Requirements: None
+- Plan: None
+- ADR: None
+- Report: [docs/reports/2026-03-25-plugin-install-skills-fix.md](../reports/2026-03-25-plugin-install-skills-fix.md)

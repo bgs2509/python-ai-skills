@@ -6,9 +6,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.3.0] - 2026-03-25
 
 ### Changed
-- Translated entire project from Russian to English (~66 files: skills, references, agents, commands, docs, changelog, CLAUDE.md)
-- Updated language standards: all documentation and code comments now in English
-- Bumped version to 1.3.0
+- Translated entire project from Russian to English (~66 files: skills, references, agents, commands, docs, changelog, CLAUDE.md) (TASK-009)
+- Updated language standards: all documentation and code comments now in English (TASK-009)
+- Bumped version to 1.3.0 (TASK-009)
 
 ### Fixed
 - docs/plugin-install.md: added skills symlinks step `~/.claude/skills/` — without it skills are not visible as slash commands (TASK-008)
