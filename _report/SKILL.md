@@ -5,6 +5,8 @@ description: >
   Template with review and test results. Invoke after completing significant work.
   TRIGGER when: feature is implemented and ready to commit, refactoring is complete,
   critical bug is fixed, user says "done/ready/commit".
+  SKIP when: starting a task or mid-work documentation (use _docworkflow),
+  recording a single architectural decision (use _adr), minor changes not worth a report.
 ---
 
 # Completion Report

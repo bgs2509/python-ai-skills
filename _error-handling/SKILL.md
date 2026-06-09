@@ -2,7 +2,11 @@
 name: _error-handling
 description: >
   Centralized Python error handling (AppException hierarchy, HTTP mapping,
-  retry strategies, Fail Fast). Use when writing exception handling, middleware, or retry logic.
+  retry strategies, Fail Fast).
+  TRIGGER when: designing an exception hierarchy, error-mapping middleware, HTTP error responses,
+  retry/backoff strategy, fail-fast validation at boundaries.
+  SKIP when: logging of errors (use _logging), HTTP client transport retry config (use _http),
+  input-validation security rules (use _security).
 ---
 
 # Error Handling

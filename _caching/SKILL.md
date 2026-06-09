@@ -2,7 +2,11 @@
 name: _caching
 description: >
   Python caching (Redis, Cache-Aside, Write-Through, TTL, invalidation,
-  graceful degradation). Use when working with Redis and caching.
+  graceful degradation).
+  TRIGGER when: adding a cache layer, working with Redis, designing TTL/invalidation,
+  cache-aside/write-through patterns, graceful degradation on cache miss or outage.
+  SKIP when: source-of-truth persistent storage (use _database), client-side HTTP response caching
+  (use _http), trivial in-process memoization without Redis.
 ---
 
 # Caching

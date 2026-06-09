@@ -2,7 +2,11 @@
 name: _testing
 description: >
   Python testing (pytest, 3 test levels, coverage ≥90%, AAA pattern,
-  fixtures, mocks, Testcontainers). Use when writing tests or setting up test infrastructure.
+  fixtures, mocks, Testcontainers).
+  TRIGGER when: writing tests, setting up pytest/fixtures/mocks, raising coverage to ≥90%,
+  AAA structure, Testcontainers integration tests.
+  SKIP when: linter/CI config (use _linters), code-quality review (use _code-quality),
+  logging design (use _logging).
 ---
 
 # Testing

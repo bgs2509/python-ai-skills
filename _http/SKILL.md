@@ -2,7 +2,11 @@
 name: _http
 description: >
   Python HTTP clients (httpx AsyncClient, timeout, retry, Circuit Breaker,
-  centralized logging). Use when integrating with external APIs.
+  centralized logging).
+  TRIGGER when: integrating an external API, configuring an httpx client,
+  timeout/retry/circuit-breaker on transport, client-side request logging.
+  SKIP when: server-side endpoint error mapping (use _error-handling),
+  caching responses (use _caching), database access (use _database).
 ---
 
 # HTTP Clients

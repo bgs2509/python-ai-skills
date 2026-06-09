@@ -3,7 +3,10 @@ name: _docworkflow
 description: >
   Mandatory documentation pipeline: backlog → requirements → planning → ADR → changelog →
   completion report → commit. TASK/REQ/PLAN/ADR numbering. Git conventions.
-  Use when starting a new task or before committing.
+  TRIGGER when: starting a new task (backlog/requirements), before any commit,
+  numbering TASK/REQ/PLAN/ADR artifacts, applying git/commit conventions.
+  SKIP when: only a final completion report is needed (use _report),
+  only a single architectural decision doc is needed (use _adr).
 ---
 
 # Documentation Pipeline

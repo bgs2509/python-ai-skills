@@ -2,8 +2,11 @@
 name: _code-quality
 description: >
   17 Python code quality principles (DRY, KISS, YAGNI, SOLID, SSoT, LoD, Fail Fast).
-  Use for code reviews, refactoring, and writing new modules.
   Checks code standards and naming conventions.
+  TRIGGER when: reviewing a diff/PR, refactoring, writing a new module, naming/structure review,
+  validating code against DRY/KISS/YAGNI/SOLID before commit.
+  SKIP when: security-specific review (use _security), test design (use _testing),
+  linter/CI config (use _linters), system-level structure decisions (use _architecture).
 context: fork
 agent: Explore
 ---

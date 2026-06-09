@@ -2,7 +2,11 @@
 name: _docker
 description: >
   Python application containerization (Dockerfile multi-stage, Docker Compose,
-  health checks, graceful shutdown). Use when creating Dockerfiles or configuring deployment.
+  health checks, graceful shutdown).
+  TRIGGER when: writing/reviewing a Dockerfile or docker-compose, multi-stage builds,
+  container health checks, graceful shutdown, containerized deployment config.
+  SKIP when: CI/lint pipeline config (use _linters), app-level secrets/security (use _security),
+  non-container deployment.
 ---
 
 # Docker

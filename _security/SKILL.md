@@ -2,7 +2,11 @@
 name: _security
 description: >
   Python application security: OWASP Top 10 checklist, validation, CORS, rate limiting,
-  secrets management (Pydantic Settings, .env.example). Use for security reviews, secrets configuration, and audits.
+  secrets management (Pydantic Settings, .env.example).
+  TRIGGER when: security review/audit, OWASP Top 10 check, input validation, CORS/rate limiting,
+  secrets management (.env.example, Pydantic Settings).
+  SKIP when: general code-quality review (use _code-quality), Bandit/linter setup (use _linters),
+  app exception design (use _error-handling).
 ---
 
 # Security

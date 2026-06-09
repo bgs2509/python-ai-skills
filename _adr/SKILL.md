@@ -5,6 +5,8 @@ description: >
   decision, and consequences. Invoke when making an architectural decision.
   TRIGGER when: choosing between technologies/libraries, choosing an architectural pattern,
   deviating from an established standard, decision is hard to reverse, user is comparing options.
+  SKIP when: documenting a whole feature's docs pipeline (use _docworkflow),
+  writing a completion report (use _report), trivial reversible choices with no trade-off.
 ---
 
 # Creating an ADR

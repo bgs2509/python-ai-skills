@@ -2,7 +2,11 @@
 name: _architecture
 description: >
   Python application architecture: DDD (layers, entities, Value Objects), Hexagonal (ports, adapters).
-  Choosing between monolith and microservices. Use when designing project structure.
+  Choosing between monolith and microservices.
+  TRIGGER when: designing a new project/service structure, choosing layering (domain/application/infra),
+  deciding monolith vs microservices, defining module boundaries, reviewing architectural coupling.
+  SKIP when: a single reversible tech choice (use _adr), writing code inside an existing module
+  (use _code-quality), low-level DB/HTTP/cache design (use _database/_http/_caching).
 ---
 
 # Application Architecture

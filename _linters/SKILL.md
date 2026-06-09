@@ -2,7 +2,10 @@
 name: _linters
 description: >
   Python linters and static analysis (Ruff, Mypy, Bandit, pre-commit hooks, CI pipeline).
-  Use when configuring linters, CI/CD, pre-commit, or checking code quality.
+  TRIGGER when: configuring Ruff/Mypy/Bandit, setting up pre-commit hooks,
+  building a CI lint/type pipeline, fixing lint or type errors.
+  SKIP when: writing tests (use _testing), principle-level code review (use _code-quality),
+  security audit beyond Bandit (use _security).
 ---
 
 # Linters and Static Analysis

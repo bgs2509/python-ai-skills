@@ -2,7 +2,11 @@
 name: _database
 description: >
   Database operations in Python (Repository pattern, Alembic migrations, transactions, N+1 problem,
-  connection pooling, ORM vs Domain Entities). Use when working with databases.
+  connection pooling, ORM vs Domain Entities).
+  TRIGGER when: writing repositories/queries, Alembic migrations, transaction boundaries,
+  fixing N+1, configuring connection pooling, mapping ORM vs domain entities.
+  SKIP when: caching layer (use _caching), external non-DB APIs (use _http),
+  pure business logic with no persistence.
 ---
 
 # Database Operations

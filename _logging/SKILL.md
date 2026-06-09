@@ -2,7 +2,11 @@
 name: _logging
 description: >
   Centralized Python logging (structlog, JSON, Log-Driven Design 11 principles,
-  AI-Readable Logging, Correlation ID, sanitization). Use when configuring logging or adding log statements.
+  AI-Readable Logging, Correlation ID, sanitization).
+  TRIGGER when: configuring structlog/JSON logging, adding log statements, correlation IDs,
+  log sanitization, designing log anchors per Log-Driven Design.
+  SKIP when: exception design/handling (use _error-handling),
+  asserting on logs in tests (use _testing).
 ---
 
 # Centralized Logging

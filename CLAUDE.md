@@ -10,22 +10,24 @@
 
 | Skill | Command | Description |
 |-------|---------|-------------|
-| _code-quality | `/_code-quality` | 17 quality principles (DRY, KISS, YAGNI, SOLID) |
-| _error-handling | `/_error-handling` | Exception hierarchy, HTTP mapping, retry |
-| _security | `/_security` | OWASP Top 10, validation, secrets |
-| _logging | `/_logging` | Structured logging, Correlation ID, sanitization |
-| _testing | `/_testing` | 3 test levels, coverage ≥90%, pytest |
-| _database | `/_database` | Repository pattern, migrations, transactions |
-| _architecture | `/_architecture` | DDD, Hexagonal, monolith vs microservices |
-| _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI pipeline |
-| _docker | `/_docker` | Dockerfile, Compose, health checks, production |
-| _http | `/_http` | httpx, timeout, retry, Circuit Breaker |
-| _caching | `/_caching` | Redis, TTL, invalidation, graceful degradation |
-| _docworkflow | `/_docworkflow` | Documentation pipeline: backlog → commit |
-| _adr | `/_adr` | Architecture Decision Record generator |
-| _report | `/_report` | Feature completion report generator |
-| _init | `/_init` | New project initialization |
+| _code-quality | `/_code-quality` | 17 quality principles (DRY, KISS, YAGNI, SOLID); not security/tests/linters |
+| _error-handling | `/_error-handling` | Exception hierarchy, HTTP mapping, retry; not logging or HTTP-client transport |
+| _security | `/_security` | OWASP Top 10, validation, secrets; not general quality or linter setup |
+| _logging | `/_logging` | Structured logging, Correlation ID, sanitization; not exception design |
+| _testing | `/_testing` | 3 test levels, coverage ≥90%, pytest; not linters or quality review |
+| _database | `/_database` | Repository pattern, migrations, transactions; not caching or HTTP |
+| _architecture | `/_architecture` | DDD, Hexagonal, monolith vs microservices; not a single tech choice (_adr) |
+| _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI; not tests or principle-level review |
+| _docker | `/_docker` | Dockerfile, Compose, health checks; not CI/lint config |
+| _http | `/_http` | httpx, timeout, retry, Circuit Breaker; not server errors or caching |
+| _caching | `/_caching` | Redis, TTL, invalidation, graceful degradation; not source-of-truth DB |
+| _docworkflow | `/_docworkflow` | Docs pipeline backlog → commit; not final report only (_report) |
+| _adr | `/_adr` | Architecture Decision Record generator; not a full docs pipeline |
+| _report | `/_report` | Feature completion report; not mid-work docs (_docworkflow) |
+| _init | `/_init` | New project initialization (slash-only, no model auto-invoke) |
 | py-supervisor | (agent) | Post-hoc pipeline compliance audit |
+
+> **SSoT for invocation:** the `TRIGGER`/`SKIP` lines in each `SKILL.md` frontmatter are the single source of truth for when a skill fires. The `not …` hints above are a compact routing aid, not a duplicate of those lines.
 
 ---
 
