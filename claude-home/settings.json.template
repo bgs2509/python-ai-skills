@@ -1,0 +1,451 @@
+{
+  "respectGitignore": true,
+  "cleanupPeriodDays": 30,
+  "env": {
+    "PYTHON_ENV": "development",
+    "LOG_LEVEL": "DEBUG",
+    "ENVIRONMENT": "development",
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(.venv/bin/*:*)",
+      "Bash(uv:*)",
+      "Bash(pytest:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker images:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down:*)",
+      "Bash(docker compose build:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(docker compose run:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(docker-compose run:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(diff:*)",
+      "Bash(file:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(touch:*)",
+      "Bash(chmod:*)",
+      "Bash(echo:*)",
+      "Bash(tee:*)",
+      "Bash(xargs:*)",
+      "Bash(unzip:*)",
+      "Bash(tar:*)",
+      "Bash(ruff:*)",
+      "Bash(uvx:*)",
+      "Bash(make:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(ping:*)",
+      "Bash(nc:*)",
+      "Bash(ip:*)",
+      "Bash(ss:*)",
+      "Bash(netstat:*)",
+      "Bash(lsof:*)",
+      "Bash(nslookup:*)",
+      "Bash(resolvectl:*)",
+      "Bash(systemctl status:*)",
+      "Bash(systemctl is-active:*)",
+      "Bash(systemctl list-units:*)",
+      "Bash(journalctl:*)",
+      "Bash(sysctl:*)",
+      "Bash(ldd:*)",
+      "Bash(dpkg -l:*)",
+      "Bash(dpkg -L:*)",
+      "Bash(dpkg -s:*)",
+      "Bash(snap list:*)",
+      "Bash(lsmod:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(ldconfig:*)",
+      "Bash(infocmp:*)",
+      "Bash(notify-send:*)",
+      "Bash(tmux:*)",
+      "Bash(timeout:*)",
+      "Bash(source:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(alembic history:*)",
+      "Bash(alembic current:*)",
+      "Bash(alembic heads:*)",
+      "Bash(alembic show:*)",
+      "Bash(curl -s:*)",
+      "Bash(curl -I:*)",
+      "Bash(curl --head:*)",
+      "Bash(sudo ls:*)",
+      "Bash(sudo cat:*)",
+      "Bash(sudo ss:*)",
+      "Bash(sudo iptables -L:*)",
+      "Bash(sudo iptables -S:*)",
+      "Bash(sudo nft list:*)",
+      "Bash(sudo ufw status:*)",
+      "Bash(sudo systemctl status:*)",
+      "Bash(sudo journalctl:*)",
+      "Bash(ssh * cat:*)",
+      "Bash(ssh * ls:*)",
+      "Bash(ssh * grep:*)",
+      "Bash(ssh * tail:*)",
+      "Bash(ssh * head:*)",
+      "Bash(ssh * journalctl:*)",
+      "Bash(ssh * systemctl status:*)",
+      "Bash(ssh * docker ps:*)",
+      "Bash(ssh * docker logs:*)",
+      "Bash(ssh * docker inspect:*)",
+      "Bash(ssh * df:*)",
+      "Bash(ssh * free:*)",
+      "Bash(ssh * uptime:*)",
+      "Bash(ssh * whoami:*)",
+      "Bash(ssh * uname:*)",
+      "Bash(ssh * ps:*)",
+      "Bash(ssh * top -bn1:*)",
+      "Bash(ssh * htop:*)",
+      "Bash(ssh * find:*)",
+      "Bash(ssh * wc:*)",
+      "Bash(ssh * stat:*)",
+      "Bash(bd:*)",
+      "Bash(bash:*)",
+      "Bash(for:*)",
+      "Bash(while:*)",
+      "Bash(if:*)",
+      "Bash(case:*)",
+      "Bash(set:*)",
+      "Bash(export:*)",
+      "Bash(cd:*)",
+      "Bash(test:*)",
+      "Bash([:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "WebSearch",
+      "WebFetch",
+      "mcp__docker__run_command",
+      "mcp__github__search_repositories",
+      "mcp__github__search_code",
+      "mcp__github__search_issues",
+      "mcp__github__list_issues",
+      "mcp__github__list_pull_requests",
+      "mcp__github__list_commits",
+      "mcp__github__get_issue",
+      "mcp__github__get_pull_request",
+      "mcp__github__get_pull_request_comments",
+      "mcp__github__get_pull_request_files",
+      "mcp__github__get_pull_request_reviews",
+      "mcp__github__get_pull_request_status",
+      "mcp__github__get_file_contents",
+      "mcp__github__add_issue_comment",
+      "mcp__github__create_issue",
+      "mcp__github__create_branch",
+      "mcp__github__create_pull_request",
+      "mcp__github__create_or_update_file",
+      "mcp__github__update_issue",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_navigate_back",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_file_upload",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_run_code",
+      "mcp__playwright__browser_drag",
+      "mcp__playwright__browser_install",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__fill_form",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__close_page",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__hover",
+      "mcp__chrome-devtools__press_key",
+      "mcp__chrome-devtools__type_text",
+      "mcp__chrome-devtools__drag",
+      "mcp__chrome-devtools__upload_file",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__handle_dialog",
+      "mcp__chrome-devtools__emulate",
+      "mcp__chrome-devtools__resize_page",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__get_console_message",
+      "mcp__chrome-devtools__get_network_request",
+      "mcp__chrome-devtools__lighthouse_audit",
+      "mcp__chrome-devtools__performance_start_trace",
+      "mcp__chrome-devtools__performance_stop_trace",
+      "mcp__chrome-devtools__performance_analyze_insight",
+      "mcp__chrome-devtools__take_memory_snapshot",
+      "Skill(aidd-analyze)",
+      "Skill(aidd-code)",
+      "Skill(aidd-research)",
+      "Skill(aidd-validate)",
+      "Bash(rm -rf .full_audit_tmp)",
+      "Bash(rm -rf .full_audit_tmp/)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.local)",
+      "Read(.env.*.local)",
+      "Read(.env.production)",
+      "Read(.env.staging)",
+      "Read(.env.development)",
+      "Read(secrets/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.ssh/**)",
+      "Read(researches/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/credentials.json)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -r:*)",
+      "Bash(sudo rm -rf:*)",
+      "Bash(sudo rm -r:*)",
+      "Bash(mkfs:*)",
+      "Bash(fdisk:*)",
+      "Bash(parted:*)",
+      "Bash(dd of=:*)",
+      "Bash(dd if=:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin --force:*)",
+      "Bash(git push origin -f:*)",
+      "Edit(.env)",
+      "Edit(.env.local)",
+      "Edit(.env.*.local)",
+      "Edit(.env.production)",
+      "Edit(.env.staging)",
+      "Edit(.env.development)",
+      "Edit(secrets/**)"
+    ],
+    "ask": [
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout -- .:*)",
+      "Bash(git clean:*)",
+      "Bash(curl -o:*)",
+      "Bash(curl -O:*)",
+      "Bash(curl --output:*)",
+      "Bash(wget:*)",
+      "Bash(docker system prune:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(docker rmi:*)",
+      "Bash(alembic downgrade:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)",
+      "Bash(ssh * systemctl restart:*)",
+      "Bash(ssh * systemctl stop:*)",
+      "Bash(ssh * systemctl start:*)",
+      "Bash(ssh * systemctl enable:*)",
+      "Bash(ssh * systemctl disable:*)",
+      "Bash(ssh * systemctl reload:*)",
+      "Bash(ssh * docker restart:*)",
+      "Bash(ssh * docker stop:*)",
+      "Bash(ssh * docker rm:*)",
+      "Bash(ssh * docker compose up:*)",
+      "Bash(ssh * docker compose down:*)",
+      "Bash(ssh * docker compose restart:*)",
+      "Bash(ssh * rm:*)",
+      "Bash(ssh * mv:*)",
+      "Bash(ssh * cp:*)",
+      "Bash(ssh * mkdir:*)",
+      "Bash(ssh * tee:*)",
+      "Bash(ssh * sed:*)",
+      "Bash(ssh * apt:*)",
+      "Bash(ssh * sudo:*)",
+      "Bash(ssh * nano:*)",
+      "Bash(ssh * vim:*)",
+      "Bash(sudo systemctl restart:*)",
+      "Bash(sudo systemctl stop:*)",
+      "Bash(sudo systemctl start:*)",
+      "Bash(sudo systemctl enable:*)",
+      "Bash(sudo systemctl disable:*)",
+      "Bash(sudo systemctl reload:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(sudo apt remove:*)",
+      "Bash(sudo apt purge:*)",
+      "Bash(sudo dpkg -i:*)",
+      "Bash(sudo snap install:*)",
+      "Bash(sudo snap remove:*)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "opus",
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bd prime"
+          },
+          {
+            "type": "command",
+            "command": "echo 'WORKFLOW REMINDER: For dev features invoke feature-workflow. Flow: bd create → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → bd close'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bd prime"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/block-no-verify.sh"
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-rewrite.sh"
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-announce.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '⚠️  REMINDER: When the subagent finishes, run an INDEPENDENT verifier (lint/test/schema-check) BEFORE reporting work as done. Subagent textual summary is not evidence of correctness — verify with the actual tool that consumes the artifact.'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r \".tool_input.file_path // empty\"); case \"$f\" in *.xml) echo '⚠️  About to write XML. First-Contact Protocol: did you (1) check tool --help/--schema, (2) read its skill (e.g. grace-explainer/*-init), (3) verify any reference project passes that tool validation for the same version? Sibling-project schema is NOT canonical.' ;; esac"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/regen-xml-on-spec-edit.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/anti-hallucination.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '\n\n╔═══════════════════════════════════════════════════════════════╗' && echo '║ 🔵 USER PROMPT DETECTED' && echo '╚═══════════════════════════════════════════════════════════════╝\n'",
+            "timeout": 1
+          },
+          {
+            "type": "command",
+            "command": "input=$(cat); transcript=$(echo \"$input\" | jq -r '.transcript_path // empty'); if [ -n \"$transcript\" ] && [ -f \"$transcript\" ]; then turns=$(wc -l < \"$transcript\"); echo \"{\\\"systemMessage\\\": \\\"⚡ Сообщений в сессии: ${turns}\\\"}\"; fi",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "input=$(cat); proj=$(echo \"$input\" | jq -r '.workspace.project_dir // .cwd'); proj_name=\"$(basename \"$(dirname \"$proj\")\")/$(basename \"$proj\")\"; model=$(echo \"$input\" | jq -r '.model.display_name // \"unknown\"'); used=$(echo \"$input\" | jq -r '.context_window.used_percentage // empty'); ctx_str=\"\"; [ -n \"$used\" ] && ctx_str=\" | ctx: ${used}%\"; printf '\\033[36m[%s]\\033[0m %s%s' \"$proj_name\" \"$model\" \"$ctx_str\""
+  },
+  "language": "english",
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowUnixSockets": [
+        "/var/run/docker.sock"
+      ],
+      "allowLocalBinding": true
+    },
+    "excludedCommands": [
+      "git",
+      "docker",
+      "docker-compose"
+    ]
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized",
+  "teammateMode": "tmux",
+  "voiceEnabled": true
+}

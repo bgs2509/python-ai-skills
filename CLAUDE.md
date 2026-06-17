@@ -75,8 +75,9 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 - Bootstrap / after structural changes: `make install-symlinks` (idempotent, safe to re-run).
 - New machine: clone the repo, then `make install-symlinks`.
 - Cross-machine sync: `/project-sync` (code via GitHub) + re-run the installer on each machine to regenerate links.
+- `settings.json` is **rendered** from `claude-home/settings.json.template` (it needs absolute per-machine hook paths, so it is generated, not symlinked). Machine-specific keys (`enabledPlugins`, `extraKnownMarketplaces`) live in `~/.claude/settings.local.json` — never committed, deep-merged by Claude on top. `hooks/` and `scripts/` are symlinked like everything else.
 
-> No version bump or `claude plugins update` is needed — edits to any skill/agent/command/instruction are **live immediately** through the symlink. Adding or removing a skill/agent/command → re-run `make install-symlinks`.
+> No version bump or `claude plugins update` is needed — edits to any skill/agent/command/instruction are **live immediately** through the symlink. Adding or removing a skill/agent/command → re-run `make install-symlinks`. After editing `settings.json.template`, re-run the installer to re-render.
 
 ---
 

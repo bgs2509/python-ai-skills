@@ -8,12 +8,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - best-* skill family matryoshka: `best-recommend` (recommendation atom) and `best-research` (analysis engine, SSoT of the shared core), with `best-approach`/`best-rank`/`best-questions` as thin wrappers
 - `scripts/install-claude-symlinks.sh` + `make install-symlinks`: idempotent, portable installer linking all skills/agents/commands/global instructions into `~/.claude`
-- `claude-home/`: SSoT for global Claude config (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`)
+- `claude-home/`: SSoT for global Claude config (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`, `hooks/`, `scripts/`)
+- `claude-home/settings.json.template`: portable `settings.json` rendered at install time (`{{CLAUDE_HOME}}` placeholder); installer validates JSON and backs up before overwriting
 
 ### Changed
 - Centralized all global skills, agents, and instruction files into this repo; `~/.claude` now holds only symlinks back (single source of truth)
 - Renamed skills: `best-explain`→`best-recommend`, `best-option`→`best-rank`, `questions-answers`→`best-questions` (propagated across feature-workflow, superautocoder, audit-loop)
 - Skill distribution switched from the `python-pipeline` plugin to the symlink model
+- Centralized `hooks/` + `scripts/` and `settings.json` (V3): hook-script paths made portable (`$(dirname "$0")`, `$HOME`); `settings.json` rendered from template with absolute per-machine hook paths; machine-specific `enabledPlugins`/`extraKnownMarketplaces` moved to `settings.local.json` (deep-merged by Claude); dropped stale `python-pipeline`/`local-plugins` references
 
 ### Removed
 - Retired the `python-pipeline` plugin: deleted `.claude-plugin/plugin.json`, `docs/plugin-install.md`, `docs/plugin-update.md`

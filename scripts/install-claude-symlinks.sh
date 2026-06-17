@@ -50,5 +50,24 @@ ln -sfn "CLAUDE.md" "$CLAUDE_HOME/AGENTS.md"; echo "  $CLAUDE_HOME/AGENTS.md -> 
 echo "[global config dirs]"
 link "$REPO/claude-home/rules"         "$CLAUDE_HOME/rules"
 link "$REPO/claude-home/output-styles" "$CLAUDE_HOME/output-styles"
+link "$REPO/claude-home/hooks"         "$CLAUDE_HOME/hooks"
+link "$REPO/claude-home/scripts"       "$CLAUDE_HOME/scripts"
+
+# settings.json is RENDERED from a template (not symlinked): it needs absolute,
+# per-machine paths for hook commands (Claude does not expand ~ in hook commands).
+# Machine-specific keys (enabledPlugins, extraKnownMarketplaces) live in
+# settings.local.json, which Claude deep-merges on top — this script never touches it.
+echo "[settings.json] (rendered from template; machine-specific paths)"
+tmpl="$REPO/claude-home/settings.json.template"
+if [ -f "$tmpl" ]; then
+  [ -f "$CLAUDE_HOME/settings.json" ] && cp "$CLAUDE_HOME/settings.json" "$CLAUDE_HOME/settings.json.bak"
+  sed "s|{{CLAUDE_HOME}}|$CLAUDE_HOME|g" "$tmpl" > "$CLAUDE_HOME/settings.json"
+  python3 -m json.tool "$CLAUDE_HOME/settings.json" >/dev/null \
+    && echo "  rendered $CLAUDE_HOME/settings.json (valid JSON; backup: settings.json.bak)" \
+    || { echo "  ERROR: rendered settings.json is invalid JSON — restoring backup" >&2; \
+         [ -f "$CLAUDE_HOME/settings.json.bak" ] && cp "$CLAUDE_HOME/settings.json.bak" "$CLAUDE_HOME/settings.json"; exit 1; }
+else
+  echo "  (no template found — skipped)"
+fi
 
 echo "Done. Run a second time to confirm idempotency."
