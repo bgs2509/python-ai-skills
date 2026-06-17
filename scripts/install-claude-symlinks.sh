@@ -12,10 +12,25 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
 
+# --force replaces an existing REAL directory at a link path (e.g. migrating a
+# machine that still has real skill dirs). Wrong symlinks and plain files are
+# always replaced; only real directories require --force (rm -rf guard).
+FORCE=0
+[ "${1:-}" = "--force" ] && FORCE=1
+
 link() {  # link <target-in-repo> <link-path-in-claude-home>
   local target="$1" linkpath="$2"
   [ -e "$target" ] || { echo "MISSING target: $target" >&2; return 1; }
   mkdir -p "$(dirname "$linkpath")"
+  if [ -L "$linkpath" ] && [ "$(readlink "$linkpath")" = "$target" ]; then
+    return 0  # already correct
+  fi
+  if [ -L "$linkpath" ] || [ -f "$linkpath" ]; then
+    rm -f "$linkpath"                                   # wrong symlink / file: safe
+  elif [ -d "$linkpath" ]; then
+    if [ "$FORCE" = "1" ]; then rm -rf "$linkpath"      # real dir: only with --force
+    else echo "  SKIP (real dir; re-run with --force): $linkpath" >&2; return 0; fi
+  fi
   ln -sfn "$target" "$linkpath"
   echo "  $linkpath -> $target"
 }
