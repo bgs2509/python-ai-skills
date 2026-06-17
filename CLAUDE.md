@@ -68,16 +68,15 @@
 - Sections: Added, Changed, Deprecated, Removed, Fixed, Security
 - Every change → entry in `Unreleased`
 
-### Plugin Installation and Update
+### Skill Distribution (symlinks)
 
-- Fresh install: [`docs/plugin-install.md`](docs/plugin-install.md)
-- Update after changes: [`docs/plugin-update.md`](docs/plugin-update.md)
+This repo is the **SSoT** for the global Claude config. `~/.claude` links back via symlinks — there is no plugin install step.
 
-> **REQUIRED** after any changes to skills, commands, agents, or plugin.json — update the plugin.
+- Bootstrap / after structural changes: `make install-symlinks` (idempotent, safe to re-run).
+- New machine: clone the repo, then `make install-symlinks`.
+- Cross-machine sync: `/project-sync` (code via GitHub) + re-run the installer on each machine to regenerate links.
 
-**In short:** bump version in `.claude-plugin/plugin.json` → commit → `claude plugins update python-pipeline@local-plugins` → restart Claude Code.
-
-When committing changes in this project — **always** bump the version and remind the user to update the plugin cache.
+> No version bump or `claude plugins update` is needed — edits to any skill/agent/command/instruction are **live immediately** through the symlink. Adding or removing a skill/agent/command → re-run `make install-symlinks`.
 
 ---
 
@@ -95,4 +94,4 @@ When committing changes in this project — **always** bump the version and remi
 
 ---
 
-**Version**: 3.5
+**Version**: 3.6

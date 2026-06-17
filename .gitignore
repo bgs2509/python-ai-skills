@@ -1,0 +1,23 @@
+# Secrets — never commit. The content-scanner (gitleaks) is the real gate;
+# this list is defence-in-depth / navigation contract.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.ppk
+id_rsa*
+.credentials.json
+.netrc
+
+# Machine-local Claude config (never centralized — stays per-machine)
+.claude/settings.local.json
+.claude.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

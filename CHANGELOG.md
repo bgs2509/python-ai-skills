@@ -3,6 +3,22 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- best-* skill family matryoshka: `best-recommend` (recommendation atom) and `best-research` (analysis engine, SSoT of the shared core), with `best-approach`/`best-rank`/`best-questions` as thin wrappers
+- `scripts/install-claude-symlinks.sh` + `make install-symlinks`: idempotent, portable installer linking all skills/agents/commands/global instructions into `~/.claude`
+- `claude-home/`: SSoT for global Claude config (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`)
+
+### Changed
+- Centralized all global skills, agents, and instruction files into this repo; `~/.claude` now holds only symlinks back (single source of truth)
+- Renamed skills: `best-explain`→`best-recommend`, `best-option`→`best-rank`, `questions-answers`→`best-questions` (propagated across feature-workflow, superautocoder, audit-loop)
+- Skill distribution switched from the `python-pipeline` plugin to the symlink model
+
+### Removed
+- Retired the `python-pipeline` plugin: deleted `.claude-plugin/plugin.json`, `docs/plugin-install.md`, `docs/plugin-update.md`
+- Dropped the `best-explain` risky-ops communication contract; removed its pointers from smart-commit/beads-sync/project-sync/projects-sync
+
 ## [1.3.0] - 2026-03-25
 
 ### Changed

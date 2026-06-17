@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VerificationPlan>
+  <Module id="M-FIXTURE">
+    <Test path="tests/test_buggy.py" level="unit"/>
+    <LogAnchor>[M-FIXTURE][fetch_user][BLOCK_FETCH]</LogAnchor>
+  </Module>
+</VerificationPlan>

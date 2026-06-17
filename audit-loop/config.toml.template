@@ -1,0 +1,17 @@
+# audit-loop per-project config. Copy to docs/audit-loop/config.toml to override.
+# All keys optional — missing keys fall back to defaults below.
+
+[thresholds]
+auto_apply_confidence = 70        # ≥ → AUTO; < → batch-qa
+context7_less_ceiling = 60        # max confidence without Context7 evidence
+stagnation_overlap = 0.5          # ≥ this fraction of repeated criticals → stagnation
+max_rounds = 5
+max_rounds_per_fingerprint = 2    # same fingerprint touched in ≥N rounds without closing → auto-defer to Beads
+
+[timeouts]
+round_soft_warn_seconds = 3600    # 60min — warn, suggest --pause
+round_hard_pause_seconds = 10800  # 180min — auto-pause round
+codex_heartbeat_seconds = 15
+
+[prompt]
+codex_prompt_version = 1          # frozen on R1, must match on subsequent rounds

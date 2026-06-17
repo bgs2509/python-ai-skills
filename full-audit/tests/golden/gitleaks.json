@@ -1,0 +1,4 @@
+[
+  {"RuleID":"aws-access-token","File":"tests/test.env","StartLine":3,"Description":"AWS Access Token"},
+  {"RuleID":"generic-api-key","File":"src/config.py","StartLine":18,"Description":"Generic API key"}
+]

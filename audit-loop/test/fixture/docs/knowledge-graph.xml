@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KnowledgeGraph>
+  <Module id="M-FIXTURE" path="src/buggy_module.py">
+    <Purpose>Async data fetch + dedupe</Purpose>
+    <Exports>
+      <Function name="fetch_user"/>
+      <Function name="dedupe_emails"/>
+    </Exports>
+    <Depends/>
+  </Module>
+</KnowledgeGraph>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DevelopmentPlan>
+  <Phase-1>
+    <Module id="M-FIXTURE">
+      <Purpose>Sample buggy module for audit-loop e2e smoke test</Purpose>
+      <Status>completed</Status>
+    </Module>
+  </Phase-1>
+</DevelopmentPlan>

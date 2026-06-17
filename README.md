@@ -72,44 +72,23 @@ A collection of 15 skills, 5 specialized agents, and a 9-phase development pipel
    cd python-ai-skills
    ```
 
-2. **Register a local marketplace**
+2. **Install symlinks into `~/.claude`**
 
    ```bash
-   claude plugins marketplace add local-plugins --directory ~/.claude/plugins/local
+   make install-symlinks
    ```
 
-3. **Create plugin symlink**
+   This links every skill, agent, command, and the global instruction files
+   (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`) into `~/.claude`.
+   Idempotent — safe to re-run after adding or removing a skill. The repo is the
+   single source of truth; `~/.claude` holds only symlinks back to it.
 
-   ```bash
-   mkdir -p ~/.claude/plugins/local
-   ln -s /path/to/python-ai-skills ~/.claude/plugins/local/python-pipeline
-   ```
-
-4. **Create skills symlinks**
-
-   ```bash
-   mkdir -p ~/.claude/skills
-   for skill in _adr _architecture _caching _code-quality _database _docker \
-     _docworkflow _error-handling _http _init _linters _logging _report \
-     _security _testing; do
-     ln -s /path/to/python-ai-skills/${skill}/ ~/.claude/skills/${skill}
-   done
-   ```
-
-5. **Install the plugin**
-
-   ```bash
-   claude plugins install python-pipeline@local-plugins
-   ```
-
-6. **Restart Claude Code**
+3. **Restart Claude Code**
 
    ```bash
    exit
    claude
    ```
-
-For detailed installation instructions, troubleshooting, and diagnostics, see [docs/plugin-install.md](docs/plugin-install.md).
 
 ## Usage
 

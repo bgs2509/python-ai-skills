@@ -1,0 +1,3 @@
+src/processor/m2_preproc.py:42: error: Function is missing a return type annotation  [no-untyped-def]
+src/processor/m2_preproc.py:88: error: Argument 1 to "score" has incompatible type "str"; expected "int"  [arg-type]
+src/shared/normalize.py:17: note: Revealed type is "builtins.str"
