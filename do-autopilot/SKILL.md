@@ -1,32 +1,32 @@
 ---
-name: superautocoder
+name: do-autopilot
 description: >
   Orchestrator skill that turns ANY draft (tech-spec, research note, ADR-cluster, brainstorm dump, README,
   arbitrary prompt) into an executable chain of context-window-sized steps and runs them end-to-end.
-  Each step is a full feature-workflow iteration. After every closed step the tail of the plan is
-  auto-reassessed via a hook into feature-workflow Finish. Approval model: FULLY AUTO-APPROVED —
-  ALL USER APPROVAL gates (batched breakdown, per-chunk feature-workflow gates, advisory tail-diff
+  Each step is a full do-feature iteration. After every closed step the tail of the plan is
+  auto-reassessed via a hook into do-feature Finish. Approval model: FULLY AUTO-APPROVED —
+  ALL USER APPROVAL gates (batched breakdown, per-chunk do-feature gates, advisory tail-diff
   gate) are auto-approved without prompting the user. Per explicit user directive: NEVER ASK for
   USER APPROVAL — ALWAYS APPROVE AUTOMATICALLY.
   Quality gates stay mandatory and are NOT auto-approved away: per-chunk `make total-test` fixes
   ALL bugs to green (Phase 5.5); a final `full-audit --ai` in Phase 6 fixes every CRITICAL finding
   before close (middle/minor → follow-up bd issues).
   TRIGGER when: user provides a draft document and asks to implement it end-to-end, OR explicitly
-  invokes /superautocoder.
+  invokes /do-autopilot.
 argument-hint: "<path-to-draft.md | free-form prompt>"
 role: orchestrator
 ---
 
-# /superautocoder — Draft → Auto-Chained Feature Workflows
+# /do-autopilot — Draft → Auto-Chained Feature Workflows
 
 > Universal autopilot. Input: any draft. Output: implemented feature, committed, tested, audited, documented.
-> Cycle: chunk → auto-approve breakdown → for each chunk run feature-workflow → total-test (fix ALL bugs)
+> Cycle: chunk → auto-approve breakdown → for each chunk run do-feature → total-test (fix ALL bugs)
 > → after Finish auto-reassess remaining chunks → continue → final full-audit --ai (fix CRITICAL) → done.
 
 ## 0. Scope and Boundaries
 
 1. **Applies only to dev-projects** (`project_type: dev` in project CLAUDE.md). Life-projects exempt.
-2. **Orchestrator role** — MAY invoke other skills, including `feature-workflow`, `best-questions`,
+2. **Orchestrator role** — MAY invoke other skills, including `do-feature`, `best-questions`,
    `best-approach`. Sub-skills MUST NOT auto-transition; this skill drives the loop.
 3. **Single source of truth for breakdown state** — `docs/superpowers/plans/<epic-slug>/breakdown.xml`
    (created by this skill). Beads issues mirror it 1:1.
@@ -74,10 +74,10 @@ Phase 2  CHUNKING      — compute window budget, split into N chunks by Plan-Si
 Phase 3  BREAKDOWN     — emit breakdown.xml + step-NN-plan.md skeletons + bd issues (epic + N tasks)
 Phase 4  [AUTO-APPROVED]  — breakdown auto-approved without prompting (per user directive)
 Phase 5  EXECUTION LOOP for chunk K = 1..N:
-         5.1  invoke /feature-workflow <bd-id-K>
+         5.1  invoke /do-feature <bd-id-K>
               (its 3 internal gates are AUTO-APPROVED — pass --auto-approve / answer "approve"
               automatically without prompting the user)
-         5.2  on feature-workflow Finish — auto-hook fires REASSESS step
+         5.2  on do-feature Finish — auto-hook fires REASSESS step
          5.3  REASSESS — re-read closed chunks' decisions, regenerate tail (K+1..N), diff vs old tail
          5.4  if tail materially changed → write tail-diff to reassess/<UTC-ts>-tail-diff.md,
               AUTO-ACCEPT (no prompt, per approval model §5.3 / rule §11.1), continue
@@ -145,7 +145,7 @@ trigger is implemented via **Beads-status polling** as the primary mechanism. Th
 
 ### 4.1 Primary: Beads-polling
 
-1. After invoking `/feature-workflow <bd-id-K>` in Phase 5.1, the orchestrator records:
+1. After invoking `/do-feature <bd-id-K>` in Phase 5.1, the orchestrator records:
    - `epic_slug`, `bd_id_K`, `started_at_utc`, `prev_status`.
 2. Polls `bd show <bd-id-K>` every 30s (configurable via `--poll-interval`):
    - status transition `in_progress → closed` AND a new commit on the working branch with trailer
@@ -162,9 +162,9 @@ trigger is implemented via **Beads-status polling** as the primary mechanism. Th
 If a project wants near-zero-latency reassess instead of 30s polling:
 
 1. Use the `update-config` skill to add a `Stop` hook in `~/.claude/settings.local.json`:
-   - matcher: a sentinel text the orchestrator instructs the inner feature-workflow to print on
-     Finish, e.g. `[superautocoder-finish:<epic_slug>:<bd_id>]`.
-   - command: writes a marker file `state/superautocoder/<epic_slug>/<bd_id>.done`.
+   - matcher: a sentinel text the orchestrator instructs the inner do-feature to print on
+     Finish, e.g. `[do-autopilot-finish:<epic_slug>:<bd_id>]`.
+   - command: writes a marker file `state/do-autopilot/<epic_slug>/<bd_id>.done`.
 2. Polling loop watches both Beads status AND the marker dir; whichever triggers first wins.
 3. Hook is registered at Phase 4 (after approval) via `update-config`, removed at Phase 6 via
    the same skill. `try/finally` guarantees removal on abort.
@@ -173,8 +173,8 @@ If a project wants near-zero-latency reassess instead of 30s polling:
 
 ### 4.3 Hook leak recovery
 
-On `/superautocoder` startup, scan `~/.claude/settings.local.json` for hooks tagged with the
-`superautocoder` marker. For each hook whose `epic_slug` does not appear in
+On `/do-autopilot` startup, scan `~/.claude/settings.local.json` for hooks tagged with the
+`do-autopilot` marker. For each hook whose `epic_slug` does not appear in
 `docs/superpowers/plans/*/breakdown.xml` with status≠closed → delete via `update-config`.
 
 ## 5. Approval Model — Fully Auto-Approved
@@ -199,9 +199,9 @@ On `/superautocoder` startup, scan `~/.claude/settings.local.json` for hooks tag
      to first 10 chunks + `… and M more, see <Tier-2-path>`.
    - **No prompt fired.** Tier-1 message and Tier-2 artifact are written to disk and to chat as
      informational output, then auto-approved. User retains right to interrupt/abort manually.
-2. **Per-chunk gates (inner feature-workflow)** — its 3 standard gates (after Discovery,
+2. **Per-chunk gates (inner do-feature)** — its 3 standard gates (after Discovery,
    after Brainstorming, after Writing Plans) are AUTO-APPROVED. The orchestrator passes
-   `--auto-approve` to feature-workflow (or, if unsupported, programmatically responds "approve"
+   `--auto-approve` to do-feature (or, if unsupported, programmatically responds "approve"
    to each gate prompt). Quality gates (linters, tests, grace-lint, commit hooks) are NOT
    gates in this sense and remain in force.
 3. **Advisory tail-diff gate (Phase 5.4)** — AUTO-APPROVED. Diff summary still written to
@@ -209,9 +209,9 @@ On `/superautocoder` startup, scan `~/.claude/settings.local.json` for hooks tag
 4. **Never bypass** quality gates: linters, tests, grace-lint, commit hooks remain mandatory.
    Auto-approval applies ONLY to USER APPROVAL gates, NOT to automated quality gates.
 
-## 6. Per-Chunk Guarantees (delegated to feature-workflow)
+## 6. Per-Chunk Guarantees (delegated to do-feature)
 
-For every chunk the inner `feature-workflow` is responsible for, and `/superautocoder` MUST verify
+For every chunk the inner `do-feature` is responsible for, and `/do-autopilot` MUST verify
 on Finish:
 
 1. Step plan in `docs/superpowers/plans/.../step-NN-plan.md` exists and matches breakdown.xml.
@@ -226,8 +226,8 @@ on Finish:
    MUST exit 0 before the chunk is considered closed and before context is cleared.
 6. **No bypass markers** — no `--no-verify`, no `SKIP=`, no disabled hooks.
 
-If any check fails post-Finish — `/superautocoder` rolls the chunk back to `in_progress` in Beads,
-reopens it via `feature-workflow` Review path, does NOT advance K.
+If any check fails post-Finish — `/do-autopilot` rolls the chunk back to `in_progress` in Beads,
+reopens it via `do-feature` Review path, does NOT advance K.
 
 ## 7. Chunking Rules
 
@@ -259,10 +259,10 @@ reopens it via `feature-workflow` Review path, does NOT advance K.
 
 ## 9. Failure Handling
 
-1. **Inner feature-workflow fails to proceed despite auto-approve** (e.g. `--auto-approve`
-   unsupported and a gate physically blocks, or the workflow errors at a gate) → `/superautocoder`
+1. **Inner do-feature fails to proceed despite auto-approve** (e.g. `--auto-approve`
+   unsupported and a gate physically blocks, or the workflow errors at a gate) → `/do-autopilot`
    halts loop, reports current K, leaves Beads state intact, exits with a resume hint
-   (`/superautocoder --resume <epic-slug>`).
+   (`/do-autopilot --resume <epic-slug>`).
 2. **Tests / lint fail post-Finish** → see §6 rollback rule.
 2a. **`make total-test` still failing after 3 fix iterations** (Phase 5.5) → halt loop, invoke
     `best-questions` with the failure summary, persist state for `--resume`. Do NOT advance K.
@@ -272,7 +272,7 @@ reopens it via `feature-workflow` Review path, does NOT advance K.
 3. **3x-rule triggered uncertainty** → halt, `best-questions`, wait.
 4. **User aborts** (Ctrl-C / explicit "stop") → finalise current K (commit if mid-flight is safe,
    otherwise leave WIP branch), de-register hook, persist state to `breakdown.xml` for resume.
-5. **Hook leaks** (skill aborted abnormally) → next `/superautocoder` invocation detects stale hook
+5. **Hook leaks** (skill aborted abnormally) → next `/do-autopilot` invocation detects stale hook
    in `settings.local.json` matching no live epic and removes it.
 
 ## 10. Outputs
@@ -293,7 +293,7 @@ After successful Phase 6:
 
 ## 11. Rules
 
-1. **Always** auto-approve every USER APPROVAL gate (Phase 4 batched, inner feature-workflow's
+1. **Always** auto-approve every USER APPROVAL gate (Phase 4 batched, inner do-feature's
    3 gates, Phase 5.4 advisory). Never prompt the user. Per durable user directive.
 1a. **Always** run `make total-test` after each chunk (Phase 5.5) and fix **every** failing
     test/error to green (no skip/xfail-to-pass) with a root-cause best-practice fix before
@@ -302,12 +302,12 @@ After successful Phase 6:
 1b. **Always** run `full-audit --ai` in Phase 6 before CLOSE and fix every finding it
     classifies as **CRITICAL** (root-cause) until the audit reports 0 critical. MIDDLE / MINOR
     findings are filed as follow-up bd issues, NOT fixed in this run. `full-audit` is read-only —
-    it never edits code; `/superautocoder` applies the fixes itself and re-audits to confirm.
+    it never edits code; `/do-autopilot` applies the fixes itself and re-audits to confirm.
 2. **Never** skip linters / tests / grace-lint / commit hooks. Bypass = bug, fix root cause.
 3. **Never** push code automatically.
 4. **Always** verify subagent / inner-skill claims with an objective tool run (per CLAUDE.md
-   "Trust = 0%" rule). The inner feature-workflow's "done" report is not sufficient evidence;
-   `/superautocoder` runs `git diff`, `make lint`, `pytest`, `grace lint` itself.
+   "Trust = 0%" rule). The inner do-feature's "done" report is not sufficient evidence;
+   `/do-autopilot` runs `git diff`, `make lint`, `pytest`, `grace lint` itself.
 5. **Always** store decisions made under the 3x-rule into ADRs.
 6. **Always** keep `breakdown.xml` in sync with Beads (Beads wins on status drift, breakdown wins on
    structural drift — per CLAUDE.md SSoT table).
@@ -316,25 +316,25 @@ After successful Phase 6:
 ## 12. Out of Scope (defer / reject)
 
 1. Cross-repo orchestration — this skill operates within a single project root.
-2. Multi-language stacks unless the inner feature-workflow already supports them in this project.
+2. Multi-language stacks unless the inner do-feature already supports them in this project.
 3. Automatic deployment / release. Stop at "merged on local branch".
-4. Replacing `feature-workflow`. This skill is a **caller**, not a substitute.
+4. Replacing `do-feature`. This skill is a **caller**, not a substitute.
 5. Editing the user's CLAUDE.md / global rules. The skill reads them as authoritative.
 
 ## 13. Invocation Examples
 
 ```
-/superautocoder docs/Spec-WIKI/research/tech-spec-draft.md
-/superautocoder "implement a CSV importer for portfolio data per overview §4"
-/superautocoder docs/superpowers/specs/20260510-foo-discovery.md --budget 0.5
-/superautocoder --resume 20260510-ai-steward-wiki
-/superautocoder docs/draft.md --dry-run
+/do-autopilot docs/Spec-WIKI/research/tech-spec-draft.md
+/do-autopilot "implement a CSV importer for portfolio data per overview §4"
+/do-autopilot docs/superpowers/specs/20260510-foo-discovery.md --budget 0.5
+/do-autopilot --resume 20260510-ai-steward-wiki
+/do-autopilot docs/draft.md --dry-run
 ```
 
 ## 14. Cross-References
 
 - `~/.claude/CLAUDE.md` — Plan Sizing rule, Skill Hierarchy, USER APPROVAL Gates, SSoT table.
-- `~/.claude/skills/feature-workflow/SKILL.md` — the inner orchestrator this skill drives.
+- `~/.claude/skills/do-feature/SKILL.md` — the inner orchestrator this skill drives.
 - `~/.claude/skills/full-audit/SKILL.md` — read-only code+docs audit run in Phase 6 (critical-only fix gate).
 - `~/.claude/skills/best-questions/SKILL.md` — fallback when 3x-rule doesn't dominate.
 - `~/.claude/skills/best-approach/SKILL.md` — used inside Decision Protocol when comparing approaches.

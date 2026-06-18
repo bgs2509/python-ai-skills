@@ -327,7 +327,7 @@
           },
           {
             "type": "command",
-            "command": "echo 'WORKFLOW REMINDER: For dev features invoke feature-workflow. Flow: bd create → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → bd close'"
+            "command": "echo 'WORKFLOW REMINDER: For dev features invoke do-feature. Flow: bd create → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → bd close'"
           }
         ]
       }

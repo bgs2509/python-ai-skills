@@ -4,15 +4,15 @@ description: >
   5-round cross-review loop: codex audits claude's fixes, claude analyzes
   codex report, detects stagnation, auto-applies decisions at confidence ≥70%,
   asks via /best-questions when <70%, produces a detailed final report.
-  TRIGGER: user invokes /audit-loop in a feature-workflow dev project after a
+  TRIGGER: user invokes /audit-loop in a dev-workflow project after a
   series of bugfixes and wants a cross-review by codex.
-  SKIP: not a feature-workflow project, life-project, codex CLI missing.
+  SKIP: not a dev-workflow project, life-project, codex CLI missing.
 argument-hint: "[--max-rounds=5] [--start-round=N] [--finish] [--abort] [--resume] [--dry-run]"
 ---
 
 # /audit-loop — Codex × Claude Cross-Review Loop
 
-> Apply **only** to dev-projects governed by `feature-workflow` (presence of `docs/superpowers/`, `docs/development-plan.xml`). Refuse with a clear error in life-projects and plain repos.
+> Apply **only** to dev-projects governed by `do-feature` (presence of `docs/superpowers/`, `docs/development-plan.xml`). Refuse with a clear error in life-projects and plain repos.
 
 ## What it does
 
@@ -195,7 +195,7 @@ auto-applied (review needed): {count}
 ## Pre-flight (mandatory, abort otherwise)
 
 ```bash
-test -d docs/superpowers || { echo "ERROR: not a feature-workflow project"; exit 1; }
+test -d docs/superpowers || { echo "ERROR: not a dev-workflow project"; exit 1; }
 test -f docs/development-plan.xml || { echo "ERROR: missing development-plan.xml"; exit 1; }
 command -v codex >/dev/null || { echo "ERROR: codex CLI not installed"; exit 1; }
 # Pre-commit is a load-bearing gate — hard ERROR, not WARN.
@@ -379,7 +379,7 @@ See `_code-quality` skill (17 principles) — invoked explicitly when evaluating
 ## Constraints
 
 - NOT applicable in life-projects (Health, Budget, Family, Hobby, Home, Study, Career)
-- Does NOT work without feature-workflow infrastructure
+- Does NOT work without dev-workflow infrastructure
 - Does NOT auto-transition to other workflow skills (only GRACE worker skills inside a round)
 - Does NOT run `git push` (policy-level rule)
 - Auto-Beads-creation is **opt-in per cycle** via final-report prompt — never silent
@@ -410,4 +410,4 @@ Exit message: `DRY-RUN complete · {C}c/{M}m/{Min}min · no changes made · see 
 
 ## Smoke-test fixture
 
-`~/.claude/skills/audit-loop/test/fixture/` — minimal feature-workflow project for end-to-end validation without touching a real repo. See `test/fixture/README.md`.
+`~/.claude/skills/audit-loop/test/fixture/` — minimal dev-workflow project for end-to-end validation without touching a real repo. See `test/fixture/README.md`.

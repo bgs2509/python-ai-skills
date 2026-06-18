@@ -6,12 +6,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- `do-multiagent`: team-lead orchestrator running a TEAM of subagents over a bead dependency graph in parallel git worktrees, each via `do-feature --auto-approve`. Accepts free-form work/draft (decompose→approve) or an existing bead queue; upfront `best-questions` fork-analysis; controller-owned serialised merge queue; controller is sole `bd` writer; Trust=0% independent re-verify per branch before merge; parallel only across disjoint write-scope (shared-file beads grouped into one session)
 - best-* skill family matryoshka: `best-recommend` (recommendation atom) and `best-research` (analysis engine, SSoT of the shared core), with `best-approach`/`best-rank`/`best-questions` as thin wrappers
 - `scripts/install-claude-symlinks.sh` + `make install-symlinks`: idempotent, portable installer linking all skills/agents/commands/global instructions into `~/.claude`
 - `claude-home/`: SSoT for global Claude config (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`, `hooks/`, `scripts/`)
 - `claude-home/settings.json.template`: portable `settings.json` rendered at install time (`{{CLAUDE_HOME}}` placeholder); installer validates JSON and backs up before overwriting
 
 ### Changed
+- Renamed orchestrator skills into the `do-*` executor family: `feature-workflow`→`do-feature`, `superautocoder`→`do-autopilot`; agent `feature-workflow-clean`→`do-feature-clean`. The methodology/concept (a "feature-workflow project/infrastructure") is now phrased "dev-workflow" to avoid the awkward "do-feature project". Propagated across global `CLAUDE.md`, `rules/python-dev.md`, `settings.json.template` (SessionStart hook), `audit-loop`, `customer-tz`, `best-approach`
 - Centralized all global skills, agents, and instruction files into this repo; `~/.claude` now holds only symlinks back (single source of truth)
 - Renamed skills: `best-explain`→`best-recommend`, `best-option`→`best-rank`, `questions-answers`→`best-questions` (propagated across feature-workflow, superautocoder, audit-loop)
 - Skill distribution switched from the `python-pipeline` plugin to the symlink model

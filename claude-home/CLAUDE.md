@@ -35,9 +35,9 @@
 - `project_type: dev` — software development (code, tests, infra)
 - `project_type: life` — life tracking (Health, Family, Study, Career, Home, Hobby, Budget data entry)
 
-**Rule:** GRACE framework, `feature-workflow` skill, USER APPROVAL gates, and strict commit conventions apply **only** to `dev` projects. For `life` projects work conversationally without these frameworks.
+**Rule:** GRACE framework, `do-feature` skill, USER APPROVAL gates, and strict commit conventions apply **only** to `dev` projects. For `life` projects work conversationally without these frameworks.
 
-**Почему:** GRACE и feature-workflow создают overhead (13 шагов, XML-артефакты), избыточный для life-проектов без кода.
+**Почему:** GRACE и do-feature создают overhead (13 шагов, XML-артефакты), избыточный для life-проектов без кода.
 
 ## GRACE Core Principles
 
@@ -81,17 +81,17 @@ Never jump straight to code when requirements, architecture, or verification int
 
 ## Workflow Hierarchy (dev-projects only)
 
-**Rule:** For any new feature, bugfix, or significant change in a `dev` project — invoke `feature-workflow` skill as the **single entry point**. It orchestrates Discovery → Brainstorming → GRACE Plan → Writing Plans → Execution → Review → Finish.
+**Rule:** For any new feature, bugfix, or significant change in a `dev` project — invoke `do-feature` skill as the **single entry point**. It orchestrates Discovery → Brainstorming → GRACE Plan → Writing Plans → Execution → Review → Finish.
 
 **Flow:** `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`.
 
-**Почему:** `feature-workflow` физически объединяет Superpowers (процесс), GRACE (структура), Beads (трекинг) — Composite-паттерн, SOTA для multi-framework окружений.
+**Почему:** `do-feature` физически объединяет Superpowers (процесс), GRACE (структура), Beads (трекинг) — Composite-паттерн, SOTA для multi-framework окружений.
 
 ## USER APPROVAL Gates (dev-projects only)
 
 **Meta:** Agents have freedom in **HOW** to implement, but not in **WHAT** to build. Contracts, plans, graph references, verification requirements, and USER APPROVAL gates define the allowed space.
 
-**Rule:** Three mandatory gates in `feature-workflow`:
+**Rule:** Three mandatory gates in `do-feature`:
 - After Discovery (step 3) — approve FR/NFR/scope
 - After Brainstorming (step 5) — approve design
 - After Writing Plans (step 10) — approve implementation plan
@@ -104,7 +104,7 @@ Never jump straight to code when requirements, architecture, or verification int
 
 ## Plan Sizing — Context-Window Budget (dev-projects only)
 
-**Rule:** При создании любого плана реализации (`feature-workflow` Writing Plans, GRACE phases, roadmap) фаза/под-этап ДОЛЖНА укладываться в **одно контекстное окно активной модели** со всеми файлами, документами, тестами и логами, которые потребуются для её выполнения и верификации.
+**Rule:** При создании любого плана реализации (`do-feature` Writing Plans, GRACE phases, roadmap) фаза/под-этап ДОЛЖНА укладываться в **одно контекстное окно активной модели** со всеми файлами, документами, тестами и логами, которые потребуются для её выполнения и верификации.
 
 **Rule:** Если оценка scope (файлы × средний размер + контракты + тесты + логи + plan.md) превышает ~60% эффективного окна модели — фаза дробится на под-этапы (`Phase-N.a`, `Phase-N.b`, …) до выполнения требования.
 
@@ -119,7 +119,7 @@ Never jump straight to code when requirements, architecture, or verification int
 ## Skill Hierarchy
 
 **Rule:** Every skill has one role:
-- `orchestrator` — may invoke other skills (feature-workflow)
+- `orchestrator` — may invoke other skills (do-feature)
 - `worker` — executes a single task, MUST NOT auto-transition (brainstorming, writing-plans, test-driven-development, questions-answers, best, grace-plan, grace-execute)
 - `utility` — single-purpose helpers (smart-commit, grace-refresh, grace-ask)
 
@@ -133,14 +133,14 @@ Each artifact is SSoT for exactly one zone:
 
 | Zone | SSoT | Artifact | Produced by |
 |------|------|----------|-------------|
-| Business requirements | `discovery.md` frontmatter + `requirements.xml` | Markdown prose + auto-generated XML | feature-workflow step 2 |
-| Technology/stack decisions | `design.md` frontmatter + `technology.xml` | Markdown prose + auto-generated XML | feature-workflow step 4 |
+| Business requirements | `discovery.md` frontmatter + `requirements.xml` | Markdown prose + auto-generated XML | do-feature step 2 |
+| Technology/stack decisions | `design.md` frontmatter + `technology.xml` | Markdown prose + auto-generated XML | do-feature step 4 |
 | Module boundaries (public API) | `MODULE_CONTRACT` headers | In Python source files | grace-plan (step 7) |
 | Module internals | Code | Source files themselves | Execution (step 11) |
 | Module graph | `knowledge-graph.xml` | Derived from MODULE_CONTRACT | `grace-refresh` |
 | Tests + log anchors | `verification-plan.xml` | Derived from tests + code | `grace-refresh --verify` |
 | Task decomposition | `development-plan.xml` | Aggregated from plan.md + knowledge-graph + Beads | grace-plan + grace-refresh |
-| Execution playbook | `plan.md` | Human-written via `writing-plans` | feature-workflow step 9 |
+| Execution playbook | `plan.md` | Human-written via `writing-plans` | do-feature step 9 |
 | Workflow state (status/queue) | Beads | `bd_id` referenced from XML and plan.md | `bd create/update/close` |
 
 **Drift resolution:**
@@ -257,7 +257,7 @@ docs/
 ## Documentation Retrieval Policy
 
 **Rule:** Use documentation MCP (Context7 via `resolve-library-id` → `query-docs`, or equivalent) for library API verification:
-- In Design phase (`feature-workflow` steps 4, 7) — verify all libraries touched by the design
+- In Design phase (`do-feature` steps 4, 7) — verify all libraries touched by the design
 - In Execution phase — on 4 triggers: (a) first contact with a library in current session, (b) version bump vs design, (c) unknown/unfamiliar method, (d) library error in tests
 
 **Rule:** When following an approved plan with pre-verified APIs — retrieval not required.
@@ -361,7 +361,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Rule:** SSoT (Single Source of Truth): every fact has exactly one authoritative location. Duplication creates drift.
 
-**Rule:** Do NOT create unnecessary files, folders, or structures outside of what `feature-workflow` explicitly requires for dev-projects.
+**Rule:** Do NOT create unnecessary files, folders, or structures outside of what `do-feature` explicitly requires for dev-projects.
 
 **Rule:** Don't design for hypothetical future requirements. No half-finished implementations.
 
@@ -388,7 +388,7 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%. **Почему
 
 **Rule:** Root-cause over symptom — no destructive shortcuts (`--no-verify`, disabling checks) as "fix".
 
-**Почему:** feature-workflow определяет обязательный набор артефактов. Вне него — минимализм. Premature abstraction, scope creep, false completion claims и symptom patching — главные LLM failure modes.
+**Почему:** do-feature определяет обязательный набор артефактов. Вне него — минимализм. Premature abstraction, scope creep, false completion claims и symptom patching — главные LLM failure modes.
 
 ## User Adaptation
 

@@ -1,5 +1,5 @@
 ---
-name: feature-workflow
+name: do-feature
 description: >
   Orchestrator for full feature development lifecycle: Discovery → Brainstorming → GRACE → Planning → Execution → Review → Finish.
   Combines Superpowers (process), GRACE (structure), Beads (tracking).
@@ -71,7 +71,7 @@ This workflow combines:
 
 ## Model Routing Matrix
 
-Per-step model dispatch optimizes cost (~−50–60%) and wall-clock (~−30%) vs all-Opus baseline without sacrificing quality on critical decisions or review coverage. Validated A/B on 2026-05-13 (see `2026-feature-workflow/research-model-routing/`).
+Per-step model dispatch optimizes cost (~−50–60%) and wall-clock (~−30%) vs all-Opus baseline without sacrificing quality on critical decisions or review coverage. Validated A/B on 2026-05-13 (see `2026-do-feature/research-model-routing/`).
 
 | Step | Tool | Model | Thinking | Δ cost vs all-Opus | Rationale |
 |------|------|-------|----------|--------------------|-----------|

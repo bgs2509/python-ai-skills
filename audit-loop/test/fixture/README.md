@@ -1,6 +1,6 @@
 # audit-loop smoke-test fixture
 
-Minimal feature-workflow project to validate the skill end-to-end.
+Minimal dev-workflow project to validate the skill end-to-end.
 
 ## Layout
 
@@ -9,7 +9,7 @@ test/fixture/
 ├── .pre-commit-config.yaml
 ├── pyproject.toml
 ├── docs/
-│   ├── superpowers/.keep        # feature-workflow detection marker
+│   ├── superpowers/.keep        # dev-workflow detection marker
 │   ├── development-plan.xml
 │   ├── knowledge-graph.xml
 │   └── verification-plan.xml

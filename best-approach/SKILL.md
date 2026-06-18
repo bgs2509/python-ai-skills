@@ -37,7 +37,7 @@ argument-hint: "[описание задачи или промпт]"
 ## После выбора пользователя
 
 1. Подтверди выбор кратко.
-2. **Вызван из orchestrator workflow** (feature-workflow, Discovery) → верни findings вызывающему skill'у. НЕ переходить к другим workflow.
+2. **Вызван из orchestrator workflow** (do-feature, Discovery) → верни findings вызывающему skill'у. НЕ переходить к другим workflow.
 3. **Вызван standalone:**
    - **Dev-проект** → вернуть управление активному workflow проекта, не реализовывать напрямую.
    - **Не dev-проект** (Life) → приступать к реализации выбранного варианта.

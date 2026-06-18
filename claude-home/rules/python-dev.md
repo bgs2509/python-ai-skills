@@ -34,7 +34,7 @@
 ## Зависимости
 - Закрепляй версии в production строго через `==` (не `>=`, не `~=`, не `^`)
 - При добавлении/обновлении зависимости — проверяй uv.lock на точное соответствие
-- Context7 (`resolve-library-id` → `query-docs`) — обязателен в Design-фазе feature-workflow (steps 4, 7) для всех затрагиваемых библиотек + по 4 триггерам в Execution: (a) first contact с библиотекой в текущей сессии, (b) version bump vs design, (c) unknown/unfamiliar method, (d) library error в тестах. При следовании approved плану с pre-verified API — Context7 не требуется
+- Context7 (`resolve-library-id` → `query-docs`) — обязателен в Design-фазе do-feature (steps 4, 7) для всех затрагиваемых библиотек + по 4 триггерам в Execution: (a) first contact с библиотекой в текущей сессии, (b) version bump vs design, (c) unknown/unfamiliar method, (d) library error в тестах. При следовании approved плану с pre-verified API — Context7 не требуется
 - Регулярно обновляй зависимости для безопасности
 - Минимизируй размер Docker образов
 - Не добавляй лишние зависимости
