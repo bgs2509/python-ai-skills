@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "python_ai_skills",
+  "project_id": "c019db63-c781-44a5-a939-ccd8763a1bfc"
+}
