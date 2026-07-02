@@ -51,13 +51,21 @@ NEVER executes this part — its STOP gates require user interaction, which suba
 
 **Dispatch:** per Model Routing Matrix; interaction per Research Subagent Pattern.
 
-**Tools:** `mcp__sequential-thinking__sequentialthinking` + `/best-approach` (research mode) + WebSearch
+**Tools:** `mcp__sequential-thinking__sequentialthinking` + WebSearch
+
+**Scope note:** Discovery researches the PROBLEM space only (best practices, common mistakes,
+requirements) — it does NOT generate solution approaches. Generating and comparing 2–3 architecture
+approaches is Step 4 Brainstorming's job (via `/best-approach`'s engine indirectly, through
+`superpowers:brainstorming`). Running solution-space research twice — once here, once in Step 4 —
+duplicates the most expensive work and, worse, happens before the Step 3 requirements gate, so a
+scope change at that gate throws it away. If Discovery surfaces an obvious prior-art pattern already
+in the project, cite it (`file:line`) as evidence — don't design around it yet.
 
 **Adaptive depth** (driven by the preliminary risk from Pre-dispatch; steps are never skipped —
 only their depth scales, per global rule "lightweight content per step"):
-- `low` → ST 3–4 thoughts; skip WebSearch when the pattern already exists in the project (cite `file:line` as evidence); skip `/best-approach`
+- `low` → ST 3–4 thoughts; skip WebSearch when the pattern already exists in the project (cite `file:line` as evidence)
 - `medium` → ST 6–8 thoughts; WebSearch only for unfamiliar areas
-- `high` → full protocol: ST up to 12 thoughts + WebSearch + `/best-approach`
+- `high` → full protocol: ST up to 12 thoughts + WebSearch
 
 **Process:**
 1. **Phase 1 — Intent Analysis** (sequential-thinking):
@@ -68,10 +76,10 @@ only their depth scales, per global rule "lightweight content per step"):
    - Blind spots — what could go wrong
    - Stakeholders — who is affected
 
-2. **Phase 2 — Best Practices Research** (/best-approach in research mode; depth per risk):
+2. **Phase 2 — Best Practices Research** (WebSearch, depth per risk):
    - WebSearch: "best practices for [task type]"
    - WebSearch: "common mistakes when implementing [task type]"
-   - Industry patterns and anti-patterns
+   - Industry patterns and anti-patterns (problem-space only — no solution comparison here)
 
 3. **Phase 3 — Requirements Extraction** (sequential-thinking):
    - FR — what system MUST do
@@ -83,7 +91,7 @@ only their depth scales, per global rule "lightweight content per step"):
 
 **Output:**
 - `docs/superpowers/specs/YYYYMMDD-{feature}-discovery.md` (markdown for human)
-- `docs/requirements.xml` (XML for GRACE — FR/NFR/UseCases)
+- `docs/requirements.xml` (auto-generated from frontmatter — do NOT write manually)
 - Structured `open_questions` returned to the orchestrator (resolved with the user before the Step 3 gate)
 - Beads: `bd update <epic> --notes="Discovery done. N FR, N NFR, N risks. See docs/..."`
 
@@ -110,12 +118,14 @@ Present Discovery Report to user. Ask: "Approve FR/NFR and scope? (yes / changes
 2. Subagent designs the solution with ST (2–3 architecture approaches, trade-offs) and returns options with a recommendation
 3. Orchestrator presents options to user inline, user chooses
 4. Re-dispatch: subagent details the chosen approach — data model sketch, API sketch, UX flow, module map
-5. Context7 — verify library APIs if involved (inside the subagent)
+5. Context7 — verify library APIs if involved (inside the subagent). Append each confirmed
+   `library==version` to the `context7_verified:` frontmatter list in `design.md` — this is the
+   artifact the Step 10 evidence check reads (see SKILL.md Auto-Generated XML Rule).
 6. Remaining questions → orchestrator light Q&A; genuine ADR-candidates → `/best-questions`
 
 **Output:**
-- `docs/superpowers/specs/YYYYMMDD-{feature}-design.md` (markdown for human)
-- `docs/technology.xml` (XML for GRACE — stack decisions)
+- `docs/superpowers/specs/YYYYMMDD-{feature}-design.md` (markdown for human, `context7_verified:` frontmatter)
+- `docs/technology.xml` (auto-generated from frontmatter — do NOT write manually)
 - Beads: `bd update <epic> --notes="Design done. Approach: [name]. See docs/..."`
 
 **NOT in Design Document (lives in Discovery Report):** FR/NFR, risks, scope — reference only.
@@ -152,7 +162,8 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
 
 **Process:**
 1. `grace-plan` — creates/updates MODULE_CONTRACTs, knowledge-graph.xml, development-plan.xml, verification-plan.xml
-2. `Context7` — verify library APIs for contract INPUTS/OUTPUTS
+2. `Context7` — verify library APIs for contract INPUTS/OUTPUTS. Append each confirmed
+   `library==version` to `design.md`'s `context7_verified:` frontmatter list (same key Step 4 writes).
 3. `_code-quality` — validate contracts against 17 principles
 4. `_logging` — plan log anchors in each contract (events, correlation IDs, decision points)
 
@@ -218,7 +229,7 @@ Present implementation plan. Ask: "Approve plan and start coding? (yes / changes
 
 **Ownership:** the orchestrator **is the controller** per `grace-execute`: it parses the plan + XML artifacts once, builds the execution queue and an ExecutionPacket per step, and applies graph/verification deltas returned by workers. Workers never own the queue. For independent task groups → `grace-multiagent-execute` (parallel waves, same controller model).
 
-**Dispatch:** per Model Routing Matrix — one Sonnet worker per **phase batch** (a GRACE phase, or a sub-stage split per the global Plan Sizing rule: one coherent file set within 40–60% of the model's effective window). The worker receives the ExecutionPackets of all steps in the batch and executes them sequentially. Escalation and Haiku downgrade — per `### Escalation rule` in `SKILL.md`.
+**Dispatch:** per Model Routing Matrix — one mid-tier worker per **phase batch** (a GRACE phase, or a sub-stage split per the global Plan Sizing rule: one coherent file set within 40–60% of the model's effective window). The worker receives the ExecutionPackets of all steps in the batch and executes them sequentially. Escalation and cheap-tier downgrade — per `### Escalation rule` in `SKILL.md`.
 
 **CRITICAL:** the markdown plan is the SSoT for execution; XML artifacts serve structural integrity checks.
 
@@ -257,13 +268,20 @@ If any step diverges from the approved plan (new module not in plan, different a
 
 **Goal:** Verify quality before finalizing.
 
-**Dispatch:** per Model Routing Matrix — `Agent(model="opus", subagent_type="general-purpose")` prompted with the reviewer template from `superpowers:requesting-code-review` (`code-reviewer.md`), fed the feature's git SHA range + FR/NFR from Discovery. Model choice evidence: ADR-002.
+**Dispatch:** per Model Routing Matrix (strong tier) — `Agent(model=<strong>, subagent_type="general-purpose")` prompted with the reviewer template from `superpowers:requesting-code-review` (`code-reviewer.md`), fed the feature's git SHA range + FR/NFR from Discovery + the accumulated phase-review verdicts from Step 11. Model choice evidence: ADR-002.
 
 **Tools:** `grace-reviewer` (full-integrity) + `superpowers:requesting-code-review` template + `superpowers:verification-before-completion`
 
-**Process:**
+**Scope (tiered review — do not re-review what phase reviews already covered):** Step 11 already
+runs a scoped `grace-reviewer` at each phase boundary — small-diff review catches more defects and
+is the industry-validated model (Google, Linux kernel tiered review). Step 12 does NOT re-review
+code already passed by a phase review. Its scope is:
 1. `grace-reviewer` full-integrity — contracts match code? Graph synced? Verification plan fulfilled?
-2. Code review via the template subagent — code quality, architecture, testing, requirements coverage
+   (This is an artifacts/graph check, not a code re-review — always runs in full.)
+2. Code review via the template subagent, scoped to:
+   - deltas since the last phase-boundary review (e.g. Step 12-time fixes, review responses)
+   - cross-phase integration seams (interfaces between phase batches)
+   - FR/NFR coverage across the whole feature (a phase review can't see this)
 3. `verification-before-completion` — a discipline, not a separate agent: run ALL tests, read the output, prove it works. Evidence before claims.
 
 **Sentrux postflight (mandatory if baseline was captured in Step 2):**
@@ -290,7 +308,10 @@ If any step diverges from the approved plan (new module not in plan, different a
 **Tools:** `git-commit` + `grace-refresh` + `_adr` (if new decisions) + `_report` (if major) + `bd close`
 
 **Process:**
-1. `grace-refresh` (full) — final sync of graph and verification plan
+1. `grace-refresh` (targeted, scoped to modules touched since the last Step 11 phase-boundary sync
+   — typically just the Step 12 review fixes, since Step 11 already applied per-phase deltas as it
+   went. Run `grace-refresh` **full** only if wider drift is suspected, e.g. review fixes touched
+   modules outside the original plan scope.) — final sync of graph and verification plan
 2. `_adr` — if new architectural decisions were made during coding
 3. `_report` (if major feature) — completion report to `docs/reports/`
 4. Update the project changelog (`CHANGELOG.md` per Keep a Changelog, or the path configured in the project's CLAUDE.md) — if the project maintains one (major features)

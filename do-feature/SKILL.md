@@ -28,7 +28,7 @@ Parsed from `argument-hint` / invocation args; first match wins:
 - Hard quality gates (Sentrux rule violations in Steps 2 & 12, lint baseline drift)
 - Pre-commit / git hooks
 - Destructive operations listed in global CLAUDE.md (force-push, rm -rf, drop table, etc.) — still require explicit confirmation
-- 3x-rule halt-and-ask on genuine uncertainty
+- 3x-rule halt-and-ask on genuine uncertainty: auto-apply the best candidate only if it scores **≥3× better** than the runner-up on the chosen criteria; otherwise STOP and invoke `/best-questions`. Full protocol: `do-autopilot/SKILL.md` §3 Decision Protocol.
 
 ### Auto-approve precondition — risk × evidence matrix
 
@@ -67,39 +67,43 @@ This workflow combines:
 - **Beads** — task tracking (bd create/close, formula, dependencies)
 - **Superpowers** — process skills (brainstorming, writing-plans, TDD, code-review, verification)
 - **GRACE** — structural integrity (contracts, knowledge graph, verification plan)
-- **Custom skills** — Discovery (best-approach + ST), Q&A (best-questions), ADR, logging, code-quality
+- **Custom skills** — Discovery (WebSearch + ST, problem-space only), Q&A (best-questions), ADR, logging, code-quality
 
 ## Model Routing Matrix (SSoT for routing)
 
 Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline without sacrificing quality on critical decisions or review coverage. Evidence and A/B methodology: `docs/adr/ADR-002-model-routing-ab-validation.md`.
 
-**This matrix is the single source of truth for routing.** Step Details reference it and MUST NOT restate models. The Agent tool has NO `thinking` parameter — reasoning depth is steered only by prompt wording in the dispatch.
+**This matrix is the single source of truth for routing, expressed as TIERS, not fixed model names.** Step Details reference it and MUST NOT restate models. The Agent tool has NO `thinking` parameter — reasoning depth is steered only by prompt wording in the dispatch.
 
-| Step | Dispatch | Model | Rationale |
-|------|----------|-------|-----------|
+**Tiers:** `strong` (deepest reasoning, highest cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). Map each tier to the strongest available model in that tier for the Agent tool's current lineup (currently: `strong`=opus, `mid`=sonnet, `cheap`=haiku).
+
+**Revalidation rule:** when the Agent tool's model lineup changes (new family, e.g. Claude 5/Fable), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
+
+| Step | Dispatch | Tier | Rationale |
+|------|----------|------|-----------|
 | 1. `bd create` | inline | — | CLI |
-| 2. Discovery | research subagent (returns artifact + open questions) | opus | ST + insights deeper on Opus (caregiver, liability, PII) |
+| 2. Discovery | research subagent (returns artifact + open questions) | strong | ST + insights deeper on strong tier (caregiver, liability, PII) |
 | 3. USER APPROVAL — requirements | inline | — | gate |
-| 4. Brainstorming | research subagent (returns design options + trade-offs) | opus | architectural fork, trade-offs |
+| 4. Brainstorming | research subagent (returns design options + trade-offs) | strong | architectural fork, trade-offs |
 | 5. USER APPROVAL — design | inline | — | gate |
-| 6. GRACE Ask | `Agent(model="haiku", subagent_type="general-purpose")` | haiku | graph sync (writes) + navigation |
-| 7. GRACE Plan | `Agent(model="sonnet", subagent_type="general-purpose")` | sonnet | structural codegen of contracts |
-| 8. Q&A Contracts | analysis subagent; Q&A run inline by orchestrator | sonnet | ambiguity extraction from contracts |
-| 9. Writing Plans | `Agent(model="sonnet", subagent_type="general-purpose")` | sonnet | decomposition into TDD steps |
+| 6. GRACE Ask | `Agent(model=<cheap>, subagent_type="general-purpose")` | cheap | graph sync (writes) + navigation |
+| 7. GRACE Plan | `Agent(model=<mid>, subagent_type="general-purpose")` | mid | structural codegen of contracts |
+| 8. Q&A Contracts | analysis subagent; Q&A run inline by orchestrator | mid | ambiguity extraction from contracts |
+| 9. Writing Plans | `Agent(model=<mid>, subagent_type="general-purpose")` | mid | decomposition into TDD steps |
 | 10. USER APPROVAL — plan | inline | — | gate |
 | 11. Execution — controller | inline (orchestrator, per grace-execute) | — | queue + ExecutionPackets |
-| 11. Execution — workers | one subagent per phase batch | sonnet | **default Sonnet, not Haiku** (ADR-002) |
-| 11. Execution — escalation | re-dispatch stuck step alone | opus | on 2 consecutive test fails on Sonnet |
-| 11. Execution — trivial | optional | haiku | only rename / format / mechanical |
-| 12. Review | `Agent(model="opus", subagent_type="general-purpose")` + reviewer template | opus | strongest review coverage, catches GRACE conventions (ADR-002) |
+| 11. Execution — workers | one subagent per phase batch | mid | **default mid, not cheap** (ADR-002) |
+| 11. Execution — escalation | re-dispatch stuck step alone | strong | on 2 consecutive test fails on mid tier |
+| 11. Execution — trivial | optional | cheap | only rename / format / mechanical |
+| 12. Review | `Agent(model=<strong>, subagent_type="general-purpose")` + reviewer template | strong | strongest review coverage, catches GRACE conventions (ADR-002) |
 | 13. Finish | inline | — | mechanical: commit + refresh + close |
 
 ### Escalation rule (Step 11)
 
-1. **Default — Sonnet worker per phase batch.** Sonnet is the validated baseline (ADR-002).
-2. **Escalate to Opus on 2 consecutive test fails.** If the same step fails its TDD cycle twice in a row, the controller extracts that step from the batch and re-dispatches it *alone* as `Agent(model="opus")`. After Opus produces a passing implementation, subsequent steps return to the Sonnet default. Failure to escalate after 2 fails is a workflow defect — the controller MUST track per-step fail counts.
-3. **Haiku only for trivial mechanical steps.** Pure rename, format-only changes, mass find-replace, mechanical comment updates. Anything that requires reasoning about types, control flow, or library APIs — stay on Sonnet.
-4. **Context7 / new-library steps stay on Sonnet.** Do NOT downgrade to Haiku when a Context7 trigger fires (the 4 triggers listed in Step 11, reference.md).
+1. **Default — mid-tier worker per phase batch.** Mid tier is the validated baseline (ADR-002).
+2. **Escalate to strong tier on 2 consecutive test fails.** If the same step fails its TDD cycle twice in a row, the controller extracts that step from the batch and re-dispatches it *alone* on the strong tier. After it produces a passing implementation, subsequent steps return to the mid-tier default. Failure to escalate after 2 fails is a workflow defect — the controller MUST track per-step fail counts.
+3. **Cheap tier only for trivial mechanical steps.** Pure rename, format-only changes, mass find-replace, mechanical comment updates. Anything that requires reasoning about types, control flow, or library APIs — stay on mid tier.
+4. **Context7 / new-library steps stay on mid tier.** Do NOT downgrade to cheap when a Context7 trigger fires (the 4 triggers listed in Step 11, reference.md).
 
 ### Audit trail — exceptions only
 
@@ -152,8 +156,8 @@ Step 13: FINISH (git-commit meta + grace-refresh + _adr if new + _report if majo
 
 | Document | SSoT for | Created at | Format |
 |----------|----------|------------|--------|
-| Discovery Report | Requirements (FR/NFR, risks, scope, best practices) | Step 2 | Markdown + XML |
-| Design Document | Solution (approach, data model sketch, UX flow) | Step 4 | Markdown + XML |
+| Discovery Report | Requirements (FR/NFR, risks, scope, best practices) | Step 2 | Markdown (+ auto-generated XML) |
+| Design Document | Solution (approach, data model sketch, UX flow) | Step 4 | Markdown (+ auto-generated XML) |
 | MODULE_CONTRACTs | Formal module spec (PURPOSE, INPUTS, OUTPUTS, DEPENDS) | Step 7 | Python headers |
 | knowledge-graph.xml | Module map + dependencies | Step 7 | XML |
 | verification-plan.xml | Tests, traces, log anchors | Step 7 | XML |
@@ -162,14 +166,16 @@ Step 13: FINISH (git-commit meta + grace-refresh + _adr if new + _report if majo
 
 ## Auto-Generated XML Rule
 
-Discovery and Brainstorming write prose + YAML frontmatter in markdown. XML counterparts (`docs/requirements.xml`, `docs/technology.xml`) are **auto-generated** from frontmatter via:
+Discovery and Brainstorming write prose + YAML frontmatter in markdown. **Step 2 and Step 4 Output sections in `reference.md` list `requirements.xml`/`technology.xml` as step products — this means "the step's frontmatter causes them to exist", NOT "write them by hand."** XML counterparts (`docs/requirements.xml`, `docs/technology.xml`) are **auto-generated** from frontmatter via:
 - pre-commit hook (primary — blocks commit on drift)
 - Claude PostToolUse hook (convenience — regenerates immediately after Edit/Write)
 - CI check (safety net — verifies on PR)
 
-This eliminates dual-write drift while keeping both human-readable prose (markdown) and agent-parseable structure (YAML frontmatter → XML). Never edit XML counterparts manually.
+This eliminates dual-write drift while keeping both human-readable prose (markdown) and agent-parseable structure (YAML frontmatter → XML). **Never edit XML counterparts manually — edit the markdown frontmatter and let the hooks regenerate.**
 
-Required frontmatter key in `discovery.md` and `design.md`: `open_questions:` — a YAML list, empty (`[]`) when all questions are resolved. The auto-approve evidence classifier reads this key; a missing key counts as `weak` evidence.
+Required frontmatter keys in `discovery.md` and `design.md`:
+- `open_questions:` — a YAML list, empty (`[]`) when all questions are resolved. The auto-approve evidence classifier reads this key; a missing key counts as `weak` evidence.
+- `context7_verified:` (design.md only) — a YAML list of `library==version` entries confirmed via Context7 during Steps 4 or 7. The Step 10 evidence check reads this key to compute the "every external library Context7-verified" criterion; a missing key or an unlisted library used in the plan counts as `weak` evidence.
 
 ## Orchestrator Rules
 
@@ -180,5 +186,6 @@ Required frontmatter key in `discovery.md` and `design.md`: `open_questions:` �
 5. **md → xml automation:** Discovery and Brainstorming write prose + YAML frontmatter in `discovery.md` / `design.md`. XML (`requirements.xml`, `technology.xml`) auto-generated via pre-commit hook + Claude PostToolUse hook + CI check. Never edit XML manually.
 6. **SSoT discipline:** One artifact per concern (see global Documentation SSoT rules in `~/.claude/CLAUDE.md`). No duplication between documents.
 7. **Adaptive depth:** All 13 steps apply to dev-projects. Depth scales with the risk classifier (preliminary value from Pre-dispatch; see reference.md, Step 2); steps MUST NOT be skipped — only lightened.
-8. **Per-step model routing follows the Model Routing Matrix** (the single SSoT for routing). Dispatch via `Agent(model=...)`. Only exceptions are audited via `bd update <epic> --notes` (see `### Audit trail`).
+8. **Per-step model routing follows the Model Routing Matrix** (the single SSoT for routing, expressed as tiers). Dispatch via `Agent(model=...)` mapped from the current tier. Only exceptions are audited via `bd update <epic> --notes` (see `### Audit trail`).
 9. **Subagents never talk to the user.** All user interaction happens inline at the orchestrator — see `## Research Subagent Pattern`.
+10. **Commit authority.** The user invoking `do-feature` IS explicit authority for the workflow's own commits — Step 11 per-step TDD commits and Step 13 meta commits — satisfying the Beads Conservative-profile bar of "unless explicitly asked" (mirrors how `--auto-approve` is legalized in `~/.claude/CLAUDE.md`). This authority is scoped to local commits only and **never** extends to `git push` — that always requires a separate explicit request.
