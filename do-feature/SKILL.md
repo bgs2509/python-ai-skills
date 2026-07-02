@@ -19,7 +19,7 @@ Parsed from `argument-hint` / invocation args; first match wins:
 | Flag | Effect |
 |------|--------|
 | `--auto-approve`, `-y` | Skip USER APPROVAL gates (Steps 3, 5, 10) and the Step 11 advisory deviation gate. Announce "Gate auto-approved (--auto-approve)" and continue. |
-| `--ask` | Force interactive gates even if a standing memory like `feedback_auto_approve_gates.md` says auto-approve. |
+| `--ask` | Force interactive gates even if a standing `feedback` memory (check `bd memories auto-approve`) says auto-approve. |
 | *(none)* | Resolve via memory: if a `feedback` memory blanket-approves gates for this project → auto-approve; else → ask. |
 
 **Scope of auto-approval:** only the three USER APPROVAL gates (3, 5, 10) and the Step 11 *advisory* deviation gate. Auto-approve does NOT bypass:
@@ -57,7 +57,7 @@ Even with `--auto-approve` (or memory override), each gate is auto-approved **on
 
 **Audit trail (mandatory at every auto-approved gate):**
 ```
-bd update <epic> --notes="Gate <N> auto-approved: risk=<low|medium|medium>, evidence=strong. Source: <citation>."
+bd update <epic> --notes="Gate <N> auto-approved: risk=<low|medium|high>, evidence=strong. Source: <citation>."
 ```
 Fallback-to-ask events are logged the same way with `auto-approve fallback: <reason>` and the eventual user decision.
 
@@ -71,13 +71,13 @@ This workflow combines:
 
 ## Model Routing Matrix
 
-Per-step model dispatch optimizes cost (~−50–60%) and wall-clock (~−30%) vs all-Opus baseline without sacrificing quality on critical decisions or review coverage. Validated A/B on 2026-05-13 (see `2026-do-feature/research-model-routing/`).
+Per-step model dispatch optimizes cost (~−50–60%) and wall-clock (~−30%) vs all-Opus baseline without sacrificing quality on critical decisions or review coverage. Validated A/B on 2026-05-13.
 
 | Step | Tool | Model | Thinking | Δ cost vs all-Opus | Rationale |
 |------|------|-------|----------|--------------------|-----------|
 | 1. `bd create` | inline / haiku | — | — | −90% | CLI |
 | 2. Discovery | `Agent(model="opus")` | opus | low (~2k) | −60% (vs Opus high) | ST×12 + insights deeper on Opus (caregiver, liability, PII) |
-| 3. USER APPROVAL — requirements | inline | — | — | — | gate (auto-approved) |
+| 3. USER APPROVAL — requirements | inline | — | — | — | gate |
 | 4. Brainstorming | `Agent(model="opus")` | opus | low (~2k) | −60% | architectural fork, trade-offs |
 | 5. USER APPROVAL — design | inline | — | — | — | gate |
 | 6. GRACE Ask | `Agent(model="haiku")` | haiku | — | −90% | read-only graph navigation |
@@ -102,11 +102,7 @@ Per-step model dispatch optimizes cost (~−50–60%) and wall-clock (~−30%) v
 
 ### Audit trail
 
-Every routing decision is logged in Beads notes on the epic for post-hoc analysis:
-
-```
-bd update <epic> --notes="Step <N> dispatched on <model> (thinking=<budget>). Reason: <one line>."
-```
+Every routing decision is logged in Beads notes on the epic for post-hoc analysis, using the same `bd update <epic> --notes` convention as the gate audit trail above. Message format: `Step <N> dispatched on <model>. Reason: <one line>.`
 
 ## The Flow
 
@@ -146,6 +142,8 @@ Discovery and Brainstorming write prose + YAML frontmatter in markdown. XML coun
 - CI check (safety net — verifies on PR)
 
 This eliminates dual-write drift while keeping both human-readable prose (markdown) and agent-parseable structure (YAML frontmatter → XML). Never edit XML counterparts manually.
+
+Required frontmatter key in `discovery.md` and `design.md`: `open_questions:` — a YAML list, empty (`[]`) when all questions are resolved. The auto-approve evidence classifier reads this key; a missing key counts as `weak` evidence.
 
 ## Step Details
 
@@ -192,6 +190,7 @@ bd create --title="Feature: {name}" --type=epic --priority=2 \
 - Verify pre-commit infrastructure is alive in this repo:
   - `git config --get core.hooksPath` returns a path AND that path/pre-commit is executable, OR `.pre-commit-config.yaml` exists at repo root with `pre-commit` binary available.
   - If neither — STOP and prompt user: "Pre-commit hooks are not configured for this repo (Pre-commit Policy in ~/.claude/CLAUDE.md). Set up before continuing? (yes / skip with reason)".
+  - Skip this check entirely if a previous do-feature run in this repo already verified it (recorded in epic notes) and the hooks config is unchanged.
 - Verify lint baseline is clean (or document the delta): run the project's lint target (`make lint`, or `uv run ruff check`) and record current error count in Discovery notes. Drift in lint count during the feature must be addressed in the same PR.
 - **Sentrux quality baseline (mandatory if `.sentrux/rules.toml` exists in repo):**
   - Run `mcp__sentrux__scan` (or `sentrux scan --json`) and persist the result to `.sentrux/baselines/{bd_id}.json` (gitignored).
@@ -368,7 +367,7 @@ If any task diverges from the approved plan (new module not in plan, different a
 3. For independent task groups → grace-multiagent-execute (parallel waves)
 4. Phase-level checks at boundaries
 
-**Commit format:** Conventional Commits + GRACE MODULE_ID as scope. Types: `feat`, `fix`, `refactor`, `test`, `perf`, `chore`. Example: `feat(M-VOICE-STT): add Whisper transcription pipeline`.
+**Commit format:** Conventional Commits + GRACE MODULE_ID as scope. Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`. Example: `feat(M-VOICE-STT): add Whisper transcription pipeline`.
 
 ### Step 12: REVIEW
 
@@ -396,7 +395,7 @@ If any task diverges from the approved plan (new module not in plan, different a
   - Address the regression in this feature.
   - Document via ADR + `bd close --allow-regression --reason="see ADR-NNN"`. The Δ MUST appear in the completion report (Step 13).
 - **No gate (improvement / minor drift):** `Δ quality_signal ≥ −100` AND `new_rule_violations == 0` → proceed silently, but include the Δ in the Step 13 completion report.
-- Append the full Sentrux diff (signal, rules, top movers) to `docs/reports/YYYYMMDD-{feature}-report.md` regardless of gate outcome.
+- If a hard or soft gate fired, append the full Sentrux diff (signal, rules, top movers) to `docs/reports/YYYYMMDD-{feature}-report.md`; otherwise a one-line Δ summary in the report suffices.
 
 ### Step 13: FINISH
 
@@ -432,7 +431,7 @@ Step 11 (Execution) uses tiered model dispatch:
 1. **Default — Sonnet.** Each atomic task dispatched as `Agent(model="sonnet", subagent_type="general-purpose")`. Sonnet is the validated baseline (A/B 2026-05-13: Sonnet 26.8k tokens vs Haiku 56.9k on identical atomic task).
 2. **Escalate to Opus on 2 consecutive test fails.** If the same task fails its TDD cycle twice in a row on Sonnet → re-dispatch the *same* task as `Agent(model="opus", thinking=low)`. Log the escalation: `bd update <epic> --notes="Step 11 task <id> escalated to Opus after 2 fails on Sonnet. Reason: <one line>."`. After Opus produces a passing implementation, subsequent tasks return to Sonnet default.
 3. **Haiku only for trivial mechanical tasks.** Pure rename, format-only changes, mass find-replace, mechanical comment updates → may dispatch as `Agent(model="haiku")`. Anything that requires reasoning about types, control flow, or library APIs — stay on Sonnet.
-4. **Context7 / new-library tasks stay on Sonnet.** Do NOT downgrade to Haiku when a Context7 trigger fires (first contact with a library, version bump, unknown method, library error). Sonnet handles documentation context better and benefits from prompt cache reuse across the task.
+4. **Context7 / new-library tasks stay on Sonnet.** Do NOT downgrade to Haiku when a Context7 trigger fires (the 4 triggers listed in Step 11). Sonnet handles documentation context better and benefits from prompt cache reuse across the task.
 
 Failure to escalate after 2 fails is a workflow defect — the orchestrator MUST track per-task fail counts in epic notes.
 
