@@ -26,7 +26,10 @@ Run these read-only commands in parallel:
 2. `git branch --show-current` — the current HEAD branch (**protected**).
 3. Default branch:
    `git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's#^origin/##'`
-   If empty (no remote HEAD), fall back to whichever of `main` / `master` exists (**protected**).
+   Treat an **empty result OR the literal `HEAD`** as "not set" (the latter happens
+   when `origin/HEAD` is unconfigured) → fall back to whichever of `main` / `master`
+   exists (**protected**). Tip: `git remote set-head origin -a` records `origin/HEAD`
+   so future runs resolve it directly.
 4. `git worktree list --porcelain` — branches checked out in OTHER worktrees are **occupied by another session** (this is the only reliable "in use elsewhere" signal — see Rules).
 5. All local branches with metadata:
    ```bash
