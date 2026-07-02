@@ -5,6 +5,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- `do-feature`: resolved 3 critical round-2 audit findings — (1) circular risk-classifier dependency: risk is now classified twice (preliminary by the orchestrator in the new Pre-dispatch Protocol before Step 2, final in the Discovery artifact) with upward-only escalation; (2) Step 2 preflight STOP gates were unreachable inside the research subagent: preflight (pre-commit check, lint baseline, Sentrux baseline) is now explicitly orchestrator-owned and runs inline before the dispatch; (3) monolithic 447-line SKILL.md split per ADR-001 convention into a control-logic SKILL.md + `reference.md` with the per-step details; A/B routing evidence moved to `docs/adr/ADR-002-model-routing-ab-validation.md`
+
 ### Added
 - `git-branch`: standalone pure-instruction skill that discovers ALL branches and triages each — protected/active (current HEAD, worktree-checked-out = adjacent session), merged→safe-delete, abandoned (with age), junk (throwaway name + stale). Report-first; deletes only after confirmation; `-d` over `-D`; unpushed-commits data-loss guard; never `git push --delete` (reports the command instead)
 - `do-multiagent`: team-lead orchestrator running a TEAM of subagents over a bead dependency graph in parallel git worktrees, each via `do-feature --auto-approve`. Accepts free-form work/draft (decompose→approve) or an existing bead queue; upfront `best-questions` fork-analysis; controller-owned serialised merge queue; controller is sole `bd` writer; Trust=0% independent re-verify per branch before merge; parallel only across disjoint write-scope (shared-file beads grouped into one session)
