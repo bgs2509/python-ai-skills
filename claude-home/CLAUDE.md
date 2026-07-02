@@ -98,9 +98,15 @@ Never jump straight to code when requirements, architecture, or verification int
 
 **Rule:** One advisory gate during Execution (step 11): if any step deviates from the approved plan, prompt "deviation detected, approve?" before continuing.
 
-**Rule:** Gates MUST NOT be skipped.
+**Rule:** Gates MUST NOT be skipped by the agent's own initiative.
 
-**Почему:** Human-in-the-loop gates защищают от дрейфа в неверную сторону. 3 mandatory — sweet spot. Advisory on deviation — минимум overhead, максимум защиты execution.
+**Rule (auto-approval exception):** Gates MAY be auto-approved ONLY when BOTH hold:
+1. Explicit user opt-in: a `--auto-approve` flag, an auto-approving orchestrator the user invoked (`do-autopilot`, `do-multiagent`), or a standing `feedback` memory.
+2. The gate artifact passes the risk × evidence matrix defined in `do-feature` (`## Flags`).
+
+`high`-risk gates always remain interactive regardless of opt-in. Auto-approval never bypasses hard quality gates, pre-commit hooks, or destructive-operation confirmations.
+
+**Почему:** Human-in-the-loop gates защищают от дрейфа в неверную сторону. 3 mandatory — sweet spot. Advisory on deviation — минимум overhead, максимум защиты execution. Исключение легализует фактическую практику (do-autopilot, do-feature --auto-approve) без потери сути правила: агент не решает сам — авто-одобрение всегда следствие явного выбора пользователя + объективной матрицы (аудит 2026-07-02).
 
 ## Plan Sizing — Context-Window Budget (dev-projects only)
 

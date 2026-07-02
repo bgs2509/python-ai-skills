@@ -21,7 +21,7 @@
 | _docker | `/_docker` | Dockerfile, Compose, health checks; not CI/lint config |
 | _http | `/_http` | httpx, timeout, retry, Circuit Breaker; not server errors or caching |
 | _caching | `/_caching` | Redis, TTL, invalidation, graceful degradation; not source-of-truth DB |
-| _docworkflow | `/_docworkflow` | Docs pipeline backlog → commit; not final report only (_report) |
+| _docworkflow | `/_docworkflow` | Docs pipeline backlog → commit for TASK-NNN legacy projects; not do-feature/GRACE projects, not final report only (_report) |
 | _adr | `/_adr` | Architecture Decision Record generator; not a full docs pipeline |
 | _report | `/_report` | Feature completion report; not mid-work docs (_docworkflow) |
 | _init | `/_init` | New project initialization (slash-only, no model auto-invoke) |
@@ -44,9 +44,9 @@
 | Testing | _testing |
 | New project | _init, _architecture |
 | Architecture decision | _architecture, _adr |
-| Feature completed | _report, _docworkflow |
+| Feature completed | _report; _docworkflow (TASK-NNN legacy projects only) |
 | Pipeline audit | py-supervisor |
-| Starting a task | _docworkflow |
+| Starting a task | do-feature (GRACE dev-projects); _docworkflow (TASK-NNN legacy projects) |
 
 ---
 

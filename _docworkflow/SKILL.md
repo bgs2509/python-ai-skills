@@ -3,10 +3,14 @@ name: _docworkflow
 description: >
   Mandatory documentation pipeline: backlog → requirements → planning → ADR → changelog →
   completion report → commit. TASK/REQ/PLAN/ADR numbering. Git conventions.
-  TRIGGER when: starting a new task (backlog/requirements), before any commit,
-  numbering TASK/REQ/PLAN/ADR artifacts, applying git/commit conventions.
-  SKIP when: only a final completion report is needed (use _report),
-  only a single architectural decision doc is needed (use _adr).
+  TRIGGER when (only in projects using the TASK-NNN documentation convention,
+  i.e. legacy py-pipeline projects NOT governed by do-feature/GRACE): starting a
+  new task (backlog/requirements), before any commit, numbering TASK/REQ/PLAN/ADR
+  artifacts, applying git/commit conventions.
+  SKIP when: the project is governed by the do-feature/GRACE workflow (its docs
+  pipeline owns specs/plans/reports — use do-feature), only a final completion
+  report is needed (use _report), only a single architectural decision doc is
+  needed (use _adr).
 ---
 
 # Documentation Pipeline
