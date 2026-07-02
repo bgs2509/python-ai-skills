@@ -7,7 +7,7 @@ description: >
   Report-first: diagnose read-only, show a report, act only after confirmation.
   TRIGGER when: user calls /project-sync, user wants to push/pull the current
   repo across machines, "sync this repo", "sync to gpu-1". For ALL repos on the
-  VPS at once use /projects-sync instead. For local-only commits use /smart-commit.
+  VPS at once use /projects-sync instead. For local-only commits use /git-commit.
 argument-hint: "[--check diagnose only] [--with-artifacts] [--yes skip confirmation]"
 ---
 
@@ -39,7 +39,7 @@ argument-hint: "[--check diagnose only] [--with-artifacts] [--yes skip confirmat
    - `behind` → `git pull --ff-only` (безопасный fast-forward; объясни, что это просто перемотка вперёд).
    - `ahead` → `git push`.
    - `diverged` → **СПРОСИТЬ** (истории разошлись). Дай варианты: rebase / merge / разобрать вручную / пропустить, с confidence и рекомендацией. НЕ авто-force.
-   - `dirty` → **СПРОСИТЬ** (есть незакоммиченное). Покажи файлы. Варианты: закоммитить (`/smart-commit`) / отложить / пропустить репо.
+   - `dirty` → **СПРОСИТЬ** (есть незакоммиченное). Покажи файлы. Варианты: закоммитить (`/git-commit`) / отложить / пропустить репо.
    - `no_remote` → **создать репо на GitHub** и запушить: `gh repo create --source . --private --remote origin --push` (подтверждение приватности у пользователя).
 5. **Синхронизировать gpu-1** — после того как локальная сторона сошлась с GitHub, на gpu-1 для этого репо тоже `git pull --ff-only` из GitHub (через `ssh gpu-1`). Так обе машины сходятся на хабе.
 6. **Артефакты** (только при `--with-artifacts` или по запросу) → **СПРОСИТЬ**, какие gitignored-пути синкать, затем `rsync -az` на gpu-1. Сначала покажи `--dry-run`.

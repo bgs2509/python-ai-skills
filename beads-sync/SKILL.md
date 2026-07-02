@@ -3,11 +3,11 @@ name: beads-sync
 description: >
   Verify that the local beads/Dolt issue state is committed and pushed to the
   remote, then synchronize it. Report-first: diagnose drift read-only, show a
-  report, and push only after explicit confirmation. Companion to /smart-commit
+  report, and push only after explicit confirmation. Companion to /git-commit
   (which is git-only and never pushes). TRIGGER when: user calls /beads-sync,
   user wants to confirm beads issues are synced to remote, user says "push beads",
   "sync beads", "are my issues pushed", or after a work session that changed
-  bd issues. Do NOT use for committing source code — that is /smart-commit.
+  bd issues. Do NOT use for committing source code — that is /git-commit.
 argument-hint: "[--check to diagnose only, never push] [--yes to skip the confirmation gate]"
 ---
 
@@ -153,12 +153,12 @@ until follow-up <bd-id> is resolved.
 6. **Does NOT fix hook wiring** — detecting mis-wired `core.hooksPath` is in
    scope; repairing it is a separate, user-approved operation (follow-up issue).
 7. **Stays out of git** — this skill touches the Dolt remote only. Source-code
-   commits/pushes remain the job of /smart-commit and explicit user requests.
+   commits/pushes remain the job of /git-commit and explicit user requests.
 8. **Fail-Fast** — unreachable engine or no configured remote → stop with a clear
    report; do not proceed to a meaningless push.
 
 ## Relationship to other skills
 
-- `/smart-commit` — git-only; classifies and commits source files; never pushes.
-  Natural pairing: `/smart-commit` for code, then `/beads-sync` for issue state.
+- `/git-commit` — git-only; classifies and commits source files; never pushes.
+  Natural pairing: `/git-commit` for code, then `/beads-sync` for issue state.
 - This skill is a **worker/utility**: it does not auto-transition to other skills.

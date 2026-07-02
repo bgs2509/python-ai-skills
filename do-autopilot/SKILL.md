@@ -113,7 +113,7 @@ Phase 6  CLOSE
                 finding) → halt, surface the setup defect, do NOT enter the fix-loop
               - commit fixes as `fix(<MODULE_ID>): critical audit findings <epic-slug>` with
                 the epic bd_id trailer; quality gates (lint, grace lint, pre-commit) MUST pass
-         6.2  close epic, run /grace-refresh, /smart-commit meta, write _report
+         6.2  close epic, run /grace-refresh, /git-commit meta, write _report
 ```
 
 ## 3. Decision Protocol (the 3x-rule)

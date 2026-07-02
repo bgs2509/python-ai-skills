@@ -46,7 +46,7 @@ Step 9:  Writing Plans
 Step 10: USER APPROVAL — plan
 Step 11: Execution (with HARD GUARDS above)
 Step 12: Review (Opus code-reviewer + verification-before-completion)
-Step 13: Finish (smart-commit meta, completion report, bd close)
+Step 13: Finish (git-commit meta, completion report, bd close)
 ```
 
 Use the model routing matrix from SKILL.md for sub-dispatches. Sonnet is the default for atomic execution tasks; escalate to Opus on 2 consecutive test fails.

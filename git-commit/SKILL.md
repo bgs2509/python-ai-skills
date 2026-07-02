@@ -1,14 +1,16 @@
 ---
-name: smart-commit
+name: git-commit
 description: >
   Analyze all uncommitted files, interactively classify them (commit/ignore/skip),
   group into logical commits, and commit with detailed conventional commit messages.
-  TRIGGER when: user calls /smart-commit, user has many uncommitted files and wants
+  TRIGGER when: user calls /git-commit, user has many uncommitted files and wants
   to organize commits, user says "commit my changes" or "sort my changes".
+  SKIP when: user wants to triage/clean up branches (use /git-branch), or push/sync
+  across machines (use /project-sync, /beads-sync).
 argument-hint: "[--all to skip interactive classification]"
 ---
 
-# /smart-commit — Interactive Smart Commit
+# /git-commit — Interactive Smart Commit
 
 > Analyze uncommitted files, classify, group into logical commits, commit with detailed messages.
 
@@ -160,3 +162,9 @@ Remaining uncommitted: M files
 8. **Preserve staging** — if files were already staged (`git add`), respect that grouping unless user overrides
 9. **Atomic commits** — each commit should be independently meaningful (not break the build)
 10. **No empty commits** — skip groups where all files ended up in ignore/skip
+
+## Related skills
+
+- `/git-branch` — triage ALL branches (active/worktree, merged→deletable, abandoned+age, junk) and delete safely. Natural pairing: `/git-commit` for changes, then `/git-branch` to clean up stale branches.
+- `/beads-sync` — sync bd issue state to the remote (git-commit never touches Dolt/beads).
+- `/project-sync`, `/projects-sync` — push/pull the repo across machines (git-commit never pushes).

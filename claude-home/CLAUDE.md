@@ -121,7 +121,7 @@ Never jump straight to code when requirements, architecture, or verification int
 **Rule:** Every skill has one role:
 - `orchestrator` — may invoke other skills (do-feature)
 - `worker` — executes a single task, MUST NOT auto-transition (brainstorming, writing-plans, test-driven-development, questions-answers, best, grace-plan, grace-execute)
-- `utility` — single-purpose helpers (smart-commit, grace-refresh, grace-ask)
+- `utility` — single-purpose helpers (git-commit, git-branch, grace-refresh, grace-ask)
 
 **Rule:** Workers and utilities MUST NOT auto-transition to other skills. Transitions made only by an orchestrator or by the user.
 

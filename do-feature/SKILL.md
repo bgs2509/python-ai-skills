@@ -123,7 +123,7 @@ Step 9:  WRITING PLANS (writing-plans + self-review vs FR/NFR/verification)
 Step 10: [USER APPROVAL] — implementation plan
 Step 11: EXECUTION (grace-execute + TDD + grace-multiagent-execute if independent)
 Step 12: REVIEW (grace-reviewer full-integrity + code-reviewer agent + verification-before-completion)
-Step 13: FINISH (smart-commit meta + grace-refresh + _adr if new + _report if major + changelog if major + bd close)
+Step 13: FINISH (git-commit meta + grace-refresh + _adr if new + _report if major + changelog if major + bd close)
 ```
 
 ## SSoT Documents
@@ -404,14 +404,14 @@ If any task diverges from the approved plan (new module not in plan, different a
 
 **Dispatch:** inline (no subagent) — mechanical commit + refresh + close
 
-**Tools:** `smart-commit` + `grace-refresh` + `_adr` (if new decisions) + `_report` (if major) + `bd close`
+**Tools:** `git-commit` + `grace-refresh` + `_adr` (if new decisions) + `_report` (if major) + `bd close`
 
 **Process:**
 1. `grace-refresh` (full) — final sync of graph and verification plan
 2. `_adr` — if new architectural decisions were made during coding
 3. `_report` (if major feature) — completion report to `docs/reports/`
 4. Update `docs/20260408_changelog.md` (if major feature)
-5. `smart-commit` — commit remaining meta files (ADR, report, changelog, graph updates)
+5. `git-commit` — commit remaining meta files (ADR, report, changelog, graph updates)
    - Commit format: `<type>(<short-name>):` Conventional Commits. Examples: `docs(changelog): add voice feature section`, `chore(knowledge-graph): refresh after M-VOICE changes`, `docs(adr): ADR-042 Whisper model selection`
 6. `bd close <epic> --reason="Feature complete"`
 
