@@ -78,7 +78,16 @@ emit "00-context" "git context" "PASS" 0 "captured"
 # ── 1-3. ruff + mypy
 run "01-ruff-check"  "ruff check"          1 uv run ruff check . --output-format=concise
 run "02-ruff-format" "ruff format --check" 1 uv run ruff format --check .
-run "03-mypy"        "mypy src"            1 uv run mypy src --no-error-summary
+# mypy: honour the project's own source layout. Many repos keep sources in src/,
+# but others (e.g. multi-package backends) declare packages via [tool.mypy]
+# files=... in pyproject.toml. Hardcoding `mypy src` makes mypy error with
+# "Cannot read file 'src'" on those repos. Probe for a src/ dir; if absent, run
+# bare `mypy` so it reads the pyproject config instead.
+if [[ -d src ]]; then
+  run "03-mypy"      "mypy src"            1 uv run mypy src --no-error-summary
+else
+  run "03-mypy"      "mypy (pyproject)"    1 uv run mypy --no-error-summary
+fi
 
 # ── 4. secrets via gitleaks (pre-commit hook OR direct binary)
 if have gitleaks; then
@@ -166,7 +175,17 @@ if have uvx; then
         # --disable-pip: skip `ensurepip` bootstrap inside uvx's ephemeral env (was failing exit 127).
         # No --strict: torch CPU-variants (e.g. 2.x+cpu) live on a separate index and are
         #              correctly reported as "skipped" rather than fatal-erroring the whole audit.
-        run "18-pip-audit" "pip-audit" 0 bash -c "NO_COLOR=1 uvx --quiet pip-audit -r '${TMP}/req.txt' --disable-pip"
+        # Honour a project-owned ignore list: .pip-audit-ignore (one vuln ID per
+        # line; '#' comments and blanks allowed). Lets a repo suppress
+        # accepted/under-review CVEs without editing this shared script.
+        PA_IGNORE=""
+        if [[ -f .pip-audit-ignore ]]; then
+          while IFS= read -r _vln; do
+            _vln="${_vln%%#*}"; _vln="${_vln//[[:space:]]/}"
+            [[ -n "$_vln" ]] && PA_IGNORE+=" --ignore-vuln ${_vln}"
+          done < .pip-audit-ignore
+        fi
+        run "18-pip-audit" "pip-audit" 0 bash -c "NO_COLOR=1 uvx --quiet pip-audit -r '${TMP}/req.txt' --disable-pip${PA_IGNORE}"
       else
         # Infra error — surface as FAIL, not WARN. Operator must see red.
         {
