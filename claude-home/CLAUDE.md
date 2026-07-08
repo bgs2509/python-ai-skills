@@ -331,9 +331,18 @@ docs/
 
 **Rule:** Do NOT run `git push` of code automatically. Only on explicit user request.
 
+**Rule:** Do NOT default to opening a GitHub PR (`gh pr create`) to land a finished branch —
+including in autonomous/background sessions where a "ship it" default might otherwise apply.
+Instead, PROPOSE this sequence and wait for confirmation: 1) commit any remaining uncommitted
+files on the branch; 2) merge the branch into `master` locally; 3) delete the branch (local,
+and remote if it was pushed); 4) only then `git push` (still subject to the rule above —
+explicit request required). Orchestrators with their own documented merge-queue contract
+(e.g. `do-multiagent`'s controller) already follow this local-merge-then-delete shape
+natively — this rule removes the PR step from the assistant's own default, not from theirs.
+
 **Rule:** `bd dolt push` (Beads persistence for multi-machine sync) IS allowed automatically as part of session close protocol.
 
-**Почему:** `git push` кода — внешняя необратимая операция, требует approval. `bd dolt push` — системная utility для persistence без внешнего blast radius.
+**Почему:** `git push` кода — внешняя необратимая операция, требует approval. `bd dolt push` — системная utility для persistence без внешнего blast radius. 2026-07-08 — ассистент дважды сам открыл `gh pr create --draft` для готовых веток без спроса. Пользователь явно запретил PR как способ доставки по умолчанию и потребовал вместо этого предлагать локальный merge. Это отдельный аспект от правила выше (push только по запросу) — там про МОМЕНТ push, здесь про ВЫБОР стратегии landing.
 
 ## Security
 
