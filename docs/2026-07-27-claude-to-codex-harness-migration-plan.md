@@ -2,21 +2,21 @@
 
 ## 1. Контекст
 
-Цель — перенести Claude Code harness в нативные механизмы Codex CLI без запуска Claude-модели.
+Цель — перенести поведение Claude Code harness в Codex CLI без запуска Claude-модели.
 
-Архитектура использует функциональное соответствие, поскольку форматы конфигурации и события двух harness различаются.
+Claude-файлы, symlinks, settings, hooks, skills, agents и commands остаются строго read-only.
 
-Claude harness остаётся неизменённым резервом до полной приёмки Codex.
+Codex получает отдельные generated-файлы и adapters внутри `codex-home/` и `~/.codex/`.
 
-Технологии миграции: Bash, TOML, JSON, Markdown, symlinks, Beads и нативные Codex interfaces.
+Архитектура использует Claude как read-only SSoT, а Codex — как изолированного потребителя.
 
-Основная модель исполнения — `gpt-5.6-sol` с `high`; проектирование и аудит используют `xhigh`.
+Любое изменение Claude behavior является критическим нарушением и немедленно запускает rollback.
 
 ## 2. Содержание
 
 1. Фиксация исходного состояния и отката
 2. Контракт функционального паритета
-3. Иерархия инструкций и SSoT
+3. Изолированное зеркало Claude instructions для Codex
 4. Конфигурация, безопасность, подписка и модель
 5. Миграция hooks
 6. Миграция MCP
@@ -45,14 +45,14 @@ Claude harness остаётся неизменённым резервом до �
 - **Риски** — Буквальное копирование может перенести несовместимые Claude-механизмы.
 - **Без этого** — Заявление о полной миграции останется субъективным.
 
-### Этап 3: Иерархия инструкций и SSoT
+### Этап 3: Изолированное зеркало Claude instructions для Codex
 
-- **Проблема** — Корневые `AGENTS.md` и `CLAUDE.md` различаются. Глобальный файл превышает стандартный лимит Codex.
-- **Действие** — Объединить правила, добавить `project_type: dev` и увеличить `project_doc_max_bytes`.
-- **Результат** — Claude и Codex получают одинаковые правила без обрезания контекста.
+- **Проблема** — Codex не раскрывает Claude imports и не загружает `~/.claude/rules/`.
+- **Действие** — Генерировать Codex-only `AGENTS.md` из неизменяемых Claude sources.
+- **Результат** — Codex получает Claude rules, а Claude-файлы остаются byte-identical.
 - **Зависимости** — Требуется mapping этапа 2.
-- **Риски** — Дублирование с `developer_instructions` создаст конфликт приоритетов.
-- **Без этого** — Codex будет молча игнорировать или обрезать часть правил.
+- **Риски** — Generated-файл может устареть после изменения Claude sources.
+- **Без этого** — Codex пропустит `RTK.md`, `python-dev.md` и project `CLAUDE.md`.
 
 ### Этап 4: Конфигурация, безопасность, подписка и модель
 
@@ -66,7 +66,7 @@ Claude harness остаётся неизменённым резервом до �
 ### Этап 5: Миграция hooks
 
 - **Проблема** — Codex не выполняет большинство защитных Claude hooks.
-- **Действие** — Адаптировать hooks в `codex-home/hooks.json` и сохранить Beads hooks в `.codex/hooks.json`.
+- **Действие** — Создать независимые adapters в `codex-home/hooks/`, не изменяя Claude hooks.
 - **Результат** — Возвращаются блокировки, XML-регенерация, RTK и anti-hallucination.
 - **Зависимости** — Требуются этапы 3 и 4.
 - **Риски** — Глобальные и проектные hooks могут запускаться дважды.
@@ -84,7 +84,7 @@ Claude harness остаётся неизменённым резервом до �
 ### Этап 7: Миграция skills, workflows и plugins
 
 - **Проблема** — Codex не видит часть Claude skills и использует другой orchestrator.
-- **Действие** — Перенести совместимые skills symlinks, адаптировать metadata и преобразовать `commands/pipeline.md`.
+- **Действие** — Создать Codex-only copies и adapters из read-only Claude sources.
 - **Результат** — Codex получает одинаковые явные команды и правила автоматического выбора skills.
 - **Зависимости** — Требуются этапы 2 и 3.
 - **Риски** — Дублирующиеся названия могут запускать разные orchestrator skills.
@@ -102,7 +102,7 @@ Claude harness остаётся неизменённым резервом до �
 ### Этап 9: Инсталлятор, symlinks и синхронизация
 
 - **Проблема** — Текущий инсталлятор обслуживает только Claude Code.
-- **Действие** — Добавить `scripts/install-codex-symlinks.sh` и новые цели в `Makefile`.
+- **Действие** — Добавить `codex-home/bin/install.sh`, записывающий исключительно в `~/.codex/`.
 - **Результат** — Harness воспроизводимо устанавливается на новой машине.
 - **Зависимости** — Требуется завершение этапов 3–8.
 - **Риски** — Инсталлятор может перезаписать `[projects]` и `[hooks.state]`.
@@ -125,6 +125,29 @@ Claude harness остаётся неизменённым резервом до �
 
 Сохранить проверяемую исходную точку без изменения текущего harness.
 
+### Непереговорный инвариант
+
+Во время всей миграции Claude harness остаётся read-only.
+
+Запрещены любые записи в:
+
+- `~/.claude/**`;
+- `.claude/**`;
+- `claude-home/**`;
+- `CLAUDE.md`;
+- targets любых symlinks внутри `~/.claude/`;
+- Claude settings, hooks, rules, skills, agents и commands.
+
+Codex artifacts создаются только внутри:
+
+- `codex-home/**`;
+- `.codex/**`;
+- `~/.codex/**`;
+- `AGENTS.override.md`;
+- Codex-only files внутри `codex-home/**`.
+
+Нарушение любого Claude hash немедленно останавливает миграцию.
+
 ### Файлы и каталоги
 
 - Прочитать: `~/.claude/CLAUDE.md`
@@ -145,7 +168,7 @@ Claude harness остаётся неизменённым резервом до �
 
 - Claude Code CLI: `2.1.198`.
 - Codex CLI: `0.145.0`.
-- Ветка `main` опережает `origin/main` на два коммита.
+- Git-состояние фиксируется непосредственно перед execution.
 - `claude-home/hooks/regen-xml-on-spec-edit.sh` уже изменён пользователем.
 - Этот diff нельзя перезаписывать или восстанавливать из Git.
 
@@ -203,12 +226,32 @@ Claude harness остаётся неизменённым резервом до �
 
   Не выполнять фактическое восстановление.
 
+- [ ] **Шаг 1.7. Создать Claude integrity manifest**
+
+  Hash вычисляется только для известных harness-файлов.
+
+  Запрещённые secret paths в manifest не включаются.
+
+  Результат сохраняется в:
+
+  ```text
+  ~/.codex/backups/2026-07-27-before-harness-migration/claude-sources.sha256
+  ```
+
+- [ ] **Шаг 1.8. Зафиксировать разрешённые write roots**
+
+  Разрешены только project Codex paths и `~/.codex/**`.
+
+  Любая попытка записи в Claude paths является blocker.
+
 ### Gate этапа
 
 - Все исходные компоненты перечислены.
 - Текущий Git diff сохранён.
 - Backup не содержит запрещённых файлов.
 - Команды не запускали Claude-модель.
+- Claude integrity manifest сохранён.
+- Разрешённые write roots зафиксированы.
 
 ### Коммит
 
@@ -240,6 +283,10 @@ Mapping хранится в Beads-задаче миграции.
 Идентичные ответы моделей не входят в критерий.
 
 Claude и Codex используют разные модели и runtime.
+
+Claude source всегда остаётся read-only.
+
+Любая требуемая адаптация создаётся как отдельный Codex artifact.
 
 ### Шаги
 
@@ -310,6 +357,7 @@ Claude и Codex используют разные модели и runtime.
 - Каждому критичному правилу соответствует проверка.
 - Secrets и memories не входят в автоматический перенос.
 - Отключённые plugins явно отмечены.
+- Ни один mapping не содержит write action для Claude source.
 
 ### Коммит
 
@@ -317,76 +365,153 @@ Mapping хранится в Beads.
 
 Tracked-файлы не изменяются.
 
-## Этап 3: Иерархия инструкций и SSoT
+## Этап 3: Изолированное зеркало Claude instructions для Codex
 
 ### Цель этапа
 
-Создать общую иерархию правил без дублирования и обрезания контекста.
+Передать Codex все активные Claude instructions без изменения Claude harness.
 
-### Файлы
+### Read-only sources
 
-- Изменить: `AGENTS.md`
-- Заменить symlink: `CLAUDE.md`
-- Изменить: `claude-home/CLAUDE.md`
+- `claude-home/CLAUDE.md`
+- `claude-home/RTK.md`
+- `claude-home/rules/python-dev.md`
+- `CLAUDE.md`
+- `AGENTS.md`
+- `~/.claude/CLAUDE.md`
+- `~/.claude/RTK.md`
+- `~/.claude/rules/**`
+
+Эти paths нельзя изменять, удалять, форматировать или перезаписывать.
+
+### Codex-only targets
+
+- Создать: `codex-home/bin/render-instructions.sh`
+- Создать: `AGENTS.override.md`
 - Изменить: `.codex/config.toml`
+- Изменить: `~/.codex/AGENTS.md`
+- Изменить: `~/.codex/config.toml`
 - Позднее обновить: `codex-home/config.toml.template`
 
-### Целевая иерархия
+### Проверенная Claude instruction chain
 
-Глобальный SSoT:
-
-```text
-~/.claude/CLAUDE.md -> repository/claude-home/CLAUDE.md
-~/.claude/AGENTS.md -> ~/.claude/CLAUDE.md
-~/.codex/AGENTS.md  -> ~/.claude/CLAUDE.md
-```
-
-Проектный SSoT:
+Глобальный Claude-файл:
 
 ```text
-repository/AGENTS.md
-repository/CLAUDE.md -> repository/AGENTS.md
+~/.claude/CLAUDE.md
+└── repository/claude-home/CLAUDE.md
 ```
+
+Он импортирует:
+
+```text
+@RTK.md
+└── repository/claude-home/RTK.md
+```
+
+Claude также загружает:
+
+```text
+~/.claude/rules/python-dev.md
+└── repository/claude-home/rules/python-dev.md
+```
+
+Project Claude-файл:
+
+```text
+repository/CLAUDE.md
+```
+
+### Целевая Codex instruction chain
+
+Global Codex instructions:
+
+```text
+~/.codex/AGENTS.md
+└── generated copy from unchanged Claude sources
+```
+
+Project Codex instructions:
+
+```text
+repository/AGENTS.override.md
+└── generated regular copy from repository/CLAUDE.md
+```
+
+Старый `repository/AGENTS.md` остаётся byte-identical.
+
+Codex игнорирует его, поскольку `AGENTS.override.md` имеет приоритет.
+
+Claude не читает `AGENTS.override.md`.
+
+### Почему нельзя оставить global symlink
+
+Текущий `~/.codex/AGENTS.md` видит только `claude-home/CLAUDE.md`.
+
+Codex не раскрывает Claude import `@RTK.md`.
+
+Codex также не загружает `~/.claude/rules/python-dev.md`.
+
+Поэтому нужен Codex-only generated-файл.
 
 ### Шаги
 
-- [ ] **Шаг 3.1. Сравнить проектные инструкции**
+- [ ] **Шаг 3.1. Проверить Claude hashes**
 
-  ```bash
-  diff -u AGENTS.md CLAUDE.md
+  Сравнить текущие hashes с manifest этапа 1.
+
+  При расхождении остановить migration.
+
+- [ ] **Шаг 3.2. Создать Codex renderer**
+
+  `codex-home/bin/render-instructions.sh` читает Claude sources.
+
+  Скрипт никогда не пишет в Claude paths.
+
+  Он выполняет:
+
+  1. Чтение `claude-home/CLAUDE.md`.
+  2. Замену standalone `@RTK.md` содержимым `claude-home/RTK.md`.
+  3. Добавление `claude-home/rules/python-dev.md`.
+  4. Atomic write в `~/.codex/AGENTS.md`.
+  5. Atomic copy `CLAUDE.md` в `AGENTS.override.md`.
+  6. Запись source hashes в `~/.codex/instruction-sources.sha256`.
+
+  Generated-файл не получает новых поведенческих правил.
+
+  Разрешены только blank separators между раскрытыми Claude sources.
+
+- [ ] **Шаг 3.3. Сделать renderer fail-fast**
+
+  Скрипт завершается ошибкой при:
+
+  - новом неизвестном Claude import;
+  - отсутствующем source;
+  - изменении source во время render;
+  - target вне `~/.codex/AGENTS.md` и `AGENTS.override.md`;
+  - ошибке atomic replacement.
+
+- [ ] **Шаг 3.4. Удалить старые Codex instructions**
+
+  Полностью удалить `developer_instructions` из `~/.codex/config.toml`.
+
+  Старое содержимое не переносится в generated-файл.
+
+- [ ] **Шаг 3.5. Создать project override**
+
+  Создать regular generated-файл:
+
+  ```text
+  AGENTS.override.md
   ```
 
-  Ожидается подтверждение текущего дрейфа.
+  Его содержимое является byte-copy неизменённого `CLAUDE.md`.
 
-- [ ] **Шаг 3.2. Объединить уникальные правила**
+  Symlink запрещён, поскольку запись через него изменила бы Claude source.
 
-  `AGENTS.md` становится проектным SSoT.
+  Старый `AGENTS.md` также не изменяется.
 
-  Управляемые Beads-маркеры сохраняются.
-
-- [ ] **Шаг 3.3. Добавить тип проекта**
-
-  Добавить в начало project metadata:
-
-  ```yaml
-  project_type: dev
-  ```
-
-- [ ] **Шаг 3.4. Удалить дублирующиеся Beads-блоки**
-
-  Сохранить один актуальный managed block.
-
-  Не изменять его внутренние markers вручную.
-
-- [ ] **Шаг 3.5. Связать Claude project file**
-
-  Заменить `CLAUDE.md` symlink на `AGENTS.md`.
-
-  Перед заменой сохранить содержимое через Git.
-
-- [ ] **Шаг 3.6. Увеличить лимит инструкций**
-
-  Глобальный файл уже содержит `35 789` байт.
+- [ ] **Шаг 3.6. Увеличить Codex instruction limit**
 
   Установить:
 
@@ -394,48 +519,54 @@ repository/CLAUDE.md -> repository/AGENTS.md
   project_doc_max_bytes = 65536
   ```
 
-- [ ] **Шаг 3.7. Дедуплицировать `developer_instructions`**
+  Это Codex runtime setting.
 
-  В Codex-specific слое оставить:
+  Claude этот параметр не читает.
 
-  - имена нативных инструментов;
-  - особенности approvals;
-  - особенности hooks;
-  - правила Codex agents;
-  - особенности plugin discovery.
+- [ ] **Шаг 3.7. Добавить staleness check**
 
-  Общие правила остаются в `claude-home/CLAUDE.md`.
+  Проверка сравнивает hashes:
 
-- [ ] **Шаг 3.8. Устранить зависимость от `@RTK.md`**
+  - `claude-home/CLAUDE.md`;
+  - `claude-home/RTK.md`;
+  - `claude-home/rules/python-dev.md`;
+  - generated `~/.codex/AGENTS.md`;
+  - project `CLAUDE.md`;
+  - generated `AGENTS.override.md`.
 
-  Обязательные RTK-правила перенести в глобальный SSoT.
+  Изменившийся Claude source требует нового render.
 
-  Подробную tool-specific механику оставить в отдельном Codex skill.
+- [ ] **Шаг 3.8. Проверить project precedence**
 
-- [ ] **Шаг 3.9. Проверить загрузку инструкций**
+  Новый Codex-сеанс должен загрузить:
 
-  Запустить Codex:
+  1. Generated global `~/.codex/AGENTS.md`.
+  2. Project `AGENTS.override.md`.
 
-  - из корня;
-  - из вложенной папки;
-  - после resume;
-  - после compact.
+  Старый project `AGENTS.md` не должен входить в active chain.
 
-  Codex должен одинаково определять язык, безопасность и project type.
+- [ ] **Шаг 3.9. Повторно проверить Claude integrity**
+
+  Сравнить hashes с manifest этапа 1.
+
+  Все hashes должны остаться идентичными.
 
 ### Gate этапа
 
-- `AGENTS.md` является единственным project SSoT.
-- `CLAUDE.md` указывает на `AGENTS.md`.
-- `project_type: dev` присутствует.
-- Codex не обрезает глобальные инструкции.
-- Общие правила отсутствуют в `developer_instructions`.
+- Ни один Claude source не изменён.
+- `~/.codex/AGENTS.md` является generated regular file.
+- `developer_instructions` отсутствует.
+- `AGENTS.override.md` является изолированной generated-копией `CLAUDE.md`.
+- Старый `AGENTS.md` не входит в active Codex chain.
+- `RTK.md` раскрыт только внутри Codex generated-файла.
+- `python-dev.md` включён только в Codex generated-файл.
+- `project_doc_max_bytes` равен `65536`.
 
 ### Коммит
 
 ```bash
-git add AGENTS.md CLAUDE.md claude-home/CLAUDE.md .codex/config.toml
-git commit -m "docs(harness): unify Claude and Codex instructions"
+git add AGENTS.override.md codex-home/bin/render-instructions.sh
+git commit -m "chore(harness): mirror Claude instructions into Codex"
 ```
 
 Git push не выполнять.
@@ -558,13 +689,23 @@ Git push не выполнять.
 ### Файлы
 
 - Создать: `codex-home/hooks.json`
+- Создать: `codex-home/hooks/block-no-verify.sh`
+- Создать: `codex-home/hooks/rtk-rewrite.sh`
+- Создать: `codex-home/hooks/rtk-announce.sh`
+- Создать: `codex-home/hooks/regen-xml-on-spec-edit.sh`
+- Создать: `codex-home/hooks/anti-hallucination.sh`
+- Создать: `codex-home/hooks/local-only-guard.sh`
 - Изменить: `.codex/hooks.json`
-- Адаптировать: `claude-home/hooks/block-no-verify.sh`
-- Адаптировать: `claude-home/hooks/rtk-rewrite.sh`
-- Повторно использовать: `claude-home/hooks/rtk-announce.sh`
-- Адаптировать: `claude-home/hooks/regen-xml-on-spec-edit.sh`
-- Адаптировать: `claude-home/hooks/anti-hallucination.sh`
-- Добавить shared guard: `claude-home/hooks/local-only-guard.sh`
+
+Claude hook sources используются только для чтения:
+
+- `claude-home/hooks/block-no-verify.sh`
+- `claude-home/hooks/rtk-rewrite.sh`
+- `claude-home/hooks/rtk-announce.sh`
+- `claude-home/hooks/regen-xml-on-spec-edit.sh`
+- `claude-home/hooks/anti-hallucination.sh`
+
+Ни один Claude hook не изменяется.
 
 ### Разделение ответственности
 
@@ -591,6 +732,8 @@ Git push не выполнять.
 
   Не использовать payload из другого проекта как спецификацию.
 
+  Diagnostic hook создаётся только в `codex-home/hooks/`.
+
 - [ ] **Шаг 5.2. Сопоставить события**
 
   Требуемый mapping:
@@ -610,6 +753,8 @@ Git push не выполнять.
 
 - [ ] **Шаг 5.4. Адаптировать PreToolUse**
 
+  Создать независимые Codex adapters.
+
   PreToolUse должен:
 
   - блокировать `--no-verify`;
@@ -624,7 +769,9 @@ Git push не выполнять.
 
   XML regeneration запускается только для подходящих spec-файлов.
 
-  Существующий пользовательский diff сохраняется.
+  Codex adapter не вызывает Claude hook напрямую.
+
+  Существующий Claude hook остаётся byte-identical.
 
 - [ ] **Шаг 5.6. Адаптировать Stop**
 
@@ -652,6 +799,12 @@ Git push не выполнять.
 
   Diagnostic output не должен содержать sensitive payload.
 
+- [ ] **Шаг 5.10. Проверить Claude integrity**
+
+  Повторно сравнить Claude hook hashes с manifest этапа 1.
+
+  Любое расхождение блокирует продолжение.
+
 ### Gate этапа
 
 - Все обязательные events покрыты.
@@ -659,12 +812,13 @@ Git push не выполнять.
 - Блокировка не создаёт побочных эффектов.
 - XML regeneration работает.
 - Anti-hallucination работает на синтетическом сообщении.
-- Existing user diff сохранён.
+- Все Claude hook hashes неизменны.
+- Existing user diff сохранён byte-identical.
 
 ### Коммит
 
 ```bash
-git add codex-home/hooks.json .codex/hooks.json claude-home/hooks
+git add codex-home/hooks.json codex-home/hooks .codex/hooks.json
 git commit -m "feat(harness): port Claude hooks to Codex"
 ```
 
@@ -754,17 +908,23 @@ Git push не выполнять.
 
 ### Файлы
 
-- Создать: `pipeline/SKILL.md`
-- Изменить или добавить: Codex-compatible metadata в переносимых skills
-- Обновить: `claude-home/CLAUDE.md`
-- Обновить: Codex skill symlinks
+- Создать: `codex-home/skills/pipeline/SKILL.md`
+- Создать: per-skill directories внутри `codex-home/skills/`
+- Создать: `codex-home/skills/sources.sha256`
+- Обновить: symlinks только внутри `~/.codex/skills/`
+
+Claude skill, agent и command sources остаются read-only.
 
 ### Стратегии переноса
 
-1. Прямой symlink для tool-neutral skill.
-2. Codex adapter для Claude-specific metadata.
+1. Codex-only copy для tool-neutral skill.
+2. Codex-only adapter для Claude-specific metadata.
 3. Нативная замена при существующем Codex skill.
 4. Исключение только для неактивного компонента.
+
+Codex symlink не должен указывать на Claude source.
+
+Это предотвращает случайную запись Codex в Claude skill.
 
 ### Шаги
 
@@ -783,6 +943,8 @@ Git push не выполнять.
   - Claude-only metadata;
   - Codex target;
   - trigger test.
+
+  Все Codex targets размещаются под `codex-home/skills/`.
 
 - [ ] **Шаг 7.3. Разрешить конфликт orchestrators**
 
@@ -815,16 +977,16 @@ Git push не выполнять.
 
 - [ ] **Шаг 7.6. Преобразовать `pipeline.md`**
 
-  Source:
+  Read-only source:
 
   ```text
   commands/pipeline.md
   ```
 
-  Target:
+  Codex-only target:
 
   ```text
-  pipeline/SKILL.md
+  codex-home/skills/pipeline/SKILL.md
   ```
 
   Проверить:
@@ -853,8 +1015,24 @@ Git push не выполнять.
   - явным вызовом;
   - подходящим естественным запросом;
   - неподходящим запросом;
-  - разрешением symlink;
+  - разрешением Codex-only symlink;
   - загрузкой executable `lib/`.
+
+- [ ] **Шаг 7.9. Проверить source hashes**
+
+  Сравнить Claude source hashes с manifest этапа 1.
+
+  Codex copies проверяются через `codex-home/skills/sources.sha256`.
+
+- [ ] **Шаг 7.10. Проверить отсутствие обратных symlinks**
+
+  Ни один symlink под `~/.codex/skills/` не указывает в:
+
+  - `~/.claude/`;
+  - `claude-home/`;
+  - `commands/`;
+  - `agents/`;
+  - существующие Claude skill directories.
 
 ### Gate этапа
 
@@ -863,11 +1041,13 @@ Git push не выполнять.
 - `pipeline` работает как Codex skill.
 - Worker skills не переходят к другим workers самостоятельно.
 - Plugins не дублируют MCP и skills.
+- Claude source hashes не изменились.
+- Codex skills изолированы внутри `codex-home/skills/`.
 
 ### Коммит
 
 ```bash
-git add pipeline claude-home/CLAUDE.md
+git add codex-home/skills
 git commit -m "feat(harness): align Codex skills and workflows"
 ```
 
@@ -929,7 +1109,7 @@ Git push не выполнять.
 
   Распределить долговечную информацию:
 
-  - правила → `AGENTS.md`;
+  - Claude rules → generated `~/.codex/AGENTS.md`;
   - task state → Beads;
   - transient facts → session context.
 
@@ -956,6 +1136,12 @@ Git push не выполнять.
 
   Parent проверяет результат объективными командами.
 
+- [ ] **Шаг 8.9. Проверить Claude source integrity**
+
+  Повторно сравнить hashes `agents/*.md` с manifest этапа 1.
+
+  Codex TOML-файлы не должны ссылаться на writable Claude paths.
+
 ### Gate этапа
 
 - Все шесть agents доступны.
@@ -963,6 +1149,7 @@ Git push не выполнять.
 - Writers ограничены проектом.
 - Claude memories не импортированы.
 - Lifecycle не теряет Beads task state.
+- Claude agent sources не изменились.
 
 ### Коммит
 
@@ -981,21 +1168,34 @@ Git push не выполнять.
 
 ### Файлы
 
-- Создать: `scripts/install-codex-symlinks.sh`
-- Изменить: `Makefile`
+- Создать: `codex-home/bin/install.sh`
+- Создать: `codex-home/bin/check.sh`
 - Использовать: `codex-home/config.toml.template`
 - Использовать: `codex-home/hooks.json`
+- Использовать: `codex-home/hooks/*.sh`
 - Использовать: `codex-home/rules/default.rules`
 - Использовать: `codex-home/agents/*.toml`
+- Использовать: `codex-home/skills/**`
+- Использовать: `codex-home/bin/render-instructions.sh`
+
+Shared `Makefile` не изменяется.
 
 ### Целевая структура
 
 ```text
 codex-home/
 ├── config.toml.template
+├── bin/
+│   ├── render-instructions.sh
+│   ├── install.sh
+│   └── check.sh
 ├── hooks.json
+├── hooks/
+│   └── Codex-only hook adapters
 ├── rules/
 │   └── default.rules
+├── skills/
+│   └── Codex-only skill copies and adapters
 └── agents/
     ├── do-feature-clean.toml
     ├── py-doc-manager.toml
@@ -1017,14 +1217,16 @@ codex-home/
   - устанавливать отдельные skill symlinks;
   - не заменять system skills;
   - валидировать каждую target;
-  - не читать credentials.
+  - не читать credentials;
+  - писать runtime-файлы только в `~/.codex/`;
+  - никогда не писать в `~/.claude/`.
 
 - [ ] **Шаг 9.2. Добавить режим проверки**
 
   Предлагаемый флаг:
 
   ```bash
-  scripts/install-codex-symlinks.sh --check
+  codex-home/bin/install.sh --check
   ```
 
   Режим ничего не изменяет.
@@ -1045,19 +1247,22 @@ codex-home/
 
   Machine-local TOML sections остаются за пределами блока.
 
-- [ ] **Шаг 9.5. Добавить Makefile targets**
+- [ ] **Шаг 9.5. Добавить Codex-only commands**
 
-  ```make
-  install-codex-symlinks
-  check-codex-harness
+  ```bash
+  codex-home/bin/render-instructions.sh
+  codex-home/bin/install.sh
+  codex-home/bin/check.sh
   ```
 
-  Существующие Claude targets сохраняются.
+  Shared `Makefile` и Claude targets не изменяются.
 
 - [ ] **Шаг 9.6. Проверить shell syntax**
 
   ```bash
-  bash -n scripts/install-codex-symlinks.sh
+  bash -n codex-home/bin/render-instructions.sh
+  bash -n codex-home/bin/install.sh
+  bash -n codex-home/bin/check.sh
   ```
 
   Ожидается exit code `0`.
@@ -1065,7 +1270,7 @@ codex-home/
 - [ ] **Шаг 9.7. Проверить dry-run**
 
   ```bash
-  scripts/install-codex-symlinks.sh --check
+  codex-home/bin/install.sh --check
   ```
 
   Ожидается список изменений без filesystem mutation.
@@ -1075,8 +1280,8 @@ codex-home/
   После отдельного approval:
 
   ```bash
-  make install-codex-symlinks
-  make check-codex-harness
+  codex-home/bin/install.sh
+  codex-home/bin/check.sh
   ```
 
 - [ ] **Шаг 9.9. Сравнить машины**
@@ -1085,6 +1290,18 @@ codex-home/
 
   Authentication и trust state должны различаться.
 
+- [ ] **Шаг 9.10. Проверить write targets**
+
+  Installer dry-run должен перечислять только `~/.codex/**`.
+
+  Появление Claude path блокирует installation.
+
+- [ ] **Шаг 9.11. Проверить Claude integrity**
+
+  После installation повторно сравнить полный Claude manifest.
+
+  Ожидается byte-identical результат.
+
 ### Gate этапа
 
 - Installer идемпотентен.
@@ -1092,11 +1309,13 @@ codex-home/
 - Неожиданные файлы не перезаписываются.
 - Machine-local TOML sections сохранены.
 - System skills не затронуты.
+- Installer не записывает в Claude paths.
+- Claude integrity manifest совпадает.
 
 ### Коммит
 
 ```bash
-git add codex-home scripts/install-codex-symlinks.sh Makefile
+git add codex-home
 git commit -m "build(harness): add Codex installation workflow"
 ```
 
@@ -1119,7 +1338,7 @@ Git push не выполнять.
 - [ ] **Шаг 10.2. Проверить TOML**
 
   ```bash
-  python3.11 -c 'import pathlib, tomllib; tomllib.loads(pathlib.Path("codex-home/config.toml.template").read_text())'
+  python3 -c 'import pathlib, tomllib; tomllib.loads(pathlib.Path("codex-home/config.toml.template").read_text())'
   ```
 
 - [ ] **Шаг 10.3. Проверить Codex config**
@@ -1137,6 +1356,8 @@ Git push не выполнять.
   ```bash
   find ~/.codex -maxdepth 3 -type l -print
   ```
+
+  Ни один Codex symlink не должен разрешаться в Claude source.
 
 ### Поведенческие проверки
 
@@ -1202,19 +1423,27 @@ Claude-модель для сравнения не запускать.
   - GitHub read-only metadata;
   - отсутствие duplicate GitHub server.
 
+- [ ] **Шаг 10.11. Проверить Claude byte integrity**
+
+  Пересоздать Claude hash manifest во временном Codex path.
+
+  Сравнить его с baseline этапа 1.
+
+  Ожидается нулевой diff.
+
 ### Canary
 
-- [ ] **Шаг 10.11. Выполнить read-only canary**
+- [ ] **Шаг 10.12. Выполнить read-only canary**
 
   Выполнить три read-only задачи в текущем проекте.
 
-- [ ] **Шаг 10.12. Выполнить write canary**
+- [ ] **Шаг 10.13. Выполнить write canary**
 
   Создать временную папку внутри project root.
 
   Выполнить одну безопасную запись и удалить её после проверки.
 
-- [ ] **Шаг 10.13. Выполнить blocking canary**
+- [ ] **Шаг 10.14. Выполнить blocking canary**
 
   Проверить одну внешнюю запись.
 
@@ -1235,10 +1464,12 @@ Cutover разрешён только при выполнении всех ус�
 - используется ChatGPT subscription;
 - `codex doctor --json` не сообщает критичных ошибок;
 - существующий пользовательский diff сохранён.
+- Claude hash manifest полностью совпадает.
+- Git diff не содержит Claude paths.
 
 ### Финальный аудит
 
-- [ ] **Шаг 10.14. Открыть новый read-only Codex-сеанс**
+- [ ] **Шаг 10.15. Открыть новый read-only Codex-сеанс**
 
   Использовать:
 
@@ -1255,7 +1486,7 @@ Cutover разрешён только при выполнении всех ус�
   - canary results;
   - список исключений.
 
-- [ ] **Шаг 10.15. Объективно проверить audit claims**
+- [ ] **Шаг 10.16. Объективно проверить audit claims**
 
   Parent повторно запускает заявленные validators.
 
@@ -1263,30 +1494,36 @@ Cutover разрешён только при выполнении всех ус�
 
 ### Cutover
 
-- [ ] **Шаг 10.16. Установить global Codex symlinks**
+- [ ] **Шаг 10.17. Установить global Codex symlinks**
 
   Использовать проверенный installer.
 
-- [ ] **Шаг 10.17. Применить shared config**
+- [ ] **Шаг 10.18. Применить shared config**
 
   Machine-local sections должны сохраниться.
 
-- [ ] **Шаг 10.18. Подтвердить hook trust**
+- [ ] **Шаг 10.19. Подтвердить hook trust**
 
   Использовать `/hooks`.
 
-- [ ] **Шаг 10.19. Повторить короткий canary**
+- [ ] **Шаг 10.20. Повторить короткий canary**
 
   Повторить read-only, write и blocking checks.
 
-- [ ] **Шаг 10.20. Закрыть Beads-задачу**
+- [ ] **Шаг 10.21. Выполнить финальную Claude integrity check**
+
+  Claude hashes должны совпасть с baseline.
+
+  При расхождении выполнить rollback до commit.
+
+- [ ] **Шаг 10.22. Закрыть Beads-задачу**
 
   Задача закрывается только после успешного gate.
 
-- [ ] **Шаг 10.21. Создать финальный commit**
+- [ ] **Шаг 10.23. Создать финальный commit**
 
   ```bash
-  git add AGENTS.md CLAUDE.md .codex codex-home pipeline scripts Makefile claude-home
+  git add AGENTS.override.md .codex codex-home
   git commit -m "feat(harness): migrate Claude workflow to Codex"
   ```
 
@@ -1297,13 +1534,15 @@ Cutover разрешён только при выполнении всех ус�
 При критичном нарушении:
 
 1. Завершить текущую Codex session.
-2. Восстановить предыдущий `config.toml`.
-3. Восстановить предыдущие hooks и symlinks.
+2. Восстановить предыдущий Codex `config.toml`.
+3. Восстановить предыдущие Codex hooks и symlinks.
 4. Запустить `codex --strict-config`.
 5. Запустить `codex doctor --json`.
-6. Вернуться к неизменённому Claude harness.
-7. Зафиксировать причину в Beads.
-8. Не продолжать cutover до исправления.
+6. Удалить только созданный `AGENTS.override.md`.
+7. Повторно проверить Claude hashes.
+8. Вернуться к неизменённому Claude harness.
+9. Зафиксировать причину в Beads.
+10. Не продолжать cutover до исправления.
 
 Claude harness не удаляется после миграции.
 
