@@ -576,50 +576,35 @@ def docker_available() -> bool:
     return code == 0
 
 
-def clean_docker(journal: Journal, apply: bool, now: float) -> int:
+def clean_docker(journal: Journal, apply: bool, now: float) -> None:
     if not docker_available():
         journal.write(part="docker", action="skip", reason="docker unavailable")
-        return 0
-    return clean_build_cache(journal, apply, now) + clean_images(journal, apply, now)
+        return
+    clean_build_cache(journal, apply)
+    clean_images(journal, apply, now)
 
 
-def clean_build_cache(journal: Journal, apply: bool, now: float) -> int:
-    """Build cache older than 30 days. Never pass --all: for the cache that
+def clean_build_cache(journal: Journal, apply: bool) -> int:
+    """Build cache not used for 30 days. Never pass --all: for the cache that
     flag means something else entirely (internal builder images).
 
-    The age filter is applied twice, for different reasons. `docker buildx du`
-    accepts `--filter` but ignores `until=` — verified on 2026-08-13, it
-    returned all 266 records for every value including `until=999999h` — so
-    the estimate below has to select records itself. The prune command does
-    honour the filter, which is why deletion still delegates to it.
+    Nothing is predicted here, on purpose. Docker selects records by when they
+    were last USED, and exposes that only as prose ("4 months ago"); the
+    precise `CreatedAt` it does expose selects a different set entirely. On
+    2026-08-13 counting by creation promised 262 records and the prune removed
+    9 — the records were old but still in use. Reported instead is docker's
+    own reclaimable figure for the whole cache, and afterwards the amount the
+    prune itself says it freed.
     """
     age = f"{DOCKER_CACHE_AGE_DAYS * 24}h"
-    code, out = run(["docker", "buildx", "du", "--format", "json"])
-    if code != 0:
-        journal.error(f"cannot list build cache: {out.strip()[:200]}", part="docker")
-        return 0
-
-    records = 0
-    for record in iter_json_lines(out):
-        created = parse_docker_time(str(record.get("CreatedAt", "")))
-        if created is None or (now - created) / 86400.0 <= DOCKER_CACHE_AGE_DAYS:
-            continue
-        records += 1
-
     if not apply:
-        # Only the count and docker's own ceiling: cache records share layers,
-        # so adding up their individual sizes overstates the result — here it
-        # came to 25.7GB against docker's actual 13.27GB reclaimable.
         journal.write(
             part="docker", target="build-cache", action="would-prune",
-            records=records, reclaimable=reclaimable_ceiling("Build Cache"),
-            reason=f"created more than {DOCKER_CACHE_AGE_DAYS} days ago",
+            reclaimable=reclaimable_ceiling("Build Cache"),
+            reason=f"records not used for {DOCKER_CACHE_AGE_DAYS} days",
         )
         return 0
 
-    if not records:
-        journal.write(part="docker", target="build-cache", action="skip", reason="no old records")
-        return 0
     code, out = run(
         ["docker", "buildx", "prune", "--filter", f"until={age}", "--force"], timeout=900
     )
@@ -627,21 +612,22 @@ def clean_build_cache(journal: Journal, apply: bool, now: float) -> int:
         journal.error(f"build cache prune failed: {out.strip()[:200]}", part="docker")
         return 0
     freed = parse_reclaimed(out)
-    journal.write(
-        part="docker", target="build-cache", action="prune",
-        records=records, freed=human(freed),
-    )
+    journal.write(part="docker", target="build-cache", action="prune", freed=human(freed))
     return freed
 
 
 def clean_images(journal: Journal, apply: bool, now: float) -> int:
-    """Unused images older than 100 days. Images referenced by any container
-    are excluded here and refused by docker anyway.
+    """Unused images older than 100 days. Returns how many were removed.
 
-    Only the count is reported before deletion, never a sum of image sizes:
-    images share layers, so adding their individual sizes overstates what
-    would be freed several times over. The `reclaimable` figure logged
-    alongside is docker's own ceiling for ALL unused images, old or not.
+    Removal is done here, image by image, rather than handed to
+    `docker image prune --filter until=`. That filter does not select by build
+    date: on docker 29.3.1 it reclaimed nothing from images 344 to 375 days
+    old, with a duration and with an absolute date alike, while a plain
+    `docker image rm` removed the same image instantly. Delegating would mean
+    the daily log promised a rule the tool does not carry out.
+
+    Docker refuses to remove an image another image is built on. That is a
+    normal outcome, not a failure, so it is logged as a skip.
     """
     in_use = images_in_use(journal)
     code, out = run(["docker", "image", "ls", "--all", "--no-trunc", "--format", "json"])
@@ -650,7 +636,7 @@ def clean_images(journal: Journal, apply: bool, now: float) -> int:
         return 0
 
     seen: set[str] = set()
-    count = 0
+    candidates: list[tuple[str, str]] = []
     for record in iter_json_lines(out):
         image_id = str(record.get("ID", ""))
         if not image_id or image_id in seen:
@@ -660,30 +646,32 @@ def clean_images(journal: Journal, apply: bool, now: float) -> int:
         if created is None:
             continue
         if decide_image(age_days=(now - created) / 86400.0, in_use=image_id in in_use).deletes:
-            count += 1
+            name = f"{record.get('Repository', '<none>')}:{record.get('Tag', '<none>')}"
+            candidates.append((image_id, name))
 
     if not apply:
         journal.write(
-            part="docker", target="images", action="would-prune", images=count,
-            reclaimable=reclaimable_ceiling("Images"),
+            part="docker", target="images", action="would-remove",
+            images=len(candidates), reclaimable=reclaimable_ceiling("Images"),
             reason=f"unused, older than {DOCKER_IMAGE_AGE_DAYS} days",
         )
         return 0
 
-    if not count:
-        journal.write(part="docker", target="images", action="skip", reason="no old unused images")
-        return 0
-    age = f"{DOCKER_IMAGE_AGE_DAYS * 24}h"
-    code, out = run(
-        ["docker", "image", "prune", "--all", "--filter", f"until={age}", "--force"],
-        timeout=900,
+    removed = 0
+    for image_id, name in candidates:
+        code, out = run(["docker", "image", "rm", image_id], timeout=300)
+        if code == 0:
+            removed += 1
+            continue
+        journal.write(
+            part="docker", target="images", action="skip", image=name,
+            reason=out.strip().splitlines()[-1][:120] if out.strip() else "removal refused",
+        )
+    journal.write(
+        part="docker", target="images", action="remove",
+        removed=removed, of=len(candidates),
     )
-    if code != 0:
-        journal.error(f"image prune failed: {out.strip()[:200]}", part="docker")
-        return 0
-    freed = parse_reclaimed(out)
-    journal.write(part="docker", target="images", action="prune", images=count, freed=human(freed))
-    return freed
+    return removed
 
 
 def iter_json_lines(text: str) -> Iterator[dict]:
@@ -699,11 +687,14 @@ def iter_json_lines(text: str) -> Iterator[dict]:
             yield record
 
 
-RECLAIMED = re.compile(r"Total reclaimed space:\s*(.+)$", re.MULTILINE)
+# Two wordings for the same thing: `docker image prune` says "Total reclaimed
+# space: 1.5GB", `docker buildx prune` just says "Total: 1.5GB". Matching only
+# the first made every cache prune report 0B freed.
+RECLAIMED = re.compile(r"(?:Total reclaimed space|Total):\s*(\S+)\s*$", re.MULTILINE)
 
 
 def parse_reclaimed(output: str) -> int:
-    """Read the "Total reclaimed space: 1.5GB" line docker prints after a prune."""
+    """Read the freed-space line docker prints after a prune, either wording."""
     match = RECLAIMED.search(output)
     return parse_human_size(match.group(1)) if match else 0
 
@@ -781,14 +772,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     journal = Journal(LOG_PATH, host=os.uname().nodename, echo=not args.quiet)
     journal.write(run="start", mode="apply" if apply else "dry-run")
 
+    # Measured across the whole run: the per-part figures cannot be added up
+    # honestly, because docker's are sums over shared layers. This one is what
+    # the filesystem actually gained.
+    free_before = shutil.disk_usage(Path.home()).free
+
     freed_claude = clean_jobs(journal, apply, now)
     removed = clean_worktrees(journal, apply, roots)
-    freed_docker = 0 if args.skip_docker else clean_docker(journal, apply, now)
+    if not args.skip_docker:
+        clean_docker(journal, apply, now)
 
+    gained = shutil.disk_usage(Path.home()).free - free_before
     journal.write(
         run="finish", exit=1 if journal.errors else 0, errors=journal.errors,
-        freed_claude=human(freed_claude), worktrees_removed=removed,
-        freed_docker=human(freed_docker),
+        jobs_freed=human(freed_claude), worktrees_removed=removed,
+        disk_gained=human(gained) if gained > 0 else "0B",
     )
     journal.flush()
     return 1 if journal.errors else 0

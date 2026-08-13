@@ -209,13 +209,18 @@ class SizeParsing(unittest.TestCase):
         self.assertEqual(hk.parse_human_size("3.139GB*"), 3_139_000_000)
         self.assertEqual(hk.parse_human_size("nonsense"), 0)
 
-    def test_docker_timestamps(self):
-        """Both shapes docker emits, including the fractional-second one.
+    def test_reclaimed_space_in_both_wordings(self):
+        """`docker image prune` and `docker buildx prune` word it differently.
 
-        Build cache records carry fractional seconds while images do not.
-        Rejecting them silently made every cache record unparseable, and the
-        cleanup then reported nothing to prune at all.
+        Matching only the first wording made every cache prune report 0B
+        freed while it had in fact removed records.
         """
+        self.assertEqual(hk.parse_reclaimed("Total reclaimed space: 7.9GB"), 7_900_000_000)
+        self.assertEqual(hk.parse_reclaimed("Total:\t1.53GB"), 1_530_000_000)
+        self.assertEqual(hk.parse_reclaimed("nothing of the sort"), 0)
+
+    def test_docker_timestamps(self):
+        """Both shapes docker emits, including the fractional-second one."""
         images = hk.parse_docker_time("2026-08-09 11:03:22 +0300 +03")
         cache = hk.parse_docker_time("2026-02-10 15:47:56.578713681 +0000 UTC")
         self.assertIsNotNone(images)
