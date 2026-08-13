@@ -229,6 +229,61 @@ class SizeParsing(unittest.TestCase):
         self.assertIsNone(hk.parse_docker_time(""))
 
 
+class JournalRotation(unittest.TestCase):
+    """Spec 5.5: the log is the only record, so trimming must not eat it."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "housekeeping.log"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def journal(self) -> hk.Journal:
+        return hk.Journal(self.path, host="test", echo=False)
+
+    def test_a_run_is_written_even_when_it_deletes_nothing(self):
+        journal = self.journal()
+        journal.write(run="start", mode="dry-run")
+        journal.write(run="finish", exit=0)
+        journal.flush()
+        text = self.path.read_text(encoding="utf-8")
+        self.assertIn("run=start", text)
+        self.assertIn("run=finish", text)
+
+    def test_trimming_keeps_the_whole_newest_run(self):
+        """Trim happens before the run is appended, never after.
+
+        Otherwise a long run could lose its own finish line, and "the
+        scheduler never fired" would look the same as "nothing to delete".
+        """
+        detail = hk.LOG_MAX_LINES + 100  # a run longer than the limit itself
+        self.path.write_text("\n".join(f"old line {i}" for i in range(2000)) + "\n")
+        journal = self.journal()
+        journal.write(run="start", mode="apply")
+        for i in range(detail):
+            journal.write(part="jobs", job=f"j{i}", action="delete")
+        journal.write(run="finish", exit=0)
+        journal.flush()
+
+        lines = self.path.read_text(encoding="utf-8").splitlines()
+        text = "\n".join(lines)
+        # Trimming after appending would cut this run's own opening line.
+        self.assertIn("run=start", text)
+        self.assertIn("run=finish", lines[-1])
+        self.assertIn("job=j0", text)
+        self.assertNotIn("old line 0", text)
+
+    def test_errors_are_findable_by_a_single_word(self):
+        journal = self.journal()
+        journal.write(part="jobs", job="ok", action="keep")
+        journal.error("something broke", job="bad")
+        journal.flush()
+        matches = [l for l in self.path.read_text(encoding="utf-8").splitlines() if "ERROR" in l]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(journal.errors, 1)
+
+
 def git(repo: Path, *args: str) -> str:
     env = dict(
         os.environ,
