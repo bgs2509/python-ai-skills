@@ -6,6 +6,10 @@
 
 1. `.full_audit_tmp/results.jsonl` + `excerpts/` — итоги CLI/MCP проверок.
 2. `.full_audit_tmp/sentrux/*.json` — Sentrux scan/check_rules/test_gaps/dsm.
+   **Осторожно с `check_rules.json`:** бесплатная редакция MCP проверяет часть правил и
+   отвечает `pass: true` за остальные (числа — в поле `truncated`). Авторитетный источник по
+   нарушениям границ — excerpt `excerpts/20-sentrux-rules.txt` (вывод `sentrux check .`).
+   Не писать «архитектурных нарушений нет» на основании `check_rules.json`.
 3. `docs/superpowers/specs/*-discovery.md` (последний) — бизнес-требования.
 4. `docs/superpowers/specs/*-design.md` (последний) — технические решения.
 5. `docs/knowledge-graph.xml` — граф модулей.

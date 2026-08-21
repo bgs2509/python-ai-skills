@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Orchestrator: runs deterministic audit checks, writes JSONL + excerpts.
-# Usage: bash run.sh [--quick] [--no-tests]
+# Usage: bash run.sh [--quick] [--no-tests] [--no-trends] [--no-sentrux]
 set -uo pipefail
 
 QUICK=0
 NO_TESTS=0
 NO_TRENDS=0
+NO_SENTRUX=0
 for arg in "$@"; do
   case "$arg" in
     --quick) QUICK=1 ;;
     --no-tests) NO_TESTS=1 ;;
     --no-trends) NO_TRENDS=1 ;;
+    --no-sentrux) NO_SENTRUX=1 ;;
   esac
 done
 
@@ -213,8 +215,33 @@ fi
 run "19-pins" "runtime deps pinned (==)" 1 \
   python3 "${LIB_DIR}/check_pins.py" --json-out="${SIDECARS_DIR}/19-pins.jsonl"
 
-# ── 20. sentrux (best-effort; only via MCP from agent — здесь no-op)
-skip "20-sentrux" "sentrux MCP" "invoked separately via MCP if available"
+# ── 20. sentrux architectural rules — CLI, NOT the MCP tool.
+#
+# The MCP server's free edition checks only a handful of the rules declared in
+# .sentrux/rules.toml and answers {"pass": true, "violation_count": 0} regardless of the
+# rest, disclosing the limit only inside a `truncated` sub-object. Measured on Sensedar
+# 2026-08-21 at one commit: MCP said pass:true, rules_checked 3 of 39, 0 violations, while
+# `sentrux check .` reported 32 rules checked and 5 violations. For eighteen months that
+# made this audit's architecture section a section that could not fail.
+#
+# Status is WARN, not FAIL, on purpose: a project may carry deliberately accepted baseline
+# violations (see the consuming project's AGENTS.md). The excerpt therefore carries the full
+# LIST — compare it against the project's documented expected list, never against a count.
+# A count is unchanged when one violation is fixed and another introduced.
+if [[ $NO_SENTRUX -eq 1 ]]; then
+  skip "20-sentrux-rules" "sentrux check . (architectural rules)" "--no-sentrux"
+elif ! have sentrux; then
+  skip "20-sentrux-rules" "sentrux check . (architectural rules)" "sentrux CLI not installed"
+elif [[ ! -f .sentrux/rules.toml ]]; then
+  skip "20-sentrux-rules" "sentrux check . (architectural rules)" "no .sentrux/rules.toml (project not onboarded)"
+else
+  run "20-sentrux-rules" "sentrux check . (architectural rules — compare the LIST vs the project baseline)" 0 \
+    sentrux check .
+fi
+
+# MCP-side sentrux calls (scan / test_gaps / dsm / git_stats) still run agent-side.
+# check_rules is deliberately NOT among them any more — see the block above.
+skip "20-sentrux-mcp" "sentrux MCP scan/test_gaps/dsm/git_stats" "invoked separately via MCP if available"
 
 # ── 21. total-test (project-level e2e gate)
 if [[ $QUICK -eq 0 && $NO_TESTS -eq 0 ]] && grep -qE '^total-test:' Makefile 2>/dev/null; then

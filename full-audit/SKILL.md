@@ -99,7 +99,7 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 | 18| deps-audit   | `uvx pip-audit -r <(uv export --no-dev)` или `uv export \| uvx pip-audit -r /dev/stdin` | exit + JSON                           |
 | 19| deps-pinned  | `python lib/check_pins.py` — все runtime зависимости через `==` | self-test                              |
 | 20a| sentrux     | `mcp__sentrux__scan` (полный архитектурный скан)                       | JSON в `.full_audit_tmp/sentrux/scan.json`        |
-| 20b| sentrux     | `mcp__sentrux__check_rules` (проверка project rules)                   | JSON в `.full_audit_tmp/sentrux/check_rules.json` |
+| 20b| sentrux     | `sentrux check .` — **CLI, запускает `lib/run.sh`**. Правила границ/слоёв. `mcp__sentrux__check_rules` для этого НЕ использовать: бесплатная редакция проверяет часть правил и отвечает `pass: true` за остальные (замер Sensedar 2026-08-21: MCP `rules_checked: 3` из 39, 0 нарушений — против CLI `32 rules checked, 5 violation(s)`). Статус WARN, не FAIL: в проекте могут быть осознанно принятые нарушения — сравнивать **список**, а не число | excerpt `20-sentrux-rules.txt` |
 | 20c| sentrux     | `mcp__sentrux__test_gaps` (модули без тестов)                          | JSON в `.full_audit_tmp/sentrux/test_gaps.json`   |
 | 20d| sentrux     | `mcp__sentrux__dsm` (dependency structure matrix — циклы/слои)         | JSON в `.full_audit_tmp/sentrux/dsm.json`         |
 | 20e| sentrux     | `mcp__sentrux__git_stats` (churn / hotspot модулей)                    | JSON в `.full_audit_tmp/sentrux/git_stats.json`   |
@@ -131,7 +131,12 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 3. **Run Sentrux MCP suite — ОБЯЗАТЕЛЬНО** (кроме явного `--no-sentrux` от пользователя).
    Агент запускает **все пять последовательно** и сохраняет JSON в `.full_audit_tmp/sentrux/`:
    - `mcp__sentrux__scan` → `scan.json`
-   - `mcp__sentrux__check_rules` → `check_rules.json`
+   - `mcp__sentrux__check_rules` → `check_rules.json` — **только как справка, НЕ как проверка правил.**
+     Бесплатная редакция проверяет часть правил и отвечает `pass: true` за остальные, сообщая об
+     усечении лишь внутри поля `truncated`. Настоящая проверка границ — `sentrux check .`, её
+     запускает `lib/run.sh` (id `20-sentrux-rules`). При расхождении верить CLI.
+     `pass: true` из этого файла НИКОГДА не пересказывать в отчёте как «архитектурные правила
+     проходят» — писать «проверено N правил из M» ровно теми числами, что лежат в `truncated`.
    - `mcp__sentrux__test_gaps` → `test_gaps.json`
    - `mcp__sentrux__dsm` → `dsm.json`
    - `mcp__sentrux__git_stats` → `git_stats.json`

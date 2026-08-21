@@ -23,7 +23,8 @@ For each check: what it measures, source of truth, how to act on FAIL.
 | 17 | `interrogate -f 70` | no | Docstring coverage < 70% | Add docstrings to public API |
 | 18 | `pip-audit` | no | Known CVEs in pinned deps | Bump dep / pin secure version |
 | 19 | `check_pins.py` | yes | Runtime deps pinned with `==` | Replace `>=`/`~=`/`^` with `==` |
-| 20 | sentrux MCP | no | Architecture/contract rules + test gaps | Invoke from agent via MCP |
+| 20 | sentrux rules | no | Architectural boundary/layer rules — `sentrux check .` via CLI in `run.sh`. NOT `mcp__sentrux__check_rules`, whose free edition checks a subset and answers `pass: true` for the rest. WARN not FAIL; compare the violation LIST against the project's documented baseline, never the count | `run.sh` (id `20-sentrux-rules`) |
+| 20m | sentrux MCP | no | scan / test_gaps / dsm / git_stats (metrics + structure, not the rule gate) | Invoke from agent via MCP |
 | 21 | `make total-test` | no | Project's own e2e quality gate | Run individually & fix |
 
 ## Status semantics

@@ -38,13 +38,30 @@ NEVER executes this part — its STOP gates require user interaction, which suba
    record the current error count in Discovery notes. Drift in lint count during the feature
    must be addressed in the same PR.
 4. **Sentrux quality baseline (mandatory if `.sentrux/rules.toml` exists in repo):**
-   - Run `mcp__sentrux__scan` (or `sentrux scan --json`) and persist the result to
-     `.sentrux/baselines/{bd_id}.json` (gitignored).
+   - **Rule violations — use the CLI, NOT the MCP tool.** Run `sentrux check .` (no flags exist;
+     exit 1 on any violation; ~3 s on a 1600-file repo). Record the full violation LIST, not just
+     the count.
+     `mcp__sentrux__check_rules` MUST NOT be used as the gate: the free edition checks only a
+     handful of the rules defined in `.sentrux/rules.toml` and reports `pass: true` regardless of
+     the rest, disclosing the limit only inside a `truncated` sub-object. Measured on Sensedar
+     2026-08-21 at one commit: MCP `{"pass": true, "rules_checked": 3, "total_rules_defined": 39,
+     "violation_count": 0}` against CLI `32 rules checked, 5 violation(s) found`. A gate that
+     cannot fail is not a gate.
+   - **Metrics baseline.** Run `mcp__sentrux__scan` and persist its JSON to
+     `.sentrux/baselines/{bd_id}.json` (gitignored, per-clone — local evidence only, never cite
+     the path to someone on another machine). There is NO CLI equivalent that writes that file:
+     `sentrux scan` takes no flags and opens a GUI. The nearest CLI is `sentrux gate --save`,
+     which writes its own `.sentrux/baseline.json` of aggregate metrics only (quality_signal,
+     coupling_score, cycle_count, god_file_count, hotspot_count, complex_fn_count, max_depth,
+     total_import_edges, cross_module_edges) — it carries no rule violations, so it cannot serve
+     the hard gate above.
    - Record in Discovery notes: `quality_signal_before`, top bottleneck (e.g. `modularity Q=...`),
-     and `rules_pass / rules_fail` count.
-   - **Hard gate:** if any architectural rule (`mcp__sentrux__check_rules`) is currently FAIL —
-     STOP and prompt user: "Sentrux rule violation already present: <rule names>. Known
-     regression — allow as starting baseline? (yes / fix-first / cancel)".
+     and the violation LIST from `sentrux check .`. If you also record `rules_pass / rules_fail`
+     from the MCP scan, label them as the truncated sample they are.
+   - **Hard gate:** if `sentrux check .` reports any violation — STOP and prompt user: "Sentrux
+     rule violation already present: <full list>. Known regression — allow as starting baseline?
+     (yes / fix-first / cancel)". If the user allows it, record the accepted LIST, because a
+     later count comparison cannot tell "fixed one, introduced another" from "nothing changed".
    - If `.sentrux/rules.toml` is absent — skip Sentrux preflight silently (project not onboarded).
 
 ### Dispatch (research subagent)
@@ -285,12 +302,18 @@ code already passed by a phase review. Its scope is:
 3. `verification-before-completion` — a discipline, not a separate agent: run ALL tests, read the output, prove it works. Evidence before claims.
 
 **Sentrux postflight (mandatory if baseline was captured in Step 2):**
-- Run `mcp__sentrux__scan` (or `sentrux scan --json`) and persist to `.sentrux/results/{bd_id}.json` (gitignored).
+- Run `mcp__sentrux__scan` and persist to `.sentrux/results/{bd_id}.json` (gitignored, per-clone).
+  `sentrux scan --json` does not exist — `scan` takes no flags and opens a GUI.
+- Run `sentrux check .` again and diff its violation LIST against the list recorded in Step 2.
+  This is the authoritative rule comparison; the MCP tool's `rules_fail` is a truncated sample
+  (see Step 2 pt 4) and cannot be used here.
 - Compare to `.sentrux/baselines/{bd_id}.json`:
   - `Δ quality_signal = signal_after − signal_before`
-  - `new_rule_violations = rules_fail_after − rules_fail_before`
+  - `new_rule_violations` = entries present in the CLI list now and absent in Step 2's list.
+    Compare LISTS, never counts: a count is unchanged when one violation is fixed and another
+    introduced, which is the case you most need to catch.
   - `Δ modularity_Q`, `Δ cohesion`, top movers (file/module level)
-- **Hard gate (rule violations):** any `new_rule_violations > 0` → STOP. Two paths to proceed:
+- **Hard gate (rule violations):** any new entry in the CLI violation list → STOP. Two paths to proceed:
   - Fix the violation in this feature (preferred), then re-scan.
   - Document via ADR (`_adr` skill) explaining why the new architectural coupling is intentional, AND mark the accepted regression: `bd label add <epic> regression-accepted` — the epic is then closed in Step 13 with `--reason="see ADR-NNN"`.
 - **Soft gate (signal drop):** `Δ quality_signal < −100` → WARNING. Two paths to proceed:
