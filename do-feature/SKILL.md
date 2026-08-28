@@ -75,25 +75,25 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 
 **This matrix is the single source of truth for routing, expressed as TIERS, not fixed model names.** Step Details reference it and MUST NOT restate models. The Agent tool has NO `thinking` parameter — reasoning depth is steered only by prompt wording in the dispatch.
 
-**Tiers:** `strong` (deepest reasoning, highest cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). Map each tier to the strongest available model in that tier for the Agent tool's current lineup (currently: `strong`=opus, `mid`=sonnet, `cheap`=haiku).
+**Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). Map each tier to the strongest available model in that tier for the Agent tool's current lineup (currently: `top`=fable, `strong`=opus, `mid`=sonnet, `cheap`=haiku — set by user decision 2026-08-28).
 
-**Revalidation rule:** when the Agent tool's model lineup changes (new family, e.g. Claude 5/Fable), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
+**Revalidation rule:** when the Agent tool's model lineup changes (new family), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. The current 4-tier mapping predates that revalidation (`python-ai-skills-4f4` is still open). Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
 
 | Step | Dispatch | Tier | Rationale |
 |------|----------|------|-----------|
 | 1. `bd create` | inline | — | CLI |
-| 2. Discovery | research subagent (returns artifact + open questions) | strong | ST + insights deeper on strong tier (caregiver, liability, PII) |
+| 2. Discovery | research subagent (returns artifact + open questions) | top | requirements insight depth (caregiver, liability, PII) benefits from the frontier tier |
 | 3. USER APPROVAL — requirements | inline | — | gate |
 | 4. Brainstorming | research subagent (returns design options + trade-offs) | strong | architectural fork, trade-offs |
 | 5. USER APPROVAL — design | inline | — | gate |
 | 6. GRACE Ask | `Agent(model=<cheap>, subagent_type="general-purpose")` | cheap | graph sync (writes) + navigation |
-| 7. GRACE Plan | `Agent(model=<mid>, subagent_type="general-purpose")` | mid | structural codegen of contracts |
+| 7. GRACE Plan | `Agent(model=<top>, subagent_type="general-purpose")` | top | module architecture + contracts is the highest-leverage design step |
 | 8. Q&A Contracts | analysis subagent; Q&A run inline by orchestrator | mid | ambiguity extraction from contracts |
 | 9. Writing Plans | `Agent(model=<mid>, subagent_type="general-purpose")` | mid | decomposition into TDD steps |
 | 10. USER APPROVAL — plan | inline | — | gate |
 | 11. Execution — controller | inline (orchestrator, per grace-execute) | — | queue + ExecutionPackets |
 | 11. Execution — workers | one subagent per phase batch | mid | **default mid, not cheap** (ADR-002) |
-| 11. Execution — escalation | re-dispatch stuck step alone | strong | on 2 consecutive test fails on mid tier |
+| 11. Execution — escalation | re-dispatch stuck step alone | one tier up | on 2 consecutive test fails on the step's current tier |
 | 11. Execution — trivial | optional | cheap | only rename / format / mechanical |
 | 12. Review | `Agent(model=<strong>, subagent_type="general-purpose")` + reviewer template | strong | strongest review coverage, catches GRACE conventions (ADR-002) |
 | 13. Finish | inline | — | mechanical: commit + refresh + close |
@@ -101,13 +101,13 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 ### Escalation rule (Step 11)
 
 1. **Default — mid-tier worker per phase batch.** Mid tier is the validated baseline (ADR-002).
-2. **Escalate to strong tier on 2 consecutive test fails.** If the same step fails its TDD cycle twice in a row, the controller extracts that step from the batch and re-dispatches it *alone* on the strong tier. After it produces a passing implementation, subsequent steps return to the mid-tier default. Failure to escalate after 2 fails is a workflow defect — the controller MUST track per-step fail counts.
+2. **Escalate one tier up on 2 consecutive test fails.** If the same step fails its TDD cycle twice in a row, the controller extracts that step from the batch and re-dispatches it *alone* one tier above its current tier (`cheap`→`mid`→`strong`→`top`; `top` is the ceiling — after 2 fails there, stop and surface to the user). After it produces a passing implementation, subsequent steps return to the step's default tier. Failure to escalate after 2 fails is a workflow defect — the controller MUST track per-step fail counts.
 3. **Cheap tier only for trivial mechanical steps.** Pure rename, format-only changes, mass find-replace, mechanical comment updates. Anything that requires reasoning about types, control flow, or library APIs — stay on mid tier.
 4. **Context7 / new-library steps stay on mid tier.** Do NOT downgrade to cheap when a Context7 trigger fires (the 4 triggers listed in Step 11, reference.md).
 
 ### Audit trail — exceptions only
 
-Log to `bd update <epic> --notes` **only routing exceptions and gate events**: escalation to Opus, downgrade to Haiku, auto-approved gates (format: `Gate <N> auto-approved: risk=<low|medium|high>, evidence=strong. Source: <citation>.`), fallback-to-ask (with reason and the eventual user decision), and plan deviations. Default matrix routing is NOT logged — it is derivable from this file's git history. Milestone notes per step (`Discovery done`, `Design done`, `Plan ready`) remain mandatory.
+Log to `bd update <epic> --notes` **only routing exceptions and gate events**: escalation above a step's default tier, downgrade to cheap, auto-approved gates (format: `Gate <N> auto-approved: risk=<low|medium|high>, evidence=strong. Source: <citation>.`), fallback-to-ask (with reason and the eventual user decision), and plan deviations. Default matrix routing is NOT logged — it is derivable from this file's git history. Milestone notes per step (`Discovery done`, `Design done`, `Plan ready`) remain mandatory.
 
 ## Research Subagent Pattern (Steps 2, 4, 8)
 
