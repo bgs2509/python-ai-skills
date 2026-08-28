@@ -27,19 +27,35 @@ try:
 except ValueError:
     print("ALLOW"); sys.exit(0)
 
-# Find git subcommand
+# Find git subcommand, skipping git's global options (git -C <path> commit,
+# git -c k=v commit, git --git-dir=... commit) so a prefixed invocation
+# cannot slip past the subcommand check.
 if "git" not in tokens:
     print("ALLOW"); sys.exit(0)
 gi = tokens.index("git")
-if gi + 1 >= len(tokens):
-    print("ALLOW"); sys.exit(0)
-sub = tokens[gi + 1]
+takes_value = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
+i = gi + 1
+sub = None
+while i < len(tokens):
+    t = tokens[i]
+    if t in takes_value:
+        i += 2
+        continue
+    if t.startswith("-"):
+        i += 1
+        continue
+    sub = t
+    break
 if sub not in {"commit", "merge", "rebase", "cherry-pick"}:
     print("ALLOW"); sys.exit(0)
 
-# Look for bypass flags in remaining tokens, but skip values of -m/--message
+# Look for bypass flags in remaining tokens, but skip values of -m/--message.
+# Short -n means --no-verify only for commit (for merge it is --no-stat,
+# for cherry-pick it is --no-commit — not bypasses).
 bypass = {"--no-verify", "--no-gpg-sign"}
-i = gi + 2
+if sub == "commit":
+    bypass.add("-n")
+i += 1
 while i < len(tokens):
     t = tokens[i]
     if t in {"-m", "--message", "-F", "--file"}:
@@ -68,8 +84,10 @@ EOF
   exit 2
 fi
 
-# Block SKIP=... env var bypass (matched on raw string before shlex)
-if echo "$COMMAND" | grep -qE '(^|[[:space:]])SKIP=[^[:space:]]+[[:space:]]+(git[[:space:]]+commit|pre-commit)\b'; then
+# Block env-var bypasses (matched on raw string before shlex):
+# SKIP=hook skips individual hooks, PRE_COMMIT_ALLOW_NO_CONFIG bypasses the
+# framework config requirement (both named in CLAUDE.md → Pre-commit Policy).
+if echo "$COMMAND" | grep -qE '(^|[[:space:]])(SKIP=[^[:space:]]+|PRE_COMMIT_ALLOW_NO_CONFIG=[^[:space:]]+)[[:space:]].*(git[[:space:]].*commit|pre-commit)'; then
   cat >&2 <<'EOF'
 [block-no-verify] Refusing to bypass via SKIP=... env var.
 
