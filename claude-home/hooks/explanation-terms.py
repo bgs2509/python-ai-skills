@@ -4,7 +4,8 @@
 Reads Stop event JSON from stdin, scans the last assistant message for
 Latin-script coined terms inside Russian prose, and blocks the turn if such
 a term never appears in tool results, tool inputs, or user messages of the
-current session.
+current session, nor in the user's standing instruction files (global and
+project CLAUDE.md/AGENTS.md, rules, installed skill/agent names).
 
 Two candidate shapes are checked:
   1. compound Latin tokens  -- index-time, foo_bar, write-through
@@ -97,6 +98,40 @@ def collect_candidates(text: str) -> set:
     }
 
 
+def instruction_corpus(cwd: str) -> str:
+    """Standing instruction files and installed skill/agent names.
+
+    Vocabulary the user wrote into their own global/project rules
+    (do-feature, knowledge-graph, Fail-Fast, ...) is not a coined term, but
+    system instructions never appear in the transcript as tool results, so
+    without this the hook blocks the model for quoting the user's own rules.
+    """
+    home = pathlib.Path.home() / ".claude"
+    files = [home / "CLAUDE.md", home / "RTK.md"]
+    for d in (home / "rules", home / "output-styles"):
+        if d.is_dir():
+            files.extend(sorted(d.glob("*.md")))
+    if cwd:
+        for name in ("CLAUDE.md", "AGENTS.md"):
+            files.append(pathlib.Path(cwd) / name)
+    chunks = []
+    for f in files:
+        try:
+            if f.is_file():
+                chunks.append(f.read_text(errors="ignore")[:100_000])
+        except OSError:
+            continue
+    # Skill and agent names are installed vocabulary even when no
+    # instruction file spells them out.
+    for d in (home / "skills", home / "agents"):
+        try:
+            if d.is_dir():
+                chunks.extend(p.name for p in d.iterdir())
+        except OSError:
+            continue
+    return "\n".join(chunks).lower()
+
+
 def verified_corpus(events: list) -> str:
     chunks = []
     for ev in events:
@@ -169,7 +204,7 @@ def main() -> int:
     if not candidates:
         return 0
 
-    corpus = verified_corpus(events)
+    corpus = verified_corpus(events) + "\n" + instruction_corpus(data.get("cwd") or "")
     unverified = sorted(c for c in candidates if c.lower() not in corpus)
     if not unverified:
         return 0
@@ -178,7 +213,8 @@ def main() -> int:
         "EXPLANATION PROTOCOL GATE BLOCKED YOUR RESPONSE.\n\n"
         "Your last message used these Latin terms, and NONE of them appears "
         "in any tool result, file Read, tool input, or user message in this "
-        "session:\n"
+        "session, nor in the user's instruction files (CLAUDE.md, rules, "
+        "skill names):\n"
         "  " + ", ".join(unverified[:15]) + "\n\n"
         "That is the signature of a coined term -- typically completing the "
         "missing half of a real pair (search-time -> index-time). Per "
