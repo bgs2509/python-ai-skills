@@ -1,6 +1,6 @@
 # Microservices Architecture Specifics
 
-> Each service is an isolated Bounded Context. Communication only over the network. Inside each service — the same structure (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)).
+> Each service is an isolated Bounded Context. Communication only over the network. Inside each service — the same structure (see skill `_architecture` (_architecture/reference/ddd.md, _architecture/reference/hexagonal.md)).
 
 ---
 
@@ -87,7 +87,7 @@ Business API  ──HTTP──►  Data API  ──SQL──►  PostgreSQL
 
 ## Service Structure
 
-Each service internally follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)):
+Each service internally follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, _architecture/reference/hexagonal.md)):
 
 ```
 service-name/

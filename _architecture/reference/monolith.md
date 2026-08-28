@@ -1,6 +1,6 @@
 # Monolithic Architecture Specifics
 
-> All components run in a single process. Internal structure follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md)) — same layers, same isolation.
+> All components run in a single process. Internal structure follows DDD/Hexagonal (see skill `_architecture` (_architecture/reference/ddd.md, _architecture/reference/hexagonal.md)) — same layers, same isolation.
 
 ---
 

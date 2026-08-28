@@ -60,7 +60,7 @@ The following aspects MUST be centralized — defined in one place:
 
 | Principle | File |
 |-----------|------|
-| DIP, SoC, SRP (layer architecture) | skill `_architecture` (_architecture/reference/ddd.md, architecture/reference/hexagonal.md) |
+| DIP, SoC, SRP (layer architecture) | skill `_architecture` (_architecture/reference/ddd.md, _architecture/reference/hexagonal.md) |
 | SSoT, DRY (logging) | skill `_logging` (_logging/reference.md) |
 | SSoT, DRY (error handling) | skill `_error-handling` (_error-handling/reference.md) |
 | SSoT, DIP (database) | skill `_database` (_database/reference.md) |
