@@ -1,10 +1,10 @@
 # python-ai-skills
 
-A collection of 15 skills, 5 specialized agents, and a 9-phase development pipeline for Python 3.11+ projects in Claude Code. Enforces code quality, security, testing, and documentation standards throughout the entire development lifecycle.
+A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` decision family, `do-*` orchestrators, git/sync utilities), 6 specialized agents, and a 9-phase development pipeline for Python 3.11+ projects in Claude Code. Enforces code quality, security, testing, and documentation standards throughout the entire development lifecycle.
 
 ## Features
 
-- **15 skills** covering the full development spectrum:
+- **15 quality skills** (`_*`) covering the full development spectrum:
   - Code quality (`_code-quality`) — 17 principles: DRY, KISS, YAGNI, SOLID, SRP, LoD, Fail Fast
   - Security (`_security`) — OWASP Top 10 checklist, input validation, secrets management
   - Testing (`_testing`) — 3-level test strategy, pytest, AAA pattern, coverage target >= 90%
@@ -143,7 +143,7 @@ Using python-ai-skills provides:
 - **Automated test generation** — pytest tests following AAA pattern with coverage targets
 - **Full documentation trail** — every task produces TASK, REQ, PLAN, CHANGELOG entry, and Completion Report
 - **Compliance audit** — post-hoc verification that all pipeline phases were followed correctly
-- **Knowledge codification** — 15 skills encode best practices (SOLID, OWASP, DDD) as reusable, versionable artifacts
+- **Knowledge codification** — 45 skills encode best practices (SOLID, OWASP, DDD, GRACE) as reusable, versionable artifacts
 - **Gated workflow** — mandatory approvals at requirements and plan stages prevent wasted implementation effort
 
 ## License

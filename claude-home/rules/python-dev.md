@@ -6,12 +6,7 @@
 - Write code comments in English
 
 ## Git
-- Коммит-сообщения на английском
-- Формат: Conventional Commits + GRACE MODULE_ID как scope — `<type>(<MODULE_ID>): <description>` для кода, `<type>(<short-name>):` для meta (docs/chore/ci)
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `build`, `ci` — type обязателен всегда
-- Делай коммит без подтверждения пользователя (когда работа atomic и проверена)
-- НЕ делай `git push` кода автоматически — только по явному запросу пользователя
-- `bd dolt push` (Beads persistence) разрешён автоматически в session close protocol
+> SSoT: глобальный CLAUDE.md → «Commit Convention» и «Git Push Policy». Здесь не дублируется (дубликат уже расходился с оригиналом — см. CHANGELOG 2026-08-28).
 
 ## Окружение
 - Основной язык: Python 3.11+
@@ -34,7 +29,7 @@
 ## Зависимости
 - Закрепляй версии в production строго через `==` (не `>=`, не `~=`, не `^`)
 - При добавлении/обновлении зависимости — проверяй uv.lock на точное соответствие
-- Context7 (`resolve-library-id` → `query-docs`) — обязателен в Design-фазе do-feature (steps 4, 7) для всех затрагиваемых библиотек + по 4 триггерам в Execution: (a) first contact с библиотекой в текущей сессии, (b) version bump vs design, (c) unknown/unfamiliar method, (d) library error в тестах. При следовании approved плану с pre-verified API — Context7 не требуется
+- Проверка API библиотек через Context7 — SSoT: глобальный CLAUDE.md → «Documentation Retrieval Policy»
 - Регулярно обновляй зависимости для безопасности
 - Минимизируй размер Docker образов
 - Не добавляй лишние зависимости
