@@ -226,6 +226,7 @@
       "Bash(rm -rf .full_audit_tmp/)"
     ],
     "deny": [
+      "Read(secrets.env)",
       "Read(.claude.json)",
       "Read(**/.claude.json.backup.*)",
       "Read({{CLAUDE_HOME}}/backups/**)",
