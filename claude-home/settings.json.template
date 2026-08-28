@@ -314,7 +314,7 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
+  "model": "fable",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "SessionStart": [
@@ -399,6 +399,11 @@
             "type": "command",
             "command": "{{CLAUDE_HOME}}/hooks/anti-hallucination.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/explanation-terms.sh",
+            "timeout": 10
           }
         ]
       }
@@ -425,7 +430,7 @@
     "type": "command",
     "command": "input=$(cat); proj=$(echo \"$input\" | jq -r '.workspace.project_dir // .cwd'); proj_name=\"$(basename \"$(dirname \"$proj\")\")/$(basename \"$proj\")\"; model=$(echo \"$input\" | jq -r '.model.display_name // \"unknown\"'); used=$(echo \"$input\" | jq -r '.context_window.used_percentage // empty'); ctx_str=\"\"; [ -n \"$used\" ] && ctx_str=\" | ctx: ${used}%\"; printf '\\033[36m[%s]\\033[0m %s%s' \"$proj_name\" \"$model\" \"$ctx_str\""
   },
-  "language": "english",
+  "language": "russian",
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
@@ -444,8 +449,14 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
   "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
   "teammateMode": "tmux",
+  "agentPushNotifEnabled": true,
   "voiceEnabled": true
 }

@@ -5,8 +5,10 @@
 # machine: clone the repo, then run `make install-symlinks` (or this script).
 #
 # SSoT = this repo. ~/.claude becomes thin symlinks. Secrets and runtime state
-# (.credentials.json, .claude.json, settings.local.json, settings.json, hooks/,
-# projects/, sessions/, history.jsonl, cache/, ...) are NEVER touched.
+# (.credentials.json, .claude.json, settings.local.json, projects/, sessions/,
+# history.jsonl, cache/, ...) are NEVER touched. settings.json IS overwritten:
+# it is rendered from claude-home/settings.json.template, guarded by a drift
+# check that refuses to destroy hand edits (see the [settings.json] step).
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -75,12 +77,30 @@ link "$REPO/claude-home/scripts"       "$CLAUDE_HOME/scripts"
 echo "[settings.json] (rendered from template; machine-specific paths)"
 tmpl="$REPO/claude-home/settings.json.template"
 if [ -f "$tmpl" ]; then
-  [ -f "$CLAUDE_HOME/settings.json" ] && cp "$CLAUDE_HOME/settings.json" "$CLAUDE_HOME/settings.json.bak"
-  sed "s|{{CLAUDE_HOME}}|$CLAUDE_HOME|g" "$tmpl" > "$CLAUDE_HOME/settings.json"
-  python3 -m json.tool "$CLAUDE_HOME/settings.json" >/dev/null \
-    && echo "  rendered $CLAUDE_HOME/settings.json (valid JSON; backup: settings.json.bak)" \
-    || { echo "  ERROR: rendered settings.json is invalid JSON — restoring backup" >&2; \
-         [ -f "$CLAUDE_HOME/settings.json.bak" ] && cp "$CLAUDE_HOME/settings.json.bak" "$CLAUDE_HOME/settings.json"; exit 1; }
+  live="$CLAUDE_HOME/settings.json"
+  stamp="$CLAUDE_HOME/settings.json.rendered"   # copy of the previous render, for drift detection
+  new="$(mktemp)"
+  sed "s|{{CLAUDE_HOME}}|$CLAUDE_HOME|g" "$tmpl" > "$new"
+  python3 -m json.tool "$new" >/dev/null \
+    || { echo "  ERROR: template renders invalid JSON — nothing overwritten" >&2; rm -f "$new"; exit 1; }
+  # Drift guard: refuse to destroy hand edits made to the live file since the
+  # last render. Baseline = previous render if we have it, else the fresh one.
+  base="$stamp"; [ -f "$base" ] || base="$new"
+  if [ -f "$live" ] && ! diff -q "$base" "$live" >/dev/null 2>&1; then
+    if [ "$FORCE" = "1" ]; then
+      echo "  WARN: overwriting hand-edited $live (--force); backup: settings.json.bak" >&2
+    else
+      echo "  DRIFT: $live was edited by hand since the last render." >&2
+      echo "  Backport the edits into claude-home/settings.json.template first," >&2
+      echo "  or re-run with --force to overwrite them. Diff (baseline -> live):" >&2
+      diff "$base" "$live" | sed 's/^/    /' >&2 || true
+      rm -f "$new"; exit 1
+    fi
+  fi
+  [ -f "$live" ] && cp "$live" "$live.bak"
+  mv "$new" "$live"
+  cp "$live" "$stamp"
+  echo "  rendered $live (valid JSON; backup: settings.json.bak)"
 else
   echo "  (no template found — skipped)"
 fi
