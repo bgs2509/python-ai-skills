@@ -1,0 +1,12 @@
+# Claude Code housekeeping — timer unit (user scope).
+# Persistent=true is the whole point vs cron: a run missed while the laptop
+# slept fires on the next wake instead of silently skipping the day.
+[Unit]
+Description=Daily Claude Code housekeeping at 07:05 (with catch-up)
+
+[Timer]
+OnCalendar=*-*-* 07:05:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

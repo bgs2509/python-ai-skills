@@ -395,5 +395,58 @@ class WorktreeFactsOnRealRepositories(unittest.TestCase):
         self.assertEqual(self.evaluate(path).action, "keep")
 
 
+class ClaudeStateRules(unittest.TestCase):
+    """Part 5: transcripts, history trim, backup rotation, dead projects."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def _touch(self, rel: str, age_days: float, content: str = "x\n") -> Path:
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content)
+        past = hk.datetime.now(hk.timezone.utc).timestamp() - age_days * 86400
+        os.utime(p, (past, past))
+        return p
+
+    def test_old_transcripts_selected_fresh_and_md_kept(self):
+        now = hk.datetime.now(hk.timezone.utc).timestamp()
+        old = self._touch("proj/session-old.jsonl", 45)
+        self._touch("proj/session-new.jsonl", 5)
+        self._touch("proj/memory/MEMORY.md", 400)  # never a candidate
+        got = hk.select_old_transcripts(self.root, now, max_age_days=30)
+        self.assertEqual(got, [old])
+
+    def test_trim_tail_keeps_last_lines_and_reports_freed(self):
+        p = self.root / "history.jsonl"
+        p.write_text("".join(f"line{i}\n" for i in range(100)))
+        freed = hk.trim_tail(p, max_lines=10)
+        self.assertGreater(freed, 0)
+        lines = p.read_text().splitlines()
+        self.assertEqual(len(lines), 10)
+        self.assertEqual(lines[-1], "line99")
+
+    def test_trim_tail_under_limit_is_untouched(self):
+        p = self.root / "small.jsonl"
+        p.write_text("a\nb\n")
+        self.assertEqual(hk.trim_tail(p, max_lines=10), 0)
+        self.assertEqual(p.read_text(), "a\nb\n")
+
+    def test_backup_rotation_keeps_newest(self):
+        for i, age in enumerate([1, 2, 3, 4]):
+            self._touch(f"backups/.claude.json.backup.{i}", age)
+        stale = hk.select_stale_backups(self.root / "backups", keep=2)
+        names = [p.name for p in stale]
+        self.assertEqual(names, [".claude.json.backup.2", ".claude.json.backup.3"])
+
+    def test_dead_project_keys_only_nonexistent(self):
+        alive = self.root / "alive"
+        alive.mkdir()
+        state = {"projects": {str(alive): {}, str(self.root / "gone"): {}}}
+        self.assertEqual(hk.dead_project_keys(state), [str(self.root / "gone")])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

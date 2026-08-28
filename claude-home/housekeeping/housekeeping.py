@@ -3,11 +3,15 @@
 
 Specification: claude-home/housekeeping/claude-housekeeping-task.md
 
-Cleans four things, all by age:
-  1. ~/.claude/jobs/<id>/   background job directories
+Cleans five things:
+  1. ~/.claude/jobs/<id>/   background job directories (by age)
   2. git worktrees          orphaned working copies, via git itself
   3. docker build cache     records older than 30 days
   4. docker images          unused images older than 100 days
+  5. claude state           session transcripts older than 30 days,
+                            history.jsonl tail-trim, .claude.json backup
+                            rotation, daemon.log rotation, dead project
+                            entries in ~/.claude.json
 
 Deletion is OFF by default: without --apply the script only reports what it
 would do. Volumes, networks and containers are never touched.
@@ -46,6 +50,18 @@ DOCKER_IMAGE_AGE_DAYS = 100
 LOG_MAX_LINES = 500
 LOG_PATH = Path.home() / ".claude" / "housekeeping.log"
 JOBS_DIR = Path.home() / ".claude" / "jobs"
+
+# part 5: claude state (transcripts, history, backups, daemon log, .claude.json)
+TRANSCRIPT_MAX_AGE_DAYS = 30  # matches the cleanupPeriodDays intent
+PROJECTS_DIR = Path.home() / ".claude" / "projects"
+HISTORY_PATH = Path.home() / ".claude" / "history.jsonl"
+HISTORY_MAX_LINES = 5000
+BACKUPS_DIR = Path.home() / ".claude" / "backups"
+BACKUPS_KEEP = 5
+DAEMON_LOG = Path.home() / ".claude" / "daemon.log"
+DAEMON_LOG_MAX_BYTES = 5 * 1024**2
+DAEMON_LOG_KEEP_LINES = 2000
+CLAUDE_STATE_JSON = Path.home() / ".claude.json"
 DEFAULT_WORKTREE_ROOTS = (Path.home() / "ai-steward", Path.home() / "works")
 SKIP_DIR_NAMES = frozenset(
     {".cache", ".nvm", ".venv", "node_modules", ".local", ".cargo", ".rustup"}
@@ -741,6 +757,128 @@ def parse_docker_time(text: str) -> float | None:
     return stamp.timestamp()
 
 
+# --- part 5: claude state ---------------------------------------------------
+
+
+def select_old_transcripts(
+    projects_dir: Path, now: float, max_age_days: float = TRANSCRIPT_MAX_AGE_DAYS
+) -> list[Path]:
+    """Session transcript files past the retention age. Only *.jsonl — the
+    memory/*.md files living in the same tree are never candidates."""
+    if not projects_dir.is_dir():
+        return []
+    out = []
+    for p in projects_dir.rglob("*.jsonl"):
+        try:
+            if (now - p.stat().st_mtime) / 86400.0 > max_age_days:
+                out.append(p)
+        except OSError:
+            continue
+    return sorted(out)
+
+
+def trim_tail(path: Path, max_lines: int, keep_lines: int | None = None) -> int:
+    """Keep only the last lines of an append-only file. Returns bytes freed."""
+    if not path.is_file():
+        return 0
+    data = path.read_text(errors="ignore").splitlines(keepends=True)
+    if len(data) <= max_lines:
+        return 0
+    keep = keep_lines if keep_lines is not None else max_lines
+    before = path.stat().st_size
+    path.write_text("".join(data[-keep:]))
+    return before - path.stat().st_size
+
+
+def select_stale_backups(backups_dir: Path, keep: int = BACKUPS_KEEP) -> list[Path]:
+    """Backup copies beyond the newest `keep` (rotation, newest first kept)."""
+    if not backups_dir.is_dir():
+        return []
+    files = sorted(
+        (p for p in backups_dir.iterdir() if p.is_file()),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    return files[keep:]
+
+
+def dead_project_keys(state: dict) -> list[str]:
+    """Project entries in .claude.json whose directory no longer exists."""
+    projects = state.get("projects")
+    if not isinstance(projects, dict):
+        return []
+    return sorted(k for k in projects if not Path(k).is_dir())
+
+
+def clean_claude_state(journal: Journal, apply: bool, now: float) -> int:
+    """Returns bytes freed (or that would be freed in dry-run mode)."""
+    freed = 0
+
+    old = select_old_transcripts(PROJECTS_DIR, now)
+    size = sum(p.stat().st_size for p in old if p.exists())
+    if old:
+        journal.write(
+            part="state", target="transcripts",
+            action="delete" if apply else "would-delete",
+            count=len(old), size=human(size),
+            reason=f"older than {TRANSCRIPT_MAX_AGE_DAYS}d",
+        )
+        if apply:
+            for p in old:
+                try:
+                    p.unlink()
+                except OSError as exc:
+                    journal.error(f"cannot remove transcript: {exc}", file=p.name)
+        freed += size
+
+    if apply:
+        trimmed = trim_tail(HISTORY_PATH, HISTORY_MAX_LINES)
+        if trimmed:
+            journal.write(part="state", target="history", action="trim",
+                          size=human(trimmed), reason=f"keep last {HISTORY_MAX_LINES} lines")
+        freed += trimmed
+        if DAEMON_LOG.is_file() and DAEMON_LOG.stat().st_size > DAEMON_LOG_MAX_BYTES:
+            trimmed = trim_tail(DAEMON_LOG, 0, keep_lines=DAEMON_LOG_KEEP_LINES)
+            journal.write(part="state", target="daemon-log", action="trim",
+                          size=human(trimmed), reason=f"keep last {DAEMON_LOG_KEEP_LINES} lines")
+            freed += trimmed
+
+    stale = select_stale_backups(BACKUPS_DIR)
+    if stale:
+        size = sum(p.stat().st_size for p in stale)
+        journal.write(part="state", target="backups",
+                      action="delete" if apply else "would-delete",
+                      count=len(stale), size=human(size),
+                      reason=f"rotation keeps {BACKUPS_KEEP}")
+        if apply:
+            for p in stale:
+                try:
+                    p.unlink()
+                except OSError as exc:
+                    journal.error(f"cannot remove backup: {exc}", file=p.name)
+        freed += size
+
+    if CLAUDE_STATE_JSON.is_file():
+        try:
+            state = json.loads(CLAUDE_STATE_JSON.read_text())
+        except (OSError, ValueError) as exc:
+            journal.error(f"cannot parse {CLAUDE_STATE_JSON.name}: {exc}")
+            state = None
+        if state is not None:
+            dead = dead_project_keys(state)
+            if dead:
+                journal.write(part="state", target="projects-map",
+                              action="prune" if apply else "would-prune",
+                              count=len(dead), reason="directory no longer exists")
+                if apply:
+                    for k in dead:
+                        state["projects"].pop(k, None)
+                    CLAUDE_STATE_JSON.write_text(
+                        json.dumps(state, indent=2, ensure_ascii=False)
+                    )
+    return freed
+
+
 # --- entry point ------------------------------------------------------------
 
 
@@ -779,6 +917,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     freed_claude = clean_jobs(journal, apply, now)
     removed = clean_worktrees(journal, apply, roots)
+    state_freed = clean_claude_state(journal, apply, now)
     if not args.skip_docker:
         clean_docker(journal, apply, now)
 
@@ -786,6 +925,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     journal.write(
         run="finish", exit=1 if journal.errors else 0, errors=journal.errors,
         jobs_freed=human(freed_claude), worktrees_removed=removed,
+        state_freed=human(state_freed),
         disk_gained=human(gained) if gained > 0 else "0B",
     )
     journal.flush()

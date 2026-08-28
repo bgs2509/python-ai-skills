@@ -1,0 +1,11 @@
+# Claude Code housekeeping — service unit (user scope).
+# Installed manually: cp to ~/.config/systemd/user/, then
+#   systemctl --user daemon-reload && systemctl --user enable --now housekeeping.timer
+# %h = home directory; repo path is the laptop layout (vpn-2 keeps cron+wrapper).
+[Unit]
+Description=Claude Code housekeeping (daily cleanup)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 %h/ai-steward/Gena_Beeline_Local/python-ai-skills/claude-home/housekeeping/housekeeping.py --apply --quiet
+ExecStartPost=/bin/bash %h/ai-steward/Gena_Beeline_Local/python-ai-skills/claude-home/housekeeping/housekeeping-report.sh
