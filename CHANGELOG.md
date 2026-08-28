@@ -10,6 +10,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `settings.json.template`: deny-rules for `Read(**/.claude.json.backup.*)` and `Read({{CLAUDE_HOME}}/backups/**)` (a temporary `Read(.claude.json)` deny was lifted once the config held only the env reference) — the MCP config holds the `CONTEXT7_API_KEY`, and the audit found the model could read it (and its world-readable rotating backups) freely. Companion hardening applied on the machine: key rotated by the user, revoked key purged from config and backups, `~/.claude.json` → 600, `~/.claude/backups/` → 700
 
 ### Added
+- `hook-stats-digest.py` (SessionStart hook, weekly throttle): on the first session start after 7 days, injects a compact digest of the hook block journal (counts per hook, top triggers) into session context and asks the model to flag false-positive patterns; silent otherwise, never blocks the session. Marker: `~/.claude/hook-stats/.last-digest`
 - Hook block journal: every blocking hook (`anti-hallucination`, `explanation-terms`, `block-no-verify`, `regen-xml` failures) appends a JSONL record (UTC timestamp, hook, cwd, trigger detail) to `~/.claude/hook-stats/blocks.jsonl` for monthly false-positive review. Non-blocking hooks (rtk pair — has its own `rtk gain --history`; banner/counter, reminder echo, statusLine — no decisions to review) deliberately not journaled
 
 ### Changed
