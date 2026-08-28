@@ -221,9 +221,7 @@
       "Skill(aidd-analyze)",
       "Skill(aidd-code)",
       "Skill(aidd-research)",
-      "Skill(aidd-validate)",
-      "Bash(rm -rf .full_audit_tmp)",
-      "Bash(rm -rf .full_audit_tmp/)"
+      "Skill(aidd-validate)"
     ],
     "deny": [
       "Read(secrets.env)",
@@ -242,8 +240,6 @@
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/credentials.json)",
-      "Bash(rm -rf:*)",
-      "Bash(rm -r:*)",
       "Bash(sudo rm -rf:*)",
       "Bash(sudo rm -r:*)",
       "Bash(mkfs:*)",

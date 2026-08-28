@@ -17,6 +17,24 @@ if [ -z "$COMMAND" ]; then
   exit 0
 fi
 
+# Append one JSONL record to the block journal for monthly review.
+log_block() {  # $1 = kind
+  KIND="$1" CMD="$COMMAND" python3 - <<'PY' 2>/dev/null || true
+import datetime, json, os
+d = os.path.expanduser("~/.claude/hook-stats")
+os.makedirs(d, exist_ok=True)
+rec = {
+    "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+    "hook": "block-no-verify",
+    "cwd": os.getcwd(),
+    "kind": os.environ.get("KIND", ""),
+    "command": os.environ.get("CMD", "")[:300],
+}
+with open(os.path.join(d, "blocks.jsonl"), "a", encoding="utf-8") as f:
+    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+PY
+}
+
 # Use shlex-aware token analysis: a bypass flag must appear as a standalone
 # token (not as substring inside quoted argument like commit message body).
 VERDICT=$(python3 - <<'PY' "$COMMAND"
@@ -74,6 +92,7 @@ PY
 )
 
 if [ "$VERDICT" = "BLOCK_FLAG" ]; then
+  log_block "bypass-flag"
   cat >&2 <<'EOF'
 [block-no-verify] Refusing to bypass commit hooks.
 
@@ -88,6 +107,7 @@ fi
 # SKIP=hook skips individual hooks, PRE_COMMIT_ALLOW_NO_CONFIG bypasses the
 # framework config requirement (both named in CLAUDE.md → Pre-commit Policy).
 if echo "$COMMAND" | grep -qE '(^|[[:space:]])(SKIP=[^[:space:]]+|PRE_COMMIT_ALLOW_NO_CONFIG=[^[:space:]]+)[[:space:]].*(git[[:space:]].*commit|pre-commit)'; then
+  log_block "env-bypass"
   cat >&2 <<'EOF'
 [block-no-verify] Refusing to bypass via SKIP=... env var.
 

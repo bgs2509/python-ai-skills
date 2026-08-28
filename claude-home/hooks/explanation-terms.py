@@ -25,10 +25,29 @@ of importing from it: that hook is a working safety net and is left untouched.
 
 See ~/.claude/CLAUDE.md -> "Explanation Protocol".
 """
+import datetime
 import json
+import os
 import pathlib
 import re
 import sys
+
+
+def log_block(detail: dict) -> None:
+    """Append one JSONL record to the block journal for monthly review."""
+    try:
+        log_dir = pathlib.Path.home() / ".claude" / "hook-stats"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        rec = {
+            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            "hook": "explanation-terms",
+            "cwd": os.getcwd(),
+            **detail,
+        }
+        with open(log_dir / "blocks.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
 
 # Everyday English compounds and stable industry terms that carry no
 # explanatory weight -- flagging them would be noise, not signal.
@@ -230,6 +249,7 @@ def main() -> int:
         "Do NOT bypass this hook by dropping the backticks or the hyphen. "
         "The point is that the reader must understand the word."
     )
+    log_block({"unverified": unverified[:15]})
     print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
     return 0
 

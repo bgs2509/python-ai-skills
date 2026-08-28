@@ -50,8 +50,27 @@ fi
 # hooks); fall back to the personal one only for projects that have none.
 # Failures are surfaced via exit 2 (stderr reaches the model) — a silent
 # "|| true" here once masked a generator that needed CLI arguments.
+# Append one JSONL record to the block journal for monthly review.
+log_failure() {  # $1 = kind
+  KIND="$1" PROJ="$PROJECT_ROOT" python3 - <<'PY' 2>/dev/null || true
+import datetime, json, os
+d = os.path.expanduser("~/.claude/hook-stats")
+os.makedirs(d, exist_ok=True)
+rec = {
+    "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+    "hook": "regen-xml",
+    "cwd": os.getcwd(),
+    "kind": os.environ.get("KIND", ""),
+    "project": os.environ.get("PROJ", ""),
+}
+with open(os.path.join(d, "blocks.jsonl"), "a", encoding="utf-8") as f:
+    f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+PY
+}
+
 if [ -f "$PROJECT_ROOT/scripts/md_to_xml.py" ]; then
   if ! ( cd "$PROJECT_ROOT" && python3 scripts/md_to_xml.py >&2 ); then
+    log_failure "project-generator-failed"
     echo "[regen-xml] project generator scripts/md_to_xml.py failed in $PROJECT_ROOT — regenerate the XML manually" >&2
     exit 2
   fi
@@ -59,6 +78,7 @@ if [ -f "$PROJECT_ROOT/scripts/md_to_xml.py" ]; then
 fi
 
 if ! python3 "$HOME/.claude/scripts/generate_xml_from_md.py" --project-root "$PROJECT_ROOT" >&2; then
+  log_failure "personal-generator-failed"
   echo "[regen-xml] generate_xml_from_md.py failed for $PROJECT_ROOT — regenerate the XML manually" >&2
   exit 2
 fi

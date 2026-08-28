@@ -8,10 +8,29 @@ or user messages of the current session.
 
 See ~/.claude/CLAUDE.md → "Anti-Hallucination Protocol".
 """
+import datetime
 import json
+import os
 import pathlib
 import re
 import sys
+
+
+def log_block(detail: dict) -> None:
+    """Append one JSONL record to the block journal for monthly review."""
+    try:
+        log_dir = pathlib.Path.home() / ".claude" / "hook-stats"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        rec = {
+            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            "hook": "anti-hallucination",
+            "cwd": os.getcwd(),
+            **detail,
+        }
+        with open(log_dir / "blocks.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
 
 
 def main() -> int:
@@ -139,6 +158,7 @@ def main() -> int:
         "Do NOT bypass this hook by renaming/masking the token. The point "
         "is epistemic discipline, not regex evasion."
     )
+    log_block({"unverified": unverified[:15]})
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0
 
