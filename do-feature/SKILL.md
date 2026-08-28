@@ -77,6 +77,8 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 
 **Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). Map each tier to the strongest available model in that tier for the Agent tool's current lineup (currently: `top`=fable, `strong`=opus, `mid`=sonnet, `cheap`=haiku — set by user decision 2026-08-28).
 
+**Orchestration = opus.** Every `inline` row in the matrix (Step 1 `bd create`, USER APPROVAL gates, Step 11 controller, Step 13 Finish) runs in the main session, not in a subagent — its model is the session model, `opus` via `settings.json` `model` (same user decision). Do not dispatch a subagent just to change the orchestrator's model.
+
 **Revalidation rule:** when the Agent tool's model lineup changes (new family), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. The current 4-tier mapping predates that revalidation (`python-ai-skills-4f4` is still open). Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
 
 | Step | Dispatch | Tier | Rationale |
