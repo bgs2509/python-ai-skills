@@ -342,7 +342,7 @@ docs/
 
 **Rule:** Do NOT bypass hooks (`git commit --no-verify`, `--no-gpg-sign`, environment overrides like `SKIP=...`, `PRE_COMMIT_ALLOW_NO_CONFIG=1`) unless the user explicitly requests it for this commit. Hook failure → fix the underlying issue, do not skip.
 
-**Rule:** Project pre-commit setup defaults to extending the existing `.git/hooks/pre-commit` script with project-relevant fast checks (ruff check + format-check on staged source files). The `pre-commit` framework + `.pre-commit-config.yaml` are also acceptable when the project has no other hooksPath consumers.
+**Rule:** The `~/.git-template` bootstrap hook delegates to the `pre-commit` framework when `.pre-commit-config.yaml` exists, otherwise falls back to a staged `gitleaks` scan. Project-relevant fast checks (ruff check + format-check on staged source files) are added per project — via `.pre-commit-config.yaml` or by extending `.git/hooks/pre-commit`. SSoT of the template hook: `python-ai-skills/claude-home/git-template/pre-commit`.
 
 **Rule:** Slow checks (full pytest, integration, e2e) belong in CI/Makefile targets, not in commit-time hooks.
 

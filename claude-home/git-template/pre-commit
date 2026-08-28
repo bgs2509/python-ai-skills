@@ -1,0 +1,45 @@
+#!/bin/bash
+# Bootstrap pre-commit hook installed via ~/.git-template (init.templateDir).
+# Triggered on every NEW git init / git clone unless overridden.
+# SSoT: python-ai-skills/claude-home/git-template/pre-commit — installed by
+# scripts/install-claude-symlinks.sh (copied, not symlinked: git init copies
+# the template tree into each new repo).
+#
+# Behavior:
+#   - If repo has .pre-commit-config.yaml → run `pre-commit run --hook-stage pre-commit`
+#   - Else → gitleaks secret scan of the staged changes (content-scan baseline
+#     promised by ~/.claude/CLAUDE.md "Security": new repos inherit gitleaks)
+#   - If repo has its own .git/hooks/pre-commit (other than this template) → that wins
+#
+# Policy: enforced at ~/.claude/CLAUDE.md "Pre-commit Policy" section.
+
+set -euo pipefail
+
+# Tool-resolution hardening (2026-06-04): git may invoke hooks with a stripped
+# PATH, so ensure pre-commit / uv / bun resolve regardless of how git is called.
+export PATH="$HOME/.bun/bin:$HOME/.local/bin:$HOME/bin:$PATH"
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "")"
+[ -z "$REPO_ROOT" ] && exit 0
+
+# Run pre-commit framework if config exists and tool available
+if [ -f "$REPO_ROOT/.pre-commit-config.yaml" ]; then
+  if command -v pre-commit >/dev/null 2>&1; then
+    exec pre-commit run --hook-stage pre-commit
+  elif command -v uv >/dev/null 2>&1 && [ -f "$REPO_ROOT/pyproject.toml" ]; then
+    cd "$REPO_ROOT" && exec uv run pre-commit run --hook-stage pre-commit
+  else
+    echo "pre-commit (template): WARNING — config present but no pre-commit binary" >&2
+  fi
+fi
+
+# No framework config: still scan staged changes for secrets (the actual
+# security gate per CLAUDE.md "Security" — filename rules are not sufficient).
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks protect --staged --no-banner --redact -v; then
+    echo "pre-commit (template): gitleaks found secrets in staged changes — commit refused" >&2
+    exit 1
+  fi
+fi
+
+exit 0

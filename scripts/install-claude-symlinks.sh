@@ -105,4 +105,15 @@ else
   echo "  (no template found — skipped)"
 fi
 
+# git-template hook is COPIED, not symlinked: `git init` copies the template
+# tree into every new repo, and a symlink there would break if the repo moves.
+echo "[git-template]"
+GIT_TMPL_SRC="$REPO/claude-home/git-template/pre-commit"
+GIT_TMPL_DST="$HOME/.git-template/hooks/pre-commit"
+if [ -f "$GIT_TMPL_SRC" ]; then
+  mkdir -p "$(dirname "$GIT_TMPL_DST")"
+  install -m 755 "$GIT_TMPL_SRC" "$GIT_TMPL_DST"
+  echo "  installed $GIT_TMPL_DST"
+fi
+
 echo "Done. Run a second time to confirm idempotency."
