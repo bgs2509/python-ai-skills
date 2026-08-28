@@ -59,8 +59,9 @@ for f in "$REPO"/commands/*.md; do
 done
 
 echo "[global instructions]"
-link "$REPO/claude-home/CLAUDE.md" "$CLAUDE_HOME/CLAUDE.md"
-link "$REPO/claude-home/RTK.md"    "$CLAUDE_HOME/RTK.md"
+link "$REPO/claude-home/CLAUDE.md"          "$CLAUDE_HOME/CLAUDE.md"
+link "$REPO/claude-home/CLAUDE-APPENDIX.md" "$CLAUDE_HOME/CLAUDE-APPENDIX.md"
+link "$REPO/claude-home/RTK.md"             "$CLAUDE_HOME/RTK.md"
 # AGENTS.md mirrors CLAUDE.md (Codex/cross-tool discovery)
 ln -sfn "CLAUDE.md" "$CLAUDE_HOME/AGENTS.md"; echo "  $CLAUDE_HOME/AGENTS.md -> CLAUDE.md"
 
