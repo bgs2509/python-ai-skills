@@ -151,4 +151,13 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 - Explicit user or orchestrator instructions override this Beads block.
 - Do not commit or push without clear authority from the active profile or the current user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
+
+## Memory Scoping (Beads vs auto-memory)
+
+The Beads block above says "do NOT use MEMORY.md files". That prohibition is scoped to **project/task knowledge only** — it does not apply to the harness auto-memory:
+
+- **Project and workflow insights** (architecture decisions, task context, codebase gotchas) → `bd remember` / `bd memories` — they must travel with the Dolt workspace across machines.
+- **User-level facts** (preferences, feedback, communication style, decision thresholds) → harness auto-memory (`~/.claude/projects/<project>/memory/`) — outside the repo, loaded into every session, endorsed by the global CLAUDE.md "Memory System Update" section.
+
+Each system owns its zone (SSoT). Do not delete or refuse the auto-memory `MEMORY.md` on the basis of the Beads block.
 <!-- END BEADS INTEGRATION -->
