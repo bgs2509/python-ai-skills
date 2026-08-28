@@ -7,7 +7,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Security
 - MCP secret storage moved to level 2: `~/.claude.json` now holds only the documented `${CONTEXT7_API_KEY}` reference; the value lives in `~/.claude/secrets.env` (600) sourced from the shell profile — config auto-backups no longer replicate the secret. Added `Read(secrets.env)` deny-rule
-- `settings.json.template`: deny-rules for `Read(.claude.json)`, `Read(**/.claude.json.backup.*)` and `Read({{CLAUDE_HOME}}/backups/**)` — the MCP config holds the `CONTEXT7_API_KEY`, and the audit found the model could read it (and its world-readable rotating backups) freely. Companion hardening applied on the machine: key rotated by the user, revoked key purged from config and backups, `~/.claude.json` → 600, `~/.claude/backups/` → 700
+- `settings.json.template`: deny-rules for `Read(**/.claude.json.backup.*)` and `Read({{CLAUDE_HOME}}/backups/**)` (a temporary `Read(.claude.json)` deny was lifted once the config held only the env reference) — the MCP config holds the `CONTEXT7_API_KEY`, and the audit found the model could read it (and its world-readable rotating backups) freely. Companion hardening applied on the machine: key rotated by the user, revoked key purged from config and backups, `~/.claude.json` → 600, `~/.claude/backups/` → 700
 
 ### Changed
 - `settings.json.template`: default dialog model set to `opus` (user decision 2026-08-28; `fable` is reserved for the routed steps below), removed the legacy top-level `voiceEnabled` key — undocumented in the settings reference and fully superseded by `voice.enabled`
