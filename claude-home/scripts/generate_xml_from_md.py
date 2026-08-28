@@ -154,20 +154,27 @@ def main() -> int:
     discovery_files = list(specs_dir.glob("*-discovery.md"))
     design_files = list(specs_dir.glob("*-design.md"))
 
-    requirements_xml = build_xml(discovery_files, "Requirements")
-    technology_xml = build_xml(design_files, "Technology")
-
-    (docs_dir / "requirements.xml").write_text(requirements_xml + "\n", encoding="utf-8")
-    (docs_dir / "technology.xml").write_text(technology_xml + "\n", encoding="utf-8")
-
-    print(
-        f"Generated {docs_dir / 'requirements.xml'} from {len(discovery_files)} discovery.md files",
-        file=sys.stderr,
-    )
-    print(
-        f"Generated {docs_dir / 'technology.xml'} from {len(design_files)} design.md files",
-        file=sys.stderr,
-    )
+    # Write each XML only when it has at least one source spec: editing a
+    # design.md alone must never overwrite an existing requirements.xml with
+    # an empty stub (and vice versa).
+    if discovery_files:
+        requirements_xml = build_xml(discovery_files, "Requirements")
+        (docs_dir / "requirements.xml").write_text(requirements_xml + "\n", encoding="utf-8")
+        print(
+            f"Generated {docs_dir / 'requirements.xml'} from {len(discovery_files)} discovery.md files",
+            file=sys.stderr,
+        )
+    else:
+        print("No *-discovery.md specs, requirements.xml left untouched", file=sys.stderr)
+    if design_files:
+        technology_xml = build_xml(design_files, "Technology")
+        (docs_dir / "technology.xml").write_text(technology_xml + "\n", encoding="utf-8")
+        print(
+            f"Generated {docs_dir / 'technology.xml'} from {len(design_files)} design.md files",
+            file=sys.stderr,
+        )
+    else:
+        print("No *-design.md specs, technology.xml left untouched", file=sys.stderr)
     return 0
 
 
