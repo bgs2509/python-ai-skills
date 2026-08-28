@@ -9,6 +9,17 @@ if ! command -v jq &>/dev/null || ! command -v rtk &>/dev/null; then
   exit 0
 fi
 
+# Version guard (mirrors rtk-rewrite.sh): rtk rewrite exists since 0.23.0.
+# On an older binary the rewriter no-ops, so announcing would show garbage.
+RTK_VERSION=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+if [ -n "$RTK_VERSION" ]; then
+  MAJOR=$(echo "$RTK_VERSION" | cut -d. -f1)
+  MINOR=$(echo "$RTK_VERSION" | cut -d. -f2)
+  if [ "$MAJOR" -eq 0 ] && [ "$MINOR" -lt 23 ]; then
+    exit 0
+  fi
+fi
+
 INPUT=$(cat)
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
