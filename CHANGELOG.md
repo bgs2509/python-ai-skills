@@ -5,6 +5,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+- `settings.json.template`: deny-rules for `Read(.claude.json)`, `Read(**/.claude.json.backup.*)` and `Read({{CLAUDE_HOME}}/backups/**)` — the MCP config holds the `CONTEXT7_API_KEY`, and the audit found the model could read it (and its world-readable rotating backups) freely. Companion hardening applied on the machine: key rotated by the user, revoked key purged from config and backups, `~/.claude.json` → 600, `~/.claude/backups/` → 700
+
 ### Changed
 - `settings.json.template`: default dialog model set to `opus` (user decision 2026-08-28; `fable` is reserved for the routed steps below), removed the legacy top-level `voiceEnabled` key — undocumented in the settings reference and fully superseded by `voice.enabled`
 - `do-feature` Model Routing Matrix: fixed orchestration explicitly to `opus` (all `inline` rows run on the main-session model from `settings.json`); introduced a 4th `top` tier (currently `fable`, Mythos-class) above `strong`; Discovery (Step 2) and GRACE Plan (Step 7) moved to `top`; Brainstorming (Step 4) and Review (Step 12) stay on `strong` (opus); Execution workers stay on `mid` (sonnet); escalation generalized from "mid→strong" to "one tier up on 2 consecutive fails" (`cheap`→`mid`→`strong`→`top`, stop at the ceiling). A/B revalidation still pending (`python-ai-skills-4f4`)
