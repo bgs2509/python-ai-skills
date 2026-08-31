@@ -1,0 +1,37 @@
+# Commit-time quality gate for this repo.
+#
+# Why it exists: this repo predates ~/.git-template, so `git init` never copied
+# the bootstrap hook here — the repo that defines the security baseline for
+# every other project was the one committing without a secret scan.
+#
+# The bootstrap hook (claude-home/git-template/pre-commit) delegates to this
+# file when it is present, so the gitleaks fallback below must be declared
+# explicitly — it is no longer reached automatically.
+#
+# All hooks are `local` + `language: system`: no network fetch, no pinned
+# mirror to drift, they run the binaries already installed on the machine.
+# Slow checks (full pytest, integration) stay out per CLAUDE.md -> "Pre-commit
+# Policy"; the hook suite below is scoped to commits that touch the hooks.
+repos:
+  - repo: local
+    hooks:
+      - id: gitleaks-staged
+        name: gitleaks (scan staged changes for secrets)
+        entry: gitleaks protect --staged --no-banner --redact -v
+        language: system
+        pass_filenames: false
+
+      - id: settings-template-json
+        name: settings.json.template renders as valid JSON
+        entry: python3 -m json.tool
+        args: ["--", "claude-home/settings.json.template"]
+        language: system
+        files: ^claude-home/settings\.json\.template$
+        pass_filenames: false
+
+      - id: hook-regression-tests
+        name: pytest (block-no-verify regression suite)
+        entry: python3 -m pytest claude-home/hooks/test_block_no_verify.py -q
+        language: system
+        files: ^claude-home/hooks/
+        pass_filenames: false
