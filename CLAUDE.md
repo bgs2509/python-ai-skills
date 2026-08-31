@@ -111,7 +111,7 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 **Version**: 3.7
 
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:970c3bf2 -->
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
@@ -155,6 +155,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
    # Team-maintainer opt-in only, unless current instructions forbid it:
    git pull --rebase
+   bd dolt push
    git push
    git status
    ```
@@ -164,6 +165,45 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 - Explicit user or orchestrator instructions override this Beads block.
 - Do not commit or push without clear authority from the active profile or the current user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
+<!-- END BEADS INTEGRATION -->
+
+> The sections below are hand-written and MUST stay outside the managed
+> `BEADS INTEGRATION` block above: `bd setup claude` rewrites everything between
+> its markers and would silently delete them. `Agent Context Profiles` and
+> `Session Completion` are NOT hand-written — `bd` regenerates them inside the
+> block, so they must not be duplicated out here.
+
+## Commit Authority (resolves the Beads-block conflict)
+
+The Beads block declares a `Conservative` default: "do not run git commits …
+unless explicitly asked". The global CLAUDE.md "Commit Convention" says the
+opposite: "Commit without user confirmation when work is atomic and verified".
+
+**Resolution (user decision 2026-08-31): the global rule wins for commits.**
+
+- **Commit** without asking once the work is atomic AND verified by a command
+  whose output can be quoted. Commit-time hooks are the quality gate; a failing
+  hook means fix the cause, never bypass it.
+- **Push** stays untouched: `git push` of code only on explicit request
+  (global CLAUDE.md → "Git Push Policy"). `bd dolt push` remains allowed at
+  session close.
+- Everything else in the Beads block still applies — this overrides only its
+  commit clause, not its push or sync clauses.
+
+## Task Tracking Scope (resolves the TodoWrite/TaskCreate conflict)
+
+The Beads block says "do NOT use TodoWrite, TaskCreate, or markdown TODO
+lists", while the harness itself emits reminders to use its task list every
+session — a rule the platform breaks automatically.
+
+**Resolution (user decision 2026-08-31): split by durability.**
+
+- **`bd` is the single source of truth for work tracking.** Anything that must
+  outlive the session — issues, status, dependencies, links to commits and
+  branches — lives in beads. Markdown TODO lists stay prohibited.
+- **The harness task list is a within-session scratchpad**, showing progress
+  during long sessions. It records nothing and never substitutes for `bd`.
+  Using it is optional; not using it is not a violation.
 
 ## Memory Scoping (Beads vs auto-memory)
 
@@ -173,4 +213,3 @@ The Beads block above says "do NOT use MEMORY.md files". That prohibition is sco
 - **User-level facts** (preferences, feedback, communication style, decision thresholds) → harness auto-memory (`~/.claude/projects/<project>/memory/`) — outside the repo, loaded into every session, endorsed by the global CLAUDE.md "Memory System Update" section.
 
 Each system owns its zone (SSoT). Do not delete or refuse the auto-memory `MEMORY.md` on the basis of the Beads block.
-<!-- END BEADS INTEGRATION -->
