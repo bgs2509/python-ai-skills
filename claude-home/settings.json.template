@@ -182,9 +182,7 @@
       "mcp__playwright__browser_file_upload",
       "mcp__playwright__browser_resize",
       "mcp__playwright__browser_wait_for",
-      "mcp__playwright__browser_run_code",
       "mcp__playwright__browser_drag",
-      "mcp__playwright__browser_install",
       "mcp__chrome-devtools__navigate_page",
       "mcp__chrome-devtools__take_screenshot",
       "mcp__chrome-devtools__take_snapshot",
@@ -213,11 +211,7 @@
       "mcp__chrome-devtools__performance_start_trace",
       "mcp__chrome-devtools__performance_stop_trace",
       "mcp__chrome-devtools__performance_analyze_insight",
-      "mcp__chrome-devtools__take_memory_snapshot",
-      "Skill(aidd-analyze)",
-      "Skill(aidd-code)",
-      "Skill(aidd-research)",
-      "Skill(aidd-validate)"
+      "mcp__chrome-devtools__take_heapsnapshot"
     ],
     "deny": [
       "Read(**/secrets.env)",
@@ -233,7 +227,7 @@
       "Read(**/secrets/**)",
       "Read(**/.aws/**)",
       "Read(**/.ssh/**)",
-      "Read(researches/**)",
+      "Read(**/researches/**)",
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/*.ppk)",
@@ -266,7 +260,7 @@
     "defaultMode": "bypassPermissions"
   },
   "model": "{{MODEL}}",
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
   "hooks": {
     "SessionStart": [
       {

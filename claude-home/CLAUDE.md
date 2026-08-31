@@ -298,7 +298,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Enforcement:** `~/.claude/settings.json` (deny+sandbox) + `~/.codex/config.toml` (deny+sandbox_mode=workspace-write) for read-side; `gitleaks`/`detect-secrets` pre-commit + CI for write-side.
 
-**Scope of the read-side gate (honest limits, 2026-08-31):** `deny` binds the `Read` tool only, so any allowed command that prints a file walks around it. `cat`, `head`, `tail` and `sudo cat` were removed from the allow list for that reason; `grep`/`rg`/`find`, `ssh * cat` and arbitrary interpreters (`python3 -c "open('.env').read()"`) remain capable and are NOT blocked. Deny patterns must carry a `**/` prefix or an absolute path — a bare `Read(.env)` matches only the cwd root. Treat the filename deny-list as a navigation contract for agents; the real gates are file modes (600/700) and the content scanner at commit time.
+**Scope of the read-side gate (honest limits, 2026-08-31):** `deny` binds the `Read` tool only, so any allowed command that prints a file walks around it. `cat`, `head`, `tail` and `sudo cat` were removed from the allow list for that reason; `grep`/`rg`/`find`, `ssh * cat` and arbitrary interpreters (`python3 -c "open('.env').read()"`) remain capable and are NOT blocked. Deny patterns must carry a `**/` prefix or an absolute path — a bare `Read(.env)` matches only the cwd root. The `*secret*`/`*_token*` masks from the Rule above are deliberately NOT in the deny list (they false-positive on legit code like `secrets.py`) — they bind agent discipline only. Treat the filename deny-list as a navigation contract for agents; the real gates are file modes (600/700) and the content scanner at commit time.
 
 ## Tooling Preferences
 
@@ -383,6 +383,8 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** All 45 skills are symlinked from the repo into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
+**Rule:** All repo skills (45 as of 2026-08-31; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
+
+**Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
 
 @RTK.md

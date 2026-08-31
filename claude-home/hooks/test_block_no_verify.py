@@ -12,7 +12,9 @@ Run: pytest claude-home/hooks/test_block_no_verify.py
 """
 
 import json
+import os
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -21,15 +23,23 @@ HOOK = Path(__file__).parent / "block-no-verify.sh"
 
 
 def run_hook(command: str) -> int:
-    """Feed one Bash command to the hook the way Claude Code does."""
+    """Feed one Bash command to the hook the way Claude Code does.
+
+    HOME is redirected to a throwaway directory so the hook's block journal
+    (~/.claude/hook-stats/blocks.jsonl) is not polluted by test runs — one
+    pytest run once wrote 17 fake "bypass attempt" records into the real
+    journal and poisoned the weekly hook-stats digest.
+    """
     payload = json.dumps({"tool_input": {"command": command}})
-    result = subprocess.run(
-        ["bash", str(HOOK)],
-        input=payload,
-        capture_output=True,
-        text=True,
-        timeout=15,
-    )
+    with tempfile.TemporaryDirectory() as fake_home:
+        result = subprocess.run(
+            ["bash", str(HOOK)],
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env={**os.environ, "HOME": fake_home},
+        )
     return result.returncode
 
 
