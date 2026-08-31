@@ -21,12 +21,13 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
   - Completion report (`_report`) — post-implementation summary with review and test results
   - Project init (`_init`) — interactive new project scaffolding
 
-- **5 specialized agents** (via Claude Code Agent Teams):
+- **6 specialized agents** (via Claude Code Agent Teams):
   - `py-quality` — code quality review against 17 principles
   - `py-security` — security audit using OWASP Top 10
   - `py-test-writer` — automated test generation (pytest, AAA, fixtures)
   - `py-doc-manager` — documentation pipeline (backlog, plans, ADRs, changelogs, reports)
   - `py-supervisor` — post-hoc audit of pipeline compliance
+  - `do-feature-clean` — full do-feature lifecycle for one bd issue in a fresh context
 
 - **9-phase development pipeline** (`/pipeline`):
   1. INTAKE — task analysis, skill routing
@@ -79,9 +80,17 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
    ```
 
    This links every skill, agent, command, and the global instruction files
-   (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`) into `~/.claude`.
+   (`CLAUDE.md`, `RTK.md`, `rules/`, `output-styles/`) into `~/.claude`, links
+   the same skills into `~/.codex/skills` for Codex, renders `settings.json`
+   from `claude-home/settings.json.template`, and installs the `pre-commit`
+   bootstrap hook (into `~/.git-template` for new repos and into this checkout).
    Idempotent — safe to re-run after adding or removing a skill. The repo is the
    single source of truth; `~/.claude` holds only symlinks back to it.
+
+   The render refuses to overwrite a hand-edited `settings.json`. Keys Claude
+   writes itself (`model`, `enabledPlugins`) are carried over, not treated as
+   hand edits — change them through `/model` and `claude plugin enable`, not by
+   editing files.
 
 3. **Restart Claude Code**
 

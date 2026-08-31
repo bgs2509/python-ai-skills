@@ -179,7 +179,7 @@ logger.info(
 
 **Rule:** Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`. Type is always required.
 
-**Rule:** Commit messages in English. Commit without user confirmation when work is atomic and verified.
+**Rule:** Commit messages in English. Commit without user confirmation when work is atomic and verified. This rule wins over the Beads block's `Conservative` "do not commit unless asked" default (user decision 2026-08-31; resolution recorded in `python-ai-skills/CLAUDE.md` → "Commit Authority"). It grants nothing for `push` — see Git Push Policy.
 
 ## Documentation Retrieval Policy
 
@@ -261,6 +261,10 @@ logger.info(
 
 **Rule:** New dev repos inherit a pre-commit baseline via `~/.git-template` (configured globally). When `git init` or `git clone`, hooks are auto-installed unless the project explicitly overrides.
 
+**Rule:** The template only ever applies to NEW repos, so repos predating it commit unprotected — `python-ai-skills` itself did, for months. When adopting a repo, install the bootstrap hook explicitly (`install-claude-symlinks.sh` does this for its own checkout) and verify with a realistic staged secret. `gitleaks` deliberately ignores well-known documentation placeholders such as the AWS example key, so probing with one makes a working gate look dead.
+
+**Rule (verification):** Never use `diff` to confirm a gate, a render, or file parity — the RTK hook rewrites it and `rtk diff` may report differing files as identical while always exiting 0. Use `cmp` or `rtk proxy diff` (see `RTK.md`).
+
 ## Git Push Policy
 
 **Rule:** Do NOT run `git push` of code automatically. Only on explicit user request.
@@ -293,6 +297,8 @@ Real secrets in any of these files = policy violation regardless of name.
 **Rule:** Do NOT log passwords, tokens, API keys, or session IDs.
 
 **Enforcement:** `~/.claude/settings.json` (deny+sandbox) + `~/.codex/config.toml` (deny+sandbox_mode=workspace-write) for read-side; `gitleaks`/`detect-secrets` pre-commit + CI for write-side.
+
+**Scope of the read-side gate (honest limits, 2026-08-31):** `deny` binds the `Read` tool only, so any allowed command that prints a file walks around it. `cat`, `head`, `tail` and `sudo cat` were removed from the allow list for that reason; `grep`/`rg`/`find`, `ssh * cat` and arbitrary interpreters (`python3 -c "open('.env').read()"`) remain capable and are NOT blocked. Deny patterns must carry a `**/` prefix or an absolute path — a bare `Read(.env)` matches only the cwd root. Treat the filename deny-list as a navigation contract for agents; the real gates are file modes (600/700) and the content scanner at commit time.
 
 ## Tooling Preferences
 
@@ -373,8 +379,10 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Rule:** Machine-specific settings live in `~/.claude/settings.local.json` and `~/.codex/config.toml` profiles (not synced).
 
+**Exception (verified 2026-08-31):** `enabledPlugins` does NOT work from `settings.local.json` — `claude plugin enable` writes it into `~/.claude/settings.json`, and only that copy is honoured. Three plugins marked enabled in the local file loaded as disabled for months. Enable plugins with `claude plugin enable <name> --scope user`, never by hand-editing the local file; `install-claude-symlinks.sh` carries the key over on every render (see also `model`, written by `/model`).
+
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** Skills with executable `lib/` (Python scripts, bash orchestrators) MAY be symlinked from `~/.codex/skills/<name>` → `~/.claude/skills/<name>` to keep a single SSoT for logic and tests. Skills that are pure instructions (only `SKILL.md`) typically stay as separate per-tool copies. Current symlinked skills: `full-audit`.
+**Rule:** All 45 skills are symlinked from the repo into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
 
 @RTK.md
