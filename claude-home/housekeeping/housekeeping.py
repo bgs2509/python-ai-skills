@@ -61,6 +61,12 @@ BACKUPS_KEEP = 5
 DAEMON_LOG = Path.home() / ".claude" / "daemon.log"
 DAEMON_LOG_MAX_BYTES = 5 * 1024**2
 DAEMON_LOG_KEEP_LINES = 2000
+# The headless daemon writes {"status":"auth_required"} when a proactive token
+# refresh fails, but does not clear it once auth recovers — one was found stuck
+# for 3.5 days while `claude auth status` reported loggedIn. A stale marker makes
+# audits (and the user) believe background work is blocked when it is not.
+DAEMON_AUTH_STATUS = Path.home() / ".claude" / "daemon-auth-status.json"
+DAEMON_AUTH_STALE_DAYS = 2
 CLAUDE_STATE_JSON = Path.home() / ".claude.json"
 DEFAULT_WORKTREE_ROOTS = (Path.home() / "ai-steward", Path.home() / "works")
 SKIP_DIR_NAMES = frozenset(
@@ -810,6 +816,32 @@ def dead_project_keys(state: dict) -> list[str]:
     return sorted(k for k in projects if not Path(k).is_dir())
 
 
+def stale_auth_marker(path: Path, now: float) -> bool:
+    """True if the daemon's auth_required marker is old enough to be stale.
+
+    Only `auth_required` is considered: any other status is live state the
+    daemon owns. `since` is a Unix timestamp in milliseconds; a missing or
+    unparseable value falls back to the file's mtime.
+    """
+    if not path.is_file():
+        return False
+    try:
+        marker = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return False
+    if not isinstance(marker, dict) or marker.get("status") != "auth_required":
+        return False
+    since = marker.get("since")
+    if isinstance(since, (int, float)) and since > 0:
+        since_seconds = since / 1000
+    else:
+        try:
+            since_seconds = path.stat().st_mtime
+        except OSError:
+            return False
+    return (now - since_seconds) > DAEMON_AUTH_STALE_DAYS * 86400
+
+
 def clean_claude_state(journal: Journal, apply: bool, now: float) -> int:
     """Returns bytes freed (or that would be freed in dry-run mode)."""
     freed = 0
@@ -857,6 +889,16 @@ def clean_claude_state(journal: Journal, apply: bool, now: float) -> int:
                 except OSError as exc:
                     journal.error(f"cannot remove backup: {exc}", file=p.name)
         freed += size
+
+    if stale_auth_marker(DAEMON_AUTH_STATUS, now):
+        journal.write(part="state", target="daemon-auth-status",
+                      action="delete" if apply else "would-delete",
+                      reason=f"auth_required older than {DAEMON_AUTH_STALE_DAYS}d")
+        if apply:
+            try:
+                DAEMON_AUTH_STATUS.unlink()
+            except OSError as exc:
+                journal.error(f"cannot remove auth marker: {exc}")
 
     if CLAUDE_STATE_JSON.is_file():
         try:

@@ -447,6 +447,37 @@ class ClaudeStateRules(unittest.TestCase):
         state = {"projects": {str(alive): {}, str(self.root / "gone"): {}}}
         self.assertEqual(hk.dead_project_keys(state), [str(self.root / "gone")])
 
+    def _auth_marker(self, status, since_days_ago):
+        p = self.root / "daemon-auth-status.json"
+        now = hk.datetime.now(hk.timezone.utc).timestamp()
+        since = None if since_days_ago is None else int((now - since_days_ago * 86400) * 1000)
+        p.write_text(hk.json.dumps({"status": status, "since": since}))
+        return p, now
+
+    def test_stale_auth_marker_old_auth_required_is_stale(self):
+        p, now = self._auth_marker("auth_required", 3)
+        self.assertTrue(hk.stale_auth_marker(p, now))
+
+    def test_stale_auth_marker_recent_is_kept(self):
+        p, now = self._auth_marker("auth_required", 0.5)
+        self.assertFalse(hk.stale_auth_marker(p, now))
+
+    def test_stale_auth_marker_other_status_is_kept(self):
+        p, now = self._auth_marker("ok", 30)
+        self.assertFalse(hk.stale_auth_marker(p, now))
+
+    def test_stale_auth_marker_missing_since_falls_back_to_mtime(self):
+        p, now = self._auth_marker("auth_required", None)
+        os.utime(p, (now - 5 * 86400, now - 5 * 86400))
+        self.assertTrue(hk.stale_auth_marker(p, now))
+
+    def test_stale_auth_marker_absent_or_broken_file(self):
+        now = hk.datetime.now(hk.timezone.utc).timestamp()
+        self.assertFalse(hk.stale_auth_marker(self.root / "nope.json", now))
+        broken = self.root / "broken.json"
+        broken.write_text("{not json")
+        self.assertFalse(hk.stale_auth_marker(broken, now))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
