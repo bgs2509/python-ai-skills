@@ -45,46 +45,77 @@ try:
 except ValueError:
     print("ALLOW"); sys.exit(0)
 
-# Find git subcommand, skipping git's global options (git -C <path> commit,
-# git -c k=v commit, git --git-dir=... commit) so a prefixed invocation
-# cannot slip past the subcommand check.
-if "git" not in tokens:
-    print("ALLOW"); sys.exit(0)
-gi = tokens.index("git")
-takes_value = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
-i = gi + 1
-sub = None
-while i < len(tokens):
-    t = tokens[i]
-    if t in takes_value:
-        i += 2
-        continue
-    if t.startswith("-"):
-        i += 1
-        continue
-    sub = t
-    break
-if sub not in {"commit", "merge", "rebase", "cherry-pick"}:
-    print("ALLOW"); sys.exit(0)
+# One Bash line can chain several commands. Inspecting only the first `git`
+# let `git add -A && git commit --no-verify` through: the subcommand read
+# after that first `git` was `add`, so the whole line was allowed. Split on
+# shell separators first, then inspect every command on the line.
+SEPARATORS = {"&&", "||", ";", "|", "&"}
 
-# Look for bypass flags in remaining tokens, but skip values of -m/--message.
-# Short -n means --no-verify only for commit (for merge it is --no-stat,
-# for cherry-pick it is --no-commit — not bypasses).
-bypass = {"--no-verify", "--no-gpg-sign"}
-if sub == "commit":
-    bypass.add("-n")
-i += 1
-while i < len(tokens):
-    t = tokens[i]
-    if t in {"-m", "--message", "-F", "--file"}:
-        i += 2  # skip the value
-        continue
-    if t.startswith("--message=") or t.startswith("-m="):
+
+def segments(toks):
+    cur = []
+    for t in toks:
+        if t in SEPARATORS:
+            yield cur
+            cur = []
+            continue
+        if t.endswith(";"):  # shlex keeps `;` glued to the previous word
+            t = t.rstrip(";")
+            if t:
+                cur.append(t)
+            yield cur
+            cur = []
+            continue
+        cur.append(t)
+    yield cur
+
+
+def bypasses(toks):
+    """True if this single command is a hook-bypassing git invocation."""
+    takes_value = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
+    for gi in (i for i, t in enumerate(toks) if t == "git"):
+        # Find the subcommand, skipping git's global options (git -C <path>
+        # commit, git -c k=v commit, ...) so a prefixed invocation cannot slip
+        # past the subcommand check.
+        i = gi + 1
+        sub = None
+        while i < len(toks):
+            t = toks[i]
+            if t in takes_value:
+                i += 2
+                continue
+            if t.startswith("-"):
+                i += 1
+                continue
+            sub = t
+            break
+        if sub not in {"commit", "merge", "rebase", "cherry-pick"}:
+            continue
+
+        # Look for bypass flags in remaining tokens, but skip values of
+        # -m/--message. Short -n means --no-verify only for commit (for merge
+        # it is --no-stat, for cherry-pick it is --no-commit — not bypasses).
+        bypass = {"--no-verify", "--no-gpg-sign"}
+        if sub == "commit":
+            bypass.add("-n")
         i += 1
-        continue
-    if t in bypass:
+        while i < len(toks):
+            t = toks[i]
+            if t in {"-m", "--message", "-F", "--file"}:
+                i += 2  # skip the value
+                continue
+            if t.startswith("--message=") or t.startswith("-m="):
+                i += 1
+                continue
+            if t in bypass:
+                return True
+            i += 1
+    return False
+
+
+for seg in segments(tokens):
+    if bypasses(seg):
         print("BLOCK_FLAG"); sys.exit(0)
-    i += 1
 
 # Also check SKIP=... env-var prefix (unparsed by shlex if env-syntax)
 print("ALLOW")
