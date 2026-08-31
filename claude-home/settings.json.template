@@ -265,7 +265,7 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
+  "model": "{{MODEL}}",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "SessionStart": [
