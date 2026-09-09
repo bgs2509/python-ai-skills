@@ -324,6 +324,15 @@
             "command": "f=$(jq -r \".tool_input.file_path // empty\"); case \"$f\" in *.xml) echo '⚠️  About to write XML. First-Contact Protocol: did you (1) check tool --help/--schema, (2) read its skill (e.g. grace-explainer/*-init), (3) verify any reference project passes that tool validation for the same version? Sibling-project schema is NOT canonical.' ;; esac"
           }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/big-read-nudge.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

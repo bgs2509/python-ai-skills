@@ -30,8 +30,8 @@ repos:
         pass_filenames: false
 
       - id: hook-regression-tests
-        name: pytest (block-no-verify regression suite)
-        entry: python3 -m pytest claude-home/hooks/test_block_no_verify.py -q
+        name: pytest (hooks regression suite)
+        entry: python3 -m pytest claude-home/hooks/ -q
         language: system
         files: ^claude-home/hooks/
         pass_filenames: false
