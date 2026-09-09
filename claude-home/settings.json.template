@@ -312,7 +312,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '⚠️  REMINDER: When the subagent finishes, run an INDEPENDENT verifier (lint/test/schema-check) BEFORE reporting work as done. Subagent textual summary is not evidence of correctness — verify with the actual tool that consumes the artifact.'"
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"When the subagent finishes, run an INDEPENDENT verifier (lint/test/schema-check) BEFORE reporting work as done. Subagent textual summary is not evidence of correctness — verify with the actual tool that consumes the artifact.\"}}'"
           }
         ]
       },
@@ -321,7 +321,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r \".tool_input.file_path // empty\"); case \"$f\" in *.xml) echo '⚠️  About to write XML. First-Contact Protocol: did you (1) check tool --help/--schema, (2) read its skill (e.g. grace-explainer/*-init), (3) verify any reference project passes that tool validation for the same version? Sibling-project schema is NOT canonical.' ;; esac"
+            "command": "f=$(jq -r \".tool_input.file_path // empty\"); case \"$f\" in *.xml) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"About to write XML. First-Contact Protocol: did you (1) check tool --help/--schema, (2) read its skill (e.g. grace-explainer/*-init), (3) verify any reference project passes that tool validation for the same version? Sibling-project schema is NOT canonical.\"}}' ;; esac"
           }
         ]
       },
