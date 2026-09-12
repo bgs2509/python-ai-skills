@@ -19,8 +19,43 @@ MODEL="${HOUSEKEEPING_MODEL:-sonnet}"
 KEEP_REPORTS=30
 TIMEOUT=180
 
+# Отправка в Telegram переиспользует получателя server-monitor, а не заводит
+# своего: TG_BOT_TOKEN и TG_USER_ID читаются из его .env, того же файла, что
+# использует works/server-monitor/src/srvmon/telegram.py на этой же машине.
+# Вызывать сам python-модуль отсюда не стали: это добавило бы скрипту
+# зависимость от раскладки чужого репозитория ради пяти строк, которые
+# на bash с curl пишутся на месте.
+SRVMON_ENV="${HOUSEKEEPING_TELEGRAM_ENV:-$HOME/works/server-monitor/.env}"
+
 note() {
     printf '%s host=%s %s\n' "$(date --iso-8601=seconds)" "$(uname -n)" "$*" >>"$LOG"
+}
+
+# Отказ здесь никогда не меняет код возврата скрипта — вызывающий получает
+# успешный отчёт-файл даже если сообщение в Telegram не дошло. Токен читается
+# из окружения и нигде не печатается: ни curl, ни его вывод в журнал не идут.
+send_telegram() {
+    local text="$1"
+    if [ -r "$SRVMON_ENV" ]; then
+        set -a
+        # shellcheck disable=SC1090
+        . "$SRVMON_ENV"
+        set +a
+    fi
+    if [ -z "${TG_BOT_TOKEN:-}" ] || [ -z "${TG_USER_ID:-}" ]; then
+        note 'level=ERROR part=report message="TG_BOT_TOKEN or TG_USER_ID not set"' \
+            "env=$SRVMON_ENV"
+        return 0
+    fi
+    if ! curl -fsS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_USER_ID}" \
+            --data-urlencode "text=${text}" \
+            -o /dev/null 2>/dev/null; then
+        note 'level=ERROR part=report message="telegram send failed"'
+        return 0
+    fi
+    note 'part=report action=sent-telegram'
+    return 0
 }
 
 if [ ! -r "$LOG" ]; then
@@ -80,3 +115,6 @@ tmp=$(mktemp) || exit 0
 # thing that needs cleaning up.
 awk -v keep="$KEEP_REPORTS" '/^## /{n++} n<=keep' "$tmp" >"$REPORT" && rm -f "$tmp"
 note 'part=report action=written model='"$MODEL"' file='"$REPORT"
+
+send_telegram "$summary"
+exit 0
