@@ -359,6 +359,8 @@ Working precedent: `Sensedar-Spark/scripts/run_markup_queue.sh`. That hand-writt
 ```
 It picks the first usable model of that role, applies the registry timeout, skips models under an active penalty, distinguishes *unavailable* (quota/5xx/auth → 1-hour penalty on the whole model) from *context overflow* (no penalty — jump to a wider window) and from *slow* (no penalty — slowness is a passport property, not a fault), and appends one facts-only line per attempt to `~/.claude/model-journal.jsonl`. The journal and `~/.claude/model-penalties.json` are machine-local runtime state and are never committed.
 
+**Rule (reading the journal):** `~/.claude/scripts/model-stats.py` is the way to look at it — `--since 24` for the last day, `--json` for machine output. It reports per-model calls, outcome breakdown, median and p90 seconds, active penalties, and **the share of attempts kept off the Anthropic pool** — the one number that says whether delegation is paying for itself. Counted from journal lines only; nothing is scored or estimated.
+
 **Rule (orchestrator is a human choice):** the orchestrator is the main session and is selected by the user at session start via `/model`. A session cannot re-pick its own model from inside itself, so `model-run.sh` never dispatches the `orchestrator` role — that entry is a reference list only.
 
 **Rule:** Prefer a read-only `--allowedTools` set for reconnaissance over `--dangerously-skip-permissions`; when a delegate must write, bound it to an isolated worktree.

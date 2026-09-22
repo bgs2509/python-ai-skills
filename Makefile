@@ -15,4 +15,6 @@ install-symlinks-force:
 # and only on commits that touch claude-home/hooks/ — this is the full sweep.
 test:
 	@python3 -m pytest claude-home/hooks/test_block_no_verify.py \
-	                   claude-home/housekeeping/test_housekeeping.py -q
+	                   claude-home/housekeeping/test_housekeeping.py \
+	                   claude-home/scripts/test_model_run.py \
+	                   claude-home/scripts/test_model_stats.py -q
