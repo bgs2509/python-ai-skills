@@ -263,7 +263,27 @@ error report on haiku, i.e. ~4.45 chars/token — denser than the 150k estimate.
 | codex/gpt-6-astra medium | 21.8 | |
 | anthropic/haiku | **fail** | "Prompt is too long: ~225,166 tokens (limit 200,000)" — haiku's 200K window disqualifies it from large-context steps |
 
-### 7.3 Cross-tier picture (seconds, small / medium / large)
+### 7.3 Local qwen38-27b — blocker resolved, measured 2026-09-22
+
+The bd `llm-asw` blocker (LiteLLM 500 on a second `role=system` message) **no longer reproduces**.
+Verified two ways before measuring: a direct `curl` to the gateway with an extra `role=system` entry
+in `messages[]` returned **HTTP 200** (as did the single-system control), and `claude-spark-qwen38`
+completed a normal prompt. The fix landed on the spark-1 side between 2026-09-20 and 2026-09-22; the
+shell function was not changed. The stale blocker comment in `~/.bashrc:193-197` is now wrong.
+
+Routing sanity check: asked directly over `curl`, the model answers *"I am Qwen, a large language
+model independently developed by Alibaba Group's Tongyi Lab"*, and the response body carries
+`"model":"qwen38-27b"`. Through Claude Code the same model answers *"I am Claude Fable 5"* — it is
+echoing Claude Code's system prompt, **not** evidence of mis-routing. Do not use self-identification
+to verify which endpoint served a request; read the response `model` field or the gateway logs.
+
+| Tier | seconds | outcome |
+|---|---|---|
+| small (~2k) | 80.5 | ok |
+| medium (~65k) | 190.0 | ok |
+| large (~225k) | fail | "Prompt is too long" — 122,880-token window |
+
+### 7.4 Cross-tier picture (seconds, small / medium / large)
 
 - anthropic/opus xhigh: 7.6 / 6.8 / 9.5 — near-flat, best overall
 - anthropic/sonnet low: 6.3 / 8.0 / 10.5 — near-flat
@@ -271,6 +291,11 @@ error report on haiku, i.e. ~4.45 chars/token — denser than the 150k estimate.
 - codex/gpt-5.6-luna low: 7.9 / 9.9 / 19.0 — degrades ~2.4x
 - codex/gpt-6-astra medium: 9.9 / 12.7 / 21.8 — degrades ~2.2x
 - glm/glm-5.3 low: 11.2 / 15.7 / 17.9 — slow start, modest degradation
+- local/qwen38-27b: 80.5 / 190.0 / fail — **10-24x slower than every subscription pool**
+
+The qwen numbers are the single most decision-relevant result of the sweep: the local gateway is free
+in tokens but costs 1.5-3 minutes of wall-clock per call, and its 122,880-token window is the smallest
+of any channel. It is a batch/background pool, not an in-loop one.
 
 Routing implications (speed axis only; quality axis = Phase C, not yet measured):
 
@@ -281,12 +306,122 @@ Routing implications (speed axis only; quality axis = Phase C, not yet measured)
 3. glm-5.3 low never wins on speed but is the bulk-work pool by quota economics (separate $18-20
    subscription) — its role stays "offload volume", not "win latency".
 4. haiku must not be routed to steps whose context can exceed ~170k tokens (200K limit minus CLI
-   overhead).
+   overhead); qwen38-27b hits the same wall five times earlier, at ~110k.
+5. qwen38-27b belongs to queued background work only. At 80-190 s per call, a 10-step in-loop
+   sequence costs 13-32 minutes of pure model latency.
 
-Still pending: qwen38-27b (all tiers) after the spark-1 fix (bd `llm-asw`); Anthropic fast mode
-(manual-only); Phase C quality benchmark if passport+speed leaves routing ties.
+Phase C (quality benchmark) was **cancelled by user decision 2026-09-22** — the rating stands on
+passport + speed only. Every routing claim below is therefore a statement about latency, cost and
+capacity, never about answer quality.
 
-## 8. Open items / not verified
+Still pending: Anthropic fast mode (interactive-only, no non-interactive flag found).
+
+## 8. Proposed changes to skills and instruction files (NOT applied — awaiting approval)
+
+Each item names the exact file and line, the measured fact that motivates it, and the proposed
+wording. Nothing here has been applied. Items are ordered by how wrong the current text is.
+
+### P1 — `claude-home/CLAUDE.md:341` (Four Token Pools, item 3) — **factually misleading**
+
+Current: *"Local gateway ... **costs no tokens at all**, only machine time. All in-pipeline LLM work
+belongs here."*
+
+Measured: 80.5 s small / 190.0 s medium / fails above ~110k tokens. "All in-pipeline LLM work" reads
+as an instruction to put latency-sensitive steps on a channel that is 10-24x slower than every
+alternative and has the smallest window of any channel.
+
+Proposed: keep the free-in-tokens claim, replace the scope sentence — *"costs no tokens, but 80-190 s
+per call (measured 2026-09-22) and a 122,880-token window. Use it for queued and background work —
+corpus annotation, batch scoring, overnight sweeps — never for a step a human or a loop is waiting on.
+A 10-step in-loop sequence on this pool costs 13-32 minutes of pure model latency."*
+
+### P2 — `do-feature/SKILL.md:103-108` (Escalation rule) — **silent-failure gap**
+
+Current: escalation triggers only on *"2 consecutive test fails"*.
+
+Measured: `cheap`=haiku returns `Prompt is too long · the request is ~225,166 tokens (limit 200,000)`.
+That is not a test failure, so the current rule never escalates — the step dies instead.
+
+Proposed: add rule 5 — *"**Escalate immediately on context overflow.** A worker that returns a
+context-limit error (`Prompt is too long`, HTTP 400 on input size) is re-dispatched one tier up at
+once, without waiting for the 2-fail counter. Window sizes are not uniform across tiers: haiku 200K,
+qwen38-27b 122,880, every other current model 1M."*
+
+### P3 — `claude-home/CLAUDE.md:100-110` (Plan Sizing) — **ambiguous under tiered routing**
+
+Current: a phase must fit *"одно контекстное окно активной модели"*, budget at ~60%.
+
+Problem: under the Routing Matrix the planning step (mid) and the executing step (cheap) run on
+different models with a 5x window difference (1M vs 200K). A plan sized against the planner's window
+is unexecutable by a cheap-tier worker.
+
+Proposed: add — *"Окно считать по **наименьшему** среди ярусов, которые будут исполнять и
+верифицировать фазу, а не по окну модели, которая пишет план. Практический ориентир для оценки
+объёма: ~4.45 знака на токен на связном английском тексте (замер 2026-09-22)."*
+
+### P4 — `audit-loop/SKILL.md:140` — **2x slower than necessary**
+
+Current: `codex exec -s read-only --cd "$PWD"` — no `-m`, no effort, so it inherits
+`~/.codex/config.toml` (`gpt-5.6-sol`, `model_reasoning_effort = "high"`).
+
+Measured: sol/high = 25.6 s, the slowest Codex position measured; terra/high = 13.3 s and
+luna/low = 7.9 s for the same prompt.
+
+Proposed: pin the model explicitly in the skill rather than inheriting a global default that can
+change under it — `codex exec -s read-only --cd "$PWD" -m gpt-5.6-terra -c model_reasoning_effort=high`,
+with a one-line note that the skill pins its own model so a global config change cannot silently
+alter audit behaviour.
+
+### P5 — `claude-home/CLAUDE.md:350` (tier mapping is NOT identity) — **incomplete**
+
+The tier remapping itself is confirmed correct. Missing facts that change how a delegate is written:
+glm-5.3 supports only `low`/`high`/`max` (no `medium`, no `xhigh`) and **cannot disable reasoning**;
+glm-4.7's window is ~205K, not 1M. Proposed: append these three facts to the existing rule.
+
+### P6 — `claude-home/CLAUDE.md:342` (Codex pool) — **missing the default-is-slowest trap**
+
+Proposed: append — *"Дефолт `~/.codex/config.toml` — `gpt-5.6-sol` + `effort=high`, самая медленная
+из замеренных позиций Codex (25.6 с). Для фоновых проверок задавать модель явно: terra/high 13.3 с,
+luna/low 7.9 с."*
+
+### P7 — `do-feature/SKILL.md:78` (tier mapping) — **decision needed, not an automatic edit**
+
+Measured: `opus` at xhigh is faster than `fable` at every context size (7.6/6.8/9.5 s vs 12.4/11.8 s)
+and costs half as much per token ($5/$25 vs $10/$50); fable additionally requires 30-day data
+retention. **Quality was not measured** (Phase C cancelled), and `top`=fable was a deliberate user
+decision on 2026-08-28.
+
+Proposed: do **not** silently re-map the tier. Instead add one line under the tier list recording the
+measured latency/cost delta, so the next person choosing between them sees the tradeoff. Re-mapping
+`top` to `opus`+xhigh is a separate decision that needs a quality signal this sweep does not provide.
+
+### P8 — `docs/adr/ADR-002-model-routing-ab-validation.md` (Consequences) — **stale limitation**
+
+Current: *"The matrix has NOT been revalidated against Claude 5 models."*
+
+Proposed: amend to record that the **latency and capacity axes** were revalidated on 2026-09-22
+(pointer to this document), while the **quality axis remains unvalidated** against the Claude 5
+lineup — so `python-ai-skills-4f4` stays open for quality only.
+
+### P9 — new facts worth recording wherever tooling gotchas live
+
+1. `gpt-5.5` rejects `effort=max` with HTTP 400 (supported: none/low/medium/high/xhigh).
+2. Codex accepts any string for `model_reasoning_effort` locally without validation (`banana` was
+   accepted); `ultra` is silently normalized by some client paths — never trust an `ultra` run.
+3. `sonnet` refused a word-salad test fixture under the AUP classifier ("Sonnet 5 can't help with
+   this"). Generate large test fixtures as coherent prose, not random word lists.
+4. **A model's self-identification does not prove which endpoint served it.** qwen38-27b answers
+   "I am Claude Fable 5" through Claude Code (echoing the system prompt) and "I am Qwen ... Alibaba"
+   over direct curl. Verify routing by the response `model` field, never by asking the model.
+
+### P10 — outside the repo (cannot edit, user action)
+
+`~/.bashrc:193-197` still carries the "ИЗВЕСТНЫЙ БЛОКЕР (bd llm-asw)" comment describing the
+LiteLLM 500. That blocker is resolved (section 7.3) — the comment now misleads anyone reading the
+function. Editing `~/.bashrc` is outside the allowed write scope (global CLAUDE.md → Security), so
+this is a suggestion for the user to apply.
+
+## 9. Open items / not verified
 
 - glm-5.3-flash max output and effort levels; glm-4.7 reasoning modes.
 - GPT-6 Astra and GPT-5.5 API pricing (not needed for subscription use, kept for completeness).
