@@ -15,8 +15,8 @@
   "roles": {
     "planner": {
       "purpose": "Design, research, architecture, contracts, review. Quality outranks cost.",
-      "order_rationale": "Anthropic first: this work is the most expensive to get wrong, and Phase C (quality) was never measured. External pools are the fallback, not the default.",
-      "models": ["opus-xhigh", "fable-medium", "gpt-sol-xhigh", "glm-5.3-high"]
+      "order_rationale": "External pools first, Anthropic last (user decision 2026-09-22, reversing the initial draft). Saving the scarce Anthropic quota outranks the latency cost here: gpt-sol at xhigh took 22.9 s vs 7.6 s for opus, which is the accepted 'small damage to speed'. RISK ACCEPTED: planning is the most expensive work to get wrong and the quality axis was never measured (Phase C cancelled), so this order trades an unmeasured quality risk for a measured quota saving. Revisit once the journal shows how often plans from external pools needed rework.",
+      "models": ["gpt-sol-xhigh", "glm-5.3-high", "fable-medium", "opus-xhigh"]
     },
     "executor": {
       "purpose": "Codegen, mechanical edits, test writing from a finished spec, bulk reading.",
@@ -25,13 +25,13 @@
     },
     "batch": {
       "purpose": "Queued background work nobody waits on: corpus annotation, sweeps, scoring.",
-      "order_rationale": "Free-then-cheap. qwen costs no quota at all but 80-190 s per call, which is acceptable only when no human and no loop is blocked.",
-      "models": ["qwen38", "glm-4.7", "gpt-luna-low"]
+      "order_rationale": "Free-then-cheap. qwen costs no quota at all but 80-190 s per call, which is acceptable only when no human and no loop is blocked. sonnet-low sits last as a safety net so a queued job never dies when all three cheaper channels are penalised or exhausted.",
+      "models": ["qwen38", "glm-4.7", "gpt-luna-low", "sonnet-low"]
     },
     "orchestrator": {
       "purpose": "REFERENCE ONLY — not dispatched by model-run.sh. The orchestrator is the main session, chosen by a human via /model at session start; a session cannot re-pick its own model from inside itself.",
-      "order_rationale": "Listed so the choice is informed, not automated.",
-      "models": ["opus-xhigh", "sonnet-low"]
+      "order_rationale": "Listed so the choice is informed, not automated. A whole session can run on an external pool — `claude-glm` (no /model switch needed, the wrapper remaps tiers) or the Codex CLI — which is why they are listed first: the cheapest orchestrator you are willing to accept should be the default choice at session start. Note a session on claude-glm loses the four claude.ai connectors (Docs, Gmail, Calendar, Drive); the seven local MCP servers keep working.",
+      "models": ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]
     }
   },
 
