@@ -75,7 +75,11 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 
 **This matrix is the single source of truth for routing, expressed as TIERS, not fixed model names.** Step Details reference it and MUST NOT restate models. The Agent tool has NO `thinking` parameter — reasoning depth is steered only by prompt wording in the dispatch.
 
-**Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). Map each tier to the strongest available model in that tier for the Agent tool's current lineup (currently: `top`=fable, `strong`=opus, `mid`=sonnet, `cheap`=haiku — set by user decision 2026-08-28).
+**Boundary with the model registry (no overlap):** this matrix owns *which tier a step needs*. `~/.claude/model-registry.json` (repo: `claude-home/model-registry.json`) owns *which model serves a tier or role*, with launch flags, timeouts and fallback order. Neither file restates the other's zone. The registry additionally defines roles (`planner`/`executor`/`batch`) used when delegating **outside** the Agent tool; those roles do not change this matrix — every row below still dispatches an Anthropic tier, because the Agent tool cannot reach another pool.
+
+**Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). The tier→model mapping is **not written here** — it lives in the registry's `tiers` block (`claude-home/model-registry.json`), set by user decision 2026-08-28 and unchanged since. Read it from there; a copy on this line would drift.
+
+**Window warning:** tiers do not share a context window. `cheap`=haiku holds 200K and fails with `Prompt is too long` above ~170k usable tokens, while every other current tier holds 1M (measured 2026-09-22). Never route a step whose context can approach that ceiling to the cheap tier.
 
 **Orchestration = opus.** Every `inline` row in the matrix (Step 1 `bd create`, USER APPROVAL gates, Step 11 controller, Step 13 Finish) runs in the main session, not in a subagent — its model is the session model, `opus` via `settings.json` `model` (same user decision). Do not dispatch a subagent just to change the orchestrator's model.
 
@@ -106,6 +110,7 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 2. **Escalate one tier up on 2 consecutive test fails.** If the same step fails its TDD cycle twice in a row, the controller extracts that step from the batch and re-dispatches it *alone* one tier above its current tier (`cheap`→`mid`→`strong`→`top`; `top` is the ceiling — after 2 fails there, stop and surface to the user). After it produces a passing implementation, subsequent steps return to the step's default tier. Failure to escalate after 2 fails is a workflow defect — the controller MUST track per-step fail counts.
 3. **Cheap tier only for trivial mechanical steps.** Pure rename, format-only changes, mass find-replace, mechanical comment updates. Anything that requires reasoning about types, control flow, or library APIs — stay on mid tier.
 4. **Context7 / new-library steps stay on mid tier.** Do NOT downgrade to cheap when a Context7 trigger fires (the 4 triggers listed in Step 11, reference.md).
+5. **Escalate immediately on context overflow — do not wait for the 2-fail counter.** A worker that returns a context-limit error (`Prompt is too long`, or an HTTP 400 on input size) has not failed a test, so rule 2 never fires and the step would otherwise die silently. Re-dispatch it at once to a tier with a larger window. Windows are not uniform: `cheap`=haiku 200K, every other current tier 1M.
 
 ### Audit trail — exceptions only
 

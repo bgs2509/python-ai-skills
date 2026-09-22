@@ -1,0 +1,182 @@
+{
+  "_comment": [
+    "SSoT for WHICH MODEL implements a role, with launch parameters and fallback order.",
+    "It is NOT the SSoT for which role/tier a do-feature step needs — that stays in",
+    "do-feature/SKILL.md (Model Routing Matrix), which by its own wording routes by TIERS,",
+    "not model names. Matrix answers 'this step needs tier X'; this file answers",
+    "'tier/role X is served by these models, in this order, with these parameters'.",
+    "Numbers come from docs/research/model-passports-2026-09.md (measured 2026-09-22).",
+    "Consumed by claude-home/scripts/model-run.sh. Edit here, never in a skill."
+  ],
+  "version": 1,
+  "updated": "2026-09-22",
+  "source": "docs/research/model-passports-2026-09.md",
+
+  "roles": {
+    "planner": {
+      "purpose": "Design, research, architecture, contracts, review. Quality outranks cost.",
+      "order_rationale": "Anthropic first: this work is the most expensive to get wrong, and Phase C (quality) was never measured. External pools are the fallback, not the default.",
+      "models": ["opus-xhigh", "fable-medium", "gpt-sol-xhigh", "glm-5.3-high"]
+    },
+    "executor": {
+      "purpose": "Codegen, mechanical edits, test writing from a finished spec, bulk reading.",
+      "order_rationale": "External pools first: this is where the Anthropic quota is saved. Anthropic is the last resort so a step never dies for lack of a worker.",
+      "models": ["glm-4.7", "gpt-terra-high", "sonnet-low"]
+    },
+    "batch": {
+      "purpose": "Queued background work nobody waits on: corpus annotation, sweeps, scoring.",
+      "order_rationale": "Free-then-cheap. qwen costs no quota at all but 80-190 s per call, which is acceptable only when no human and no loop is blocked.",
+      "models": ["qwen38", "glm-4.7", "gpt-luna-low"]
+    },
+    "orchestrator": {
+      "purpose": "REFERENCE ONLY — not dispatched by model-run.sh. The orchestrator is the main session, chosen by a human via /model at session start; a session cannot re-pick its own model from inside itself.",
+      "order_rationale": "Listed so the choice is informed, not automated.",
+      "models": ["opus-xhigh", "sonnet-low"]
+    }
+  },
+
+  "tiers": {
+    "_comment": "Mapping used by do-feature's Model Routing Matrix. Anthropic-only: the Agent tool cannot dispatch other pools.",
+    "top": "fable-medium",
+    "strong": "opus-xhigh",
+    "mid": "sonnet-low",
+    "cheap": "haiku"
+  },
+
+  "models": {
+    "opus-xhigh": {
+      "pool": "anthropic",
+      "runner": "claude",
+      "model_arg": "opus",
+      "effort": "xhigh",
+      "context_tokens": 1000000,
+      "measured_seconds": {"small": 7.6, "medium": 6.8, "large": 9.5},
+      "timeout_seconds": 300,
+      "quota": "Anthropic Max 5x — scarce, 5h rolling window",
+      "notes": "Fastest measured position at every context size."
+    },
+    "fable-medium": {
+      "pool": "anthropic",
+      "runner": "claude",
+      "model_arg": "fable",
+      "effort": "medium",
+      "context_tokens": 1000000,
+      "measured_seconds": {"small": 7.4, "medium": 11.8, "large": null},
+      "timeout_seconds": 300,
+      "quota": "Anthropic Max 5x — scarce",
+      "notes": "Twice the per-token price of opus and slower at high effort; keep for work that explicitly needs it."
+    },
+    "sonnet-low": {
+      "pool": "anthropic",
+      "runner": "claude",
+      "model_arg": "sonnet",
+      "effort": "low",
+      "context_tokens": 1000000,
+      "measured_seconds": {"small": 6.3, "medium": 8.0, "large": 10.5},
+      "timeout_seconds": 300,
+      "quota": "Anthropic Max 5x — scarce, separate weekly Sonnet cap",
+      "notes": "Refused a word-salad test fixture under the AUP classifier; generate fixtures as coherent prose."
+    },
+    "haiku": {
+      "pool": "anthropic",
+      "runner": "claude",
+      "model_arg": "haiku",
+      "effort": null,
+      "context_tokens": 200000,
+      "measured_seconds": {"small": 8.8, "medium": 8.7, "large": null},
+      "timeout_seconds": 300,
+      "quota": "Anthropic Max 5x",
+      "notes": "Smallest Anthropic window. Fails with 'Prompt is too long' above ~170k tokens of usable context."
+    },
+    "glm-5.3-high": {
+      "pool": "zai",
+      "runner": "claude-glm",
+      "model_arg": "fable",
+      "effort": "high",
+      "context_tokens": 1000000,
+      "measured_seconds": {"small": 12.9, "medium": null, "large": null},
+      "timeout_seconds": 420,
+      "quota": "Z.ai Coding Plan — ~80 requests / 5h on Lite, resets on Beijing time",
+      "unavailable_mcp": ["claude_ai_Claude_Docs", "claude_ai_Gmail", "claude_ai_Google_Calendar", "claude_ai_Google_Drive"],
+      "notes": "claude-glm remaps tiers: --model fable reaches glm-5.3. Reasoning cannot be disabled; only low/high/max exist."
+    },
+    "glm-4.7": {
+      "pool": "zai",
+      "runner": "claude-glm",
+      "model_arg": "sonnet",
+      "effort": null,
+      "context_tokens": 204800,
+      "measured_seconds": {"small": 19.2, "medium": null, "large": null},
+      "timeout_seconds": 420,
+      "quota": "Z.ai Coding Plan — ~80 requests / 5h on Lite",
+      "unavailable_mcp": ["claude_ai_Claude_Docs", "claude_ai_Gmail", "claude_ai_Google_Calendar", "claude_ai_Google_Drive"],
+      "notes": "claude-glm remaps --model sonnet to glm-4.7. Window is ~205k, not 1M."
+    },
+    "gpt-sol-xhigh": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "context_tokens": 1050000,
+      "measured_seconds": {"small": 22.9, "medium": null, "large": null},
+      "timeout_seconds": 600,
+      "quota": "ChatGPT Plus — 10-100 Sol messages / 5h, shared with ChatGPT Work",
+      "notes": "Slowest-but-strongest Codex position."
+    },
+    "gpt-terra-high": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-5.6-terra",
+      "effort": "high",
+      "context_tokens": 1050000,
+      "measured_seconds": {"small": 13.3, "medium": 13.8, "large": null},
+      "timeout_seconds": 480,
+      "quota": "ChatGPT Plus — 25-200 Terra messages / 5h",
+      "notes": "Best balance measured in the Codex pool."
+    },
+    "gpt-luna-low": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-5.6-luna",
+      "effort": "low",
+      "context_tokens": 1050000,
+      "measured_seconds": {"small": 7.9, "medium": 9.9, "large": 19.0},
+      "timeout_seconds": 480,
+      "quota": "ChatGPT Plus — 250-2000 Luna messages / 5h",
+      "notes": "Fastest non-Anthropic position at small and medium context."
+    },
+    "qwen38": {
+      "pool": "local",
+      "runner": "claude-spark-qwen38",
+      "model_arg": "opus",
+      "effort": null,
+      "context_tokens": 122880,
+      "measured_seconds": {"small": 80.5, "medium": 190.0, "large": null},
+      "timeout_seconds": 900,
+      "quota": "none — costs machine time only",
+      "notes": "Smallest window of any channel and 10-24x slower than every subscription pool. Batch work only. The only channel where code never leaves own infrastructure."
+    }
+  },
+
+  "policy": {
+    "penalty_seconds": 3600,
+    "penalty_scope": "whole model",
+    "penalize_on": ["unavailable"],
+    "no_penalty_on": ["context_overflow", "timeout"],
+    "_policy_comment": [
+      "unavailable = quota exhausted, gateway 5xx, auth failure, network down: the model is",
+      "genuinely unusable for a while, so a 1h circuit breaker avoids pointless retries.",
+      "context_overflow is not a fault — the model is fine, the task does not fit; jump to a",
+      "model with a bigger window instead of punishing this one.",
+      "timeout is NOT penalised by default: qwen legitimately takes 190 s, and penalising",
+      "slowness would evict the free pool permanently. Set penalize_on_timeout per model to",
+      "override."
+    ]
+  },
+
+  "state_files": {
+    "_comment": "Runtime state, machine-local. NEVER committed: it is state, not configuration.",
+    "journal": "~/.claude/model-journal.jsonl",
+    "penalties": "~/.claude/model-penalties.json"
+  }
+}

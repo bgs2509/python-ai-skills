@@ -86,6 +86,9 @@ link "$REPO/claude-home/rules"         "$CLAUDE_HOME/rules"
 link "$REPO/claude-home/output-styles" "$CLAUDE_HOME/output-styles"
 link "$REPO/claude-home/hooks"         "$CLAUDE_HOME/hooks"
 link "$REPO/claude-home/scripts"       "$CLAUDE_HOME/scripts"
+# Configuration, so it is symlinked. The runtime state it drives
+# (model-journal.jsonl, model-penalties.json) stays machine-local and uncommitted.
+link "$REPO/claude-home/model-registry.json" "$CLAUDE_HOME/model-registry.json"
 
 # settings.json is RENDERED from a template (not symlinked): it needs absolute,
 # per-machine paths for hook commands (Claude does not expand ~ in hook commands).

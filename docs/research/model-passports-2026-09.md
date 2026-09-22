@@ -316,10 +316,16 @@ capacity, never about answer quality.
 
 Still pending: Anthropic fast mode (interactive-only, no non-interactive flag found).
 
-## 8. Proposed changes to skills and instruction files (NOT applied — awaiting approval)
+## 8. Proposed changes to skills and instruction files
 
-Each item names the exact file and line, the measured fact that motivates it, and the proposed
-wording. Nothing here has been applied. Items are ordered by how wrong the current text is.
+Each item names the exact file, the measured fact that motivates it, and the proposed wording.
+Items are ordered by how wrong the current text was.
+
+**Status after 2026-09-22 (bd `python-ai-skills-w8a`, user chose variant 2+3):**
+**APPLIED — P1, P2, P3, P5** (plus the haiku window warning from P7) as part of the registry work,
+because each was a direct contradiction with the new registry rules. **STILL PROPOSED — P4, P6,
+P7 (tier re-mapping), P8, P9, P10**: they are independent of the registry and were left alone to
+keep the change scoped to what was approved.
 
 ### P1 — `claude-home/CLAUDE.md:341` (Four Token Pools, item 3) — **factually misleading**
 

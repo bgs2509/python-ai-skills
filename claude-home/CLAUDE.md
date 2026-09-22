@@ -109,6 +109,8 @@ Never jump straight to code when requirements, architecture, or verification int
 
 **Rule:** Бюджет окна оценивать по *эффективному* размеру (с учётом system prompt, skills, MCP tools, истории) — не по номинальному размеру окна активной модели: номинал никогда не бывает свободен целиком.
 
+**Rule (какое именно окно считать):** окна ярусов различаются в разы, и фазу планирует одна модель, а исполняет другая. Считать по **наименьшему** окну среди тех моделей, которые будут фазу исполнять и верифицировать, а не по окну модели, пишущей план. Номиналы — в `claude-home/model-registry.json` (`context_tokens`): 1M у большинства ярусов, 200K у `cheap`=haiku, 122 880 у локального `qwen38`. Практический пересчёт для оценки объёма: **~4,45 знака на токен** на связном английском тексте (замер 2026-09-22, `docs/research/model-passports-2026-09.md`).
+
 ## Skill Hierarchy
 
 **Rule:** Every skill has one role:
@@ -330,6 +332,40 @@ Real secrets in any of these files = policy violation regardless of name.
 **Rule:** Use MCP servers for integrations: GitHub, Docker, browsers (playwright/chrome-devtools), documentation (context7), reasoning (sequential-thinking).
 
 **Rule:** Use parallel subagents/agent teams for independent/parallelizable tasks (Claude: `teammateMode` + agent-teams flag; Codex: `[features] multi_agent` + `/agent`).
+
+## Model Routing — Four Token Pools (cost discipline)
+
+**Meta:** The Anthropic quota is the scarce pool and must be spent on judgement, not on bulk reading. Savings come from **where intermediate reading happens**: a delegate that reads 40 files and returns a 2-page digest costs the Anthropic pool only the digest.
+
+**Rule:** Route work to the cheapest pool that can do it correctly:
+1. **Anthropic** (scarce) — architecture decisions, `/best-*` analysis, instruction/schema design, subtle debugging, and **verification of every other pool's output**.
+2. **Z.ai GLM** via the `claude-glm` shell function (`~/.bashrc`, added 2026-08-17) — reconnaissance, inventories, grep/log sweeps, web research, bulk mechanical edits, draft docs/tests from a finished spec, independent corpus annotation.
+3. **Local gateway** (DGX Spark `spark-1`: `qwen38-27b`, `gemma-4-26b`, `bge-m3`) — **costs no tokens at all**, only machine time, and is the only channel where code never leaves own infrastructure. But it is the slowest and narrowest channel: measured 80 s on a trivial prompt, 190 s at ~65k context, and it refuses anything past its 122,880-token window (2026-09-22, `docs/research/model-passports-2026-09.md`). Use it for **queued background work nobody waits on** — corpus annotation, batch scoring, overnight sweeps. Never put it inside a loop or on a step a human is waiting for: ten in-loop calls cost 13-32 minutes of pure latency.
+4. **Codex** (`codex exec -m ...`) — second independent voice where annotator agreement is measured.
+
+**Rule (structural constraint):** Subagents spawned via the Agent tool ALWAYS run on Anthropic models — the model parameter accepts Anthropic tiers only. To delegate to GLM, shell out instead:
+```bash
+bash -ic "claude-glm -p --model opus --allowedTools Read Grep Glob Bash < task.txt" > out.md
+```
+Working precedent: `Sensedar-Spark/scripts/run_markup_queue.sh`. That hand-written form is the fallback for one-off experiments; for ordinary delegation prefer `model-run.sh` (rule below), which builds the same command from the registry and records the attempt.
+
+**Rule (tier mapping is NOT identity):** `claude-glm` remaps tiers — `--model fable` → `glm-5.3[1m]`, `--model opus` → **`glm-5.3-flash`**, `--model sonnet`/`--model haiku` → `glm-4.7`. Asking for "opus" under `claude-glm` gets Flash. Pick deliberately. Three consequences worth knowing before writing a delegate: `glm-5.3` has only `low`/`high`/`max` efforts (no `medium`, no `xhigh`) and **cannot disable reasoning**; `glm-4.7`'s window is ~205k, not 1M; and under `claude-glm` the four **claude.ai connectors** (Claude Docs, Gmail, Google Calendar, Google Drive) are disabled because the Z.ai key outranks the claude.ai login — all seven local MCP servers, including `context7`, keep working (verified via `claude mcp list`, 2026-09-22).
+
+**Rule (choosing WHICH model, not which pool):** the pool rules above say where work belongs; the concrete model, its launch flags, its timeout and its fallback order live in **`~/.claude/model-registry.json`** (repo: `claude-home/model-registry.json`) under four roles — `planner`, `executor`, `batch`, and the reference-only `orchestrator`. Do not restate model names, efforts or timeouts in a skill, a prompt or this file: the registry is their single home, and a copy will drift from it.
+
+**Rule (delegating by role):** to hand work to another pool, call the runner instead of assembling a command by hand:
+```bash
+~/.claude/scripts/model-run.sh --role executor --task task.txt --out result.md
+```
+It picks the first usable model of that role, applies the registry timeout, skips models under an active penalty, distinguishes *unavailable* (quota/5xx/auth → 1-hour penalty on the whole model) from *context overflow* (no penalty — jump to a wider window) and from *slow* (no penalty — slowness is a passport property, not a fault), and appends one facts-only line per attempt to `~/.claude/model-journal.jsonl`. The journal and `~/.claude/model-penalties.json` are machine-local runtime state and are never committed.
+
+**Rule (orchestrator is a human choice):** the orchestrator is the main session and is selected by the user at session start via `/model`. A session cannot re-pick its own model from inside itself, so `model-run.sh` never dispatches the `orchestrator` role — that entry is a reference list only.
+
+**Rule:** Prefer a read-only `--allowedTools` set for reconnaissance over `--dangerously-skip-permissions`; when a delegate must write, bound it to an isolated worktree.
+
+**Rule:** Delegation does NOT relax the Trust = 0% rule (see Preferences → subagent artifacts). Run the validator/tests yourself on whatever a cheaper model produced.
+
+**Rule:** Z.ai and Codex pools are finite too (observed: `glm` hitting the Z.ai subscription limit, reset on Beijing time). Spread heavy background work across pools rather than draining one.
 
 ## Preferences
 
