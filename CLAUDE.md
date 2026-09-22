@@ -31,16 +31,17 @@ project_type: dev
 
 > **SSoT for invocation:** the `TRIGGER`/`SKIP` lines in each `SKILL.md` frontmatter are the single source of truth for when a skill fires. The `not …` hints above are a compact routing aid, not a duplicate of those lines.
 
-### Workflow, GRACE & utility skills (30)
+### Workflow, GRACE & utility skills (31)
 
 - **Orchestrators:** `do-feature` (single entry point for features), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
 - **best-\* family:** `best-research` (analysis engine, SSoT), `best-recommend` (recommendation format atom), `best-approach` / `best-rank` / `best-questions` (thin wrappers)
 - **grace-\* (14):** `grace-init`, `grace-plan`, `grace-execute`, `grace-multiagent-execute`, `grace-refresh`, `grace-reviewer`, `grace-refactor`, `grace-fix`, `grace-ask`, `grace-status`, `grace-verification`, `grace-explainer`, `grace-cli`, `grace-setup-subagents`
 - **git & sync:** `git-commit`, `git-branch`, `project-sync`, `projects-sync`, `beads-sync`
 - **audit:** `full-audit` (deterministic code+docs audit), `audit-loop` (5-round codex cross-review)
+- **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only)
 - **misc:** `customer-tz` (customer-facing TZ from raw input)
 
-> The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (45 total); `make install-symlinks` links them all.
+> The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (46 total); `make install-symlinks` links them all.
 
 ---
 
