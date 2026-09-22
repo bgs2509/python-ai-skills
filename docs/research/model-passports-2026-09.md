@@ -174,7 +174,22 @@ Constraint (user): do NOT consume a significant share of monthly quotas.
 4. Measure: wall-clock to first token and total, output tokens/sec; record model+mode+timestamp.
 5. Prerequisite: spark-1 blocker fix (bd `llm-asw`) before qwen positions are run.
 
-## 6. Open items / not verified
+## 6. Verified CLI flags for mode selection (Phase B prerequisites)
+
+- `claude --effort <low|medium|high|xhigh|max>` — verified via `claude --help`; also applies to GLM
+  through the `claude-glm` wrapper (z.ai documents low/high/max for glm-5.3).
+- Codex: `codex exec -m <model> -c model_reasoning_effort=<value>`; accepted values
+  `none|minimal|low|medium|high|xhigh|max`; picker labels map Low->low, Medium->medium, High->high,
+  Extra high->xhigh, Max->max. `ultra` is NOT reliably settable via config — some client paths
+  silently normalize it (sources: [dev.to](https://dev.to/aicoding-guide/how-to-change-reasoning-effort-in-codex-cli-modelreasoningeffort-values-and-one-off-overrides-2bf4),
+  [codexinsider](https://codexinsider.com/config/model-reasoning-effort/)). The config parser does not
+  validate the value locally (accepted `banana` without error) — treat measured "ultra" rows as suspect.
+- Anthropic fast mode has no verified non-interactive CLI flag (`/fast` is an interactive toggle) —
+  excluded from the automated sweep, noted as a manual-only position.
+- Measured wall-clock via CLI wrappers includes CLI startup overhead (hooks, MCP for `claude`) —
+  comparable within a pool, biased across pools; recorded as-is and flagged.
+
+## 7. Open items / not verified
 
 - glm-5.3-flash max output and effort levels; glm-4.7 reasoning modes.
 - GPT-6 Astra and GPT-5.5 API pricing (not needed for subscription use, kept for completeness).
