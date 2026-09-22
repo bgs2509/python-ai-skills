@@ -1,0 +1,8 @@
+pool,model,effort,seconds,chars,exit
+anthropic,opus,xhigh,9.527116037,531,0
+anthropic,sonnet,low,10.462288043,447,0
+anthropic,haiku,none,5.589706166,528,1
+glm,glm-5.3,low,17.943094844,883,0
+codex,gpt-5.6-luna,low,19.008258439,887941,0
+codex,gpt-6-astra,medium,21.804627388,887703,0
+LARGE SWEEP DONE 2026-09-22T14:16:33+03:00

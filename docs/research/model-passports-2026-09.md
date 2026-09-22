@@ -228,10 +228,63 @@ Findings:
 6. Quota spent: 53 short calls total (~16 Anthropic, 7 GLM, 30 Codex) — well within one 5-hour
    window on every subscription, per the no-significant-spend constraint.
 
-Next (not yet run): medium-tier (~50k context) for the shortlist — anthropic/sonnet(low,high),
-anthropic/opus(xhigh), anthropic/fable(medium), anthropic/haiku, codex/gpt-5.6-luna(low),
-codex/gpt-6-astra(medium), codex/gpt-5.6-terra(high), glm/glm-5.3(low) — plus qwen38-27b after the
-spark-1 fix (bd `llm-asw`).
+### 7.1 Medium tier (~50-65k tokens of context), 9 shortlist positions
+
+Filler: word-salad lines (295KB). **anthropic/sonnet refused the word-salad filler on both calls**
+("Sonnet 5 can't help with this", AUP-classifier refusal — the only model to do so) and was re-run
+with natural coherent prose of the same byte size; its rows are therefore not byte-identical input.
+
+| Position | seconds | note |
+|---|---|---|
+| anthropic/opus xhigh | 6.8 | fastest |
+| anthropic/sonnet low | 8.0 | natural-text retry |
+| anthropic/haiku | 8.7 | |
+| codex/gpt-5.6-luna low | 9.9 | |
+| anthropic/sonnet high | 11.8 | natural-text retry |
+| anthropic/fable medium | 11.8 | |
+| codex/gpt-6-astra medium | 12.7 | |
+| codex/gpt-5.6-terra high | 13.8 | |
+| glm/glm-5.3 low | 15.7 | slowest |
+
+Side datapoint: an accidental oversized run fed sonnet ~300k tokens of natural prose — processed in
+12-20 s (low/high), confirming near-flat input-scaling on the Anthropic channel.
+
+### 7.2 Large tier (~200k tokens of context — relabeled), 6 finalists
+
+The "large" natural-prose filler (888KB) measured **~225k tokens total request** per the CLI's own
+error report on haiku, i.e. ~4.45 chars/token — denser than the 150k estimate. Tier relabeled ~200k.
+
+| Position | seconds | note |
+|---|---|---|
+| anthropic/opus xhigh | 9.5 | fastest |
+| anthropic/sonnet low | 10.5 | |
+| glm/glm-5.3 low | 17.9 | |
+| codex/gpt-5.6-luna low | 19.0 | |
+| codex/gpt-6-astra medium | 21.8 | |
+| anthropic/haiku | **fail** | "Prompt is too long: ~225,166 tokens (limit 200,000)" — haiku's 200K window disqualifies it from large-context steps |
+
+### 7.3 Cross-tier picture (seconds, small / medium / large)
+
+- anthropic/opus xhigh: 7.6 / 6.8 / 9.5 — near-flat, best overall
+- anthropic/sonnet low: 6.3 / 8.0 / 10.5 — near-flat
+- anthropic/haiku: 8.8 / 8.7 / fail — fine until the 200K wall
+- codex/gpt-5.6-luna low: 7.9 / 9.9 / 19.0 — degrades ~2.4x
+- codex/gpt-6-astra medium: 9.9 / 12.7 / 21.8 — degrades ~2.2x
+- glm/glm-5.3 low: 11.2 / 15.7 / 17.9 — slow start, modest degradation
+
+Routing implications (speed axis only; quality axis = Phase C, not yet measured):
+
+1. Anthropic channel is the fastest at every context size and scales almost flat — consistent with
+   keeping `top/strong` tiers on Anthropic in the do-feature Routing Matrix.
+2. codex/gpt-5.6-luna low is the best non-Anthropic option at small/medium context — a candidate
+   second voice for cheap parallel work while quotas allow.
+3. glm-5.3 low never wins on speed but is the bulk-work pool by quota economics (separate $18-20
+   subscription) — its role stays "offload volume", not "win latency".
+4. haiku must not be routed to steps whose context can exceed ~170k tokens (200K limit minus CLI
+   overhead).
+
+Still pending: qwen38-27b (all tiers) after the spark-1 fix (bd `llm-asw`); Anthropic fast mode
+(manual-only); Phase C quality benchmark if passport+speed leaves routing ties.
 
 ## 8. Open items / not verified
 
