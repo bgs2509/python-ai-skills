@@ -189,7 +189,51 @@ Constraint (user): do NOT consume a significant share of monthly quotas.
 - Measured wall-clock via CLI wrappers includes CLI startup overhead (hooks, MCP for `claude`) —
   comparable within a pool, biased across pools; recorded as-is and flagged.
 
-## 7. Open items / not verified
+## 7. Phase B results — small-context sweep (measured 2026-09-22)
+
+Method: 1 call per position, identical short prompt ("reverse a string" + one sentence), wall-clock
+seconds including CLI startup overhead; `timeout 300`; raw CSV and answers in the session job dir
+(`speed_small.csv`). Single-shot — indicative ranking, not statistically significant. qwen38-27b and
+Anthropic fast mode not run (see section 6).
+
+| Pool / model | low | medium | high | xhigh | max | ultra |
+|---|---|---|---|---|---|---|
+| anthropic/fable | 8.0 | 7.4 | 12.8 | 12.4 | 12.5 | — |
+| anthropic/opus | 8.3 | 8.7 | 11.2 | 7.6 | 8.6 | — |
+| anthropic/sonnet | 6.3 | 6.9 | 6.2 | 7.2 | 25.6 | — |
+| anthropic/haiku | 8.8 (no effort param) | | | | | |
+| glm/glm-5.3 | 11.2 | — | 12.9 | — | 17.5 | — |
+| glm/glm-5.3-flash | 12.7 | — | 17.6 | — | 14.8 | — |
+| glm/glm-4.7 | 19.2 (no effort) | | | | | |
+| codex/gpt-6-astra | 13.4 | 9.9 | 12.0 | 21.9 | 30.6 | 22.9 |
+| codex/gpt-5.6-sol | 17.7 | 18.3 | 25.6 | 22.9 | 28.0 | 30.8 |
+| codex/gpt-5.6-terra | 15.3 | 13.7 | 13.3 | 13.5 | 28.8 | 23.1 |
+| codex/gpt-5.6-luna | 7.9 | 19.5 | 13.9 | 18.8 | 29.6 | 27.1 |
+| codex/gpt-5.5 | 13.4 | 9.6 | 15.5 | 20.7 | **400 error** | 17.1 (suspect) |
+
+Findings:
+
+1. **gpt-5.5 rejects `max`** — API 400: supported values are none/low/medium/high/xhigh only. Its
+   `ultra` row returned 200, confirming silent client-side normalization — treat all `ultra` rows as
+   unreliable positions (consistent with section 6).
+2. **Fastest at small context:** anthropic/sonnet at low-xhigh (~6-7 s) and anthropic/fable,opus at
+   low/medium (~7-9 s); codex/gpt-5.6-luna low (7.9 s) is the only non-Anthropic entry in that band.
+3. **haiku is not faster than sonnet here** (8.8 vs 6.2-7.2 s) — CLI startup overhead dominates at
+   this task size; haiku's advantage should reappear on longer outputs (verify in the medium tier).
+4. **Effort level costs real time on Codex:** max/ultra rows run 22-31 s across all models vs 8-18 s
+   at low-high. On Anthropic the effect is milder (fable high+ ~12.5 s vs ~7.5 s at low/medium);
+   outlier: sonnet max 25.6 s.
+5. **GLM sits in the middle band** (11-19 s), slower than Anthropic low-effort but comparable to
+   mid-tier Codex; glm-4.7 (19.2 s) is the slowest GLM channel.
+6. Quota spent: 53 short calls total (~16 Anthropic, 7 GLM, 30 Codex) — well within one 5-hour
+   window on every subscription, per the no-significant-spend constraint.
+
+Next (not yet run): medium-tier (~50k context) for the shortlist — anthropic/sonnet(low,high),
+anthropic/opus(xhigh), anthropic/fable(medium), anthropic/haiku, codex/gpt-5.6-luna(low),
+codex/gpt-6-astra(medium), codex/gpt-5.6-terra(high), glm/glm-5.3(low) — plus qwen38-27b after the
+spark-1 fix (bd `llm-asw`).
+
+## 8. Open items / not verified
 
 - glm-5.3-flash max output and effort levels; glm-4.7 reasoning modes.
 - GPT-6 Astra and GPT-5.5 API pricing (not needed for subscription use, kept for completeness).
