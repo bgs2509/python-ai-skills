@@ -20,7 +20,9 @@ set -uo pipefail
 REGISTRY="${MODEL_REGISTRY:-$HOME/.claude/model-registry.json}"
 JOURNAL="${MODEL_JOURNAL:-$HOME/.claude/model-journal.jsonl}"
 PENALTIES="${MODEL_PENALTIES:-$HOME/.claude/model-penalties.json}"
-SESSION="${CLAUDE_SESSION_ID:-${MODEL_RUN_SESSION:-unknown}}"
+# The Bash tool exports CLAUDE_CODE_SESSION_ID (verified 2026-09-22); the shorter
+# CLAUDE_SESSION_ID does not exist, which is why early journal lines said "unknown".
+SESSION="${MODEL_RUN_SESSION:-${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-unknown}}}"
 # Average chars per token measured on coherent English prose (2026-09-22 sweep).
 CHARS_PER_TOKEN="${MODEL_CHARS_PER_TOKEN:-4.45}"
 

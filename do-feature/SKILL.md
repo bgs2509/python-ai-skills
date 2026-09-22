@@ -75,7 +75,20 @@ Per-step model dispatch optimizes cost and wall-clock vs a single-model baseline
 
 **This matrix is the single source of truth for routing, expressed as TIERS, not fixed model names.** Step Details reference it and MUST NOT restate models. The Agent tool has NO `thinking` parameter — reasoning depth is steered only by prompt wording in the dispatch.
 
-**Boundary with the model registry (no overlap):** this matrix owns *which tier a step needs*. `~/.claude/model-registry.json` (repo: `claude-home/model-registry.json`) owns *which model serves a tier or role*, with launch flags, timeouts and fallback order. Neither file restates the other's zone. The registry additionally defines roles (`planner`/`executor`/`batch`) used when delegating **outside** the Agent tool; those roles do not change this matrix — every row below still dispatches an Anthropic tier, because the Agent tool cannot reach another pool.
+**Boundary with the model registry (no overlap):** this matrix owns *which tier a step needs*. `~/.claude/model-registry.json` (repo: `claude-home/model-registry.json`) owns *which model serves a tier or role*, with launch flags, timeouts and fallback order. Neither file restates the other's zone.
+
+### Outward-dispatch fork (which CHANNEL, before which tier)
+
+The matrix below answers *which tier*. Before applying it, answer a prior question: **does this unit of work leave the Anthropic pool at all?** The Agent tool cannot reach another pool, so every `Agent(...)` row spends the scarce quota by construction — which is why a pipeline that only ever dispatches inward can never save it (journals 2026-09-22: 17 sessions, ~1400 tool calls, zero outward delegation).
+
+Ask, per unit of work, in this order:
+
+1. **Does it need Anthropic-level judgement?** Design, contracts, review, security, root-cause debugging, anything the user will approve at a gate → **Agent tool**, apply the matrix, stop here. Quality on external pools is unmeasured (Phase C cancelled), so judgement work never leaves.
+2. **Is the output consumed directly by this conversation as reasoning?** (open questions to resolve inline, a design the orchestrator must weigh) → **Agent tool**: the runner returns a file, not a participant.
+3. **Does the delegate need tools mid-flight?** (iterative grep→read→edit loops, MCP servers) → **Agent tool**: the runner is a one-shot call with a task file in and a result file out.
+4. **Otherwise — bulk or mechanical with a written spec:** mass reading and inventory, drafting docs/tests from a finished spec, format-only or rename passes, corpus annotation → **outward**: `~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>` (`--role batch` when nothing is waiting on it). Verify the result yourself — Trust = 0% is not relaxed by delegation.
+
+Per-step defaults: Steps 2, 4, 7, 8, 12 always inward (judgement). Step 6 and Step 11 workers are the realistic outward candidates, decided per unit of work by the four questions above, not blanket-assigned. Log an outward dispatch in the Step 11 audit trail the same way a tier exception is logged.
 
 **Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). The tier→model mapping is **not written here** — it lives in the registry's `tiers` block (`claude-home/model-registry.json`), set by user decision 2026-08-28 and unchanged since. Read it from there; a copy on this line would drift.
 
