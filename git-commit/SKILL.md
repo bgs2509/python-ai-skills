@@ -5,7 +5,8 @@ description: >
   group into logical commits, and commit with detailed conventional commit messages.
   TRIGGER when: user calls /git-commit, user has many uncommitted files and wants
   to organize commits, user says "commit my changes" or "sort my changes".
-  SKIP when: user wants to triage/clean up branches (use /git-branch), or push/sync
+  SKIP when: user wants to triage/clean up branches (use /git-branch), finish the
+  current branch end-to-end — docs, merge, delete, push (use /git-finish), or push/sync
   across machines (use /project-sync, /beads-sync).
 argument-hint: "[--all to skip interactive classification]"
 ---
