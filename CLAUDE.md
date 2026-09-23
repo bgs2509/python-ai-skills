@@ -91,9 +91,12 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 - `settings.json` is **rendered** from `claude-home/settings.json.template` (it needs absolute per-machine hook paths, so it is generated, not symlinked). `extraKnownMarketplaces` lives in `~/.claude/settings.local.json` — never committed, deep-merged by Claude on top. `hooks/` and `scripts/` are symlinked like everything else.
 - **Runtime-owned keys.** `model` (written by `/model`) and `enabledPlugins` (written by `claude plugin enable` — it targets `settings.json`, and the copy in `settings.local.json` is ignored) are carried over from the live file on every render and masked in the drift guard. Do not put them in the template; do not hand-edit them.
 - Skills are linked into `~/.codex/skills/` as well, from the repo directly. Same list, one SSoT.
+- `claude-home/model-registry.json` is symlinked too (which model serves which role/tier, with launch flags and timeouts). The runtime state it drives — `~/.claude/model-journal.jsonl` and `~/.claude/model-penalties.json` — is machine-local and never committed. Read the journal with `~/.claude/scripts/model-stats.py`.
 - The bootstrap `pre-commit` hook is installed into this checkout too (`.git/hooks/` is not versioned). Quality gate: `.pre-commit-config.yaml` — gitleaks staged scan, template JSON validity, hook regression suite. Full sweep: `make test`.
 
 > No version bump or `claude plugins update` is needed — edits to any skill/agent/command/instruction are **live immediately** through the symlink. Adding or removing a skill/agent/command → re-run `make install-symlinks`. After editing `settings.json.template`, re-run the installer to re-render.
+
+> **"Live immediately" has one exception, and it bites.** Skills, agents and commands are read when invoked, so an edit reaches even a running session. `CLAUDE.md` is read **at session start** — a session already running never learns a rule you add now. Measured 2026-09-22: 14 of 17 active sessions predated a rule added an hour earlier and could not have followed it. If a new rule must reach live sessions, deliver it as a **hook** (`PreToolUse` + `hookSpecificOutput.additionalContext` — see `claude-home/hooks/delegation-pool-nudge.sh`), not as a paragraph in `CLAUDE.md`.
 
 ---
 

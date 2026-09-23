@@ -41,3 +41,25 @@ and escalation rule cite `ADR-002` instead of restating numbers.
   predates the Claude 5 family (Fable). The matrix has NOT been revalidated against
   Claude 5 models — this is a known follow-up (medium finding, audit round 2). Until
   revalidation, the matrix remains the SSoT for routing.
+
+## Amendment 2026-09-22 — latency and capacity revalidated, quality not
+
+A 68-call sweep across three context sizes (`docs/research/model-passports-2026-09.md`,
+bd `python-ai-skills-bt9`) revalidated two of the three axes against the Claude 5
+lineup:
+
+- **Latency — done.** Anthropic is fastest at every context size and scales almost
+  flat (opus xhigh 7.6 / 6.8 / 9.5 s for small / medium / large). External pools are
+  1.5-3x slower; the local gateway is 10-24x slower.
+- **Capacity — done, and it changed a routing rule.** Tier windows are not uniform:
+  `cheap`=haiku holds 200K and fails above ~170k usable tokens, every other tier 1M.
+  This produced the context-overflow escalation rule now in `do-feature/SKILL.md`,
+  which the original 2-test-fail trigger missed entirely.
+- **Quality — NOT revalidated.** The benchmark phase was cancelled by user decision
+  2026-09-22. The 2026-05-13 numbers above remain the only quality evidence, and they
+  predate Claude 5. `python-ai-skills-4f4` stays open for this axis alone.
+
+Two structural facts were also recorded, neither of which the original A/B covered:
+the tier→model mapping now lives in `claude-home/model-registry.json` (this ADR and
+the matrix own tiers; the registry owns models), and the Agent tool is Anthropic-only,
+so saving quota requires the outward-dispatch fork added to `do-feature/SKILL.md`.

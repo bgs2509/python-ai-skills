@@ -35,3 +35,12 @@ repos:
         language: system
         files: ^claude-home/hooks/
         pass_filenames: false
+
+      # model-run.sh / model-stats.py drive real delegation and the journal;
+      # they were shipped with tests that no gate collected until 2026-09-22.
+      - id: scripts-regression-tests
+        name: pytest (claude-home/scripts suite)
+        entry: python3 -m pytest claude-home/scripts/ -q
+        language: system
+        files: ^claude-home/scripts/
+        pass_filenames: false
