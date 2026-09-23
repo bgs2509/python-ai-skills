@@ -8,7 +8,8 @@ description: >
   explicit confirmation. TRIGGER when: user calls /git-branch, user wants to clean up
   / triage / audit branches, user says "what branches can I delete", "clean up
   branches", "which branches are stale/merged/abandoned". SKIP when: committing
-  changes (use /git-commit), pushing/syncing across machines (use /project-sync),
+  changes (use /git-commit), finishing the ONE branch you are on — docs, merge, delete,
+  push (use /git-finish), pushing/syncing across machines (use /project-sync),
   syncing bd issues (use /beads-sync).
 argument-hint: "[--report to diagnose only, never delete] [--stale-days N (default 30)] [--include-remote to also report remote-tracking branches]"
 ---
