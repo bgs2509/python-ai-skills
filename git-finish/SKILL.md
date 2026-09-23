@@ -114,17 +114,26 @@ Order matters: the worktree goes first — a branch checked out in a worktree ca
 deleted — and worktree removal must run from outside that worktree.
 
 ```bash
-git worktree list --porcelain | awk -v b="refs/heads/<branch>" \
-    '/^worktree /{p=$2} /^branch /{if ($2==b) print p}'
+WT=$(rtk proxy git worktree list --porcelain | awk -v b="refs/heads/<branch>" \
+    '/^worktree /{p=$2} /^branch /{if ($2==b) print p}')
+MAIN_ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
 ```
 
-> **Under the RTK hook this parse silently returns nothing** — the hook rewrites
-> `git worktree list` and reshapes its output, so `--porcelain` is no longer porcelain.
-> Verified in this repo: the same pipeline returns the path only via
-> `rtk proxy git worktree list --porcelain`. Use `rtk proxy` whenever machine-parsing
-> git output, exactly as `RTK.md` requires for `diff`.
+> **Two traps here, both hit in practice.**
+>
+> 1. **A path is not proof of a separate worktree.** When the branch is simply checked
+>    out in the main clone, this lookup returns the main repository root — and acting on
+>    it means trying to delete the workspace you are standing in. Always compare:
+>    `[ "$WT" = "$MAIN_ROOT" ]` means there is no worktree to remove. Only a path
+>    *different* from `MAIN_ROOT` is a removable worktree.
+> 2. **Under the RTK hook the parse silently returns nothing** — the hook rewrites
+>    `git worktree list` and reshapes its output, so `--porcelain` is no longer
+>    porcelain. Verified in this repo: the pipeline yields the path only through
+>    `rtk proxy`. Machine-parsing git output goes through `rtk proxy`, exactly as
+>    `RTK.md` requires for `diff`.
 
-1. Path found → `git worktree remove <path>` then `git worktree prune`.
+1. `$WT` empty or equal to `$MAIN_ROOT` → no worktree to remove, go to step 2.
+   Otherwise `cd "$MAIN_ROOT"`, then `git worktree remove "$WT"` and `git worktree prune`.
    Refuses because of local changes → STOP and report; never `--force` on your own.
 2. `git branch -d <branch>` — lowercase `-d` only. It refuses anything unmerged, which
    is the safety check. A refusal means the merge did not land — investigate, never
@@ -172,5 +181,6 @@ that refuses to go, unrelated uncommitted changes.
 | Skipping tests because they were green on the branch | The merged tree is a tree nothing has tested yet. |
 | `git branch -D` when `-d` refuses | `-d` refusing IS the safety check reporting an unmerged branch. |
 | Parsing `git worktree list --porcelain` under the RTK hook | The hook reshapes the output and the parse returns nothing. Use `rtk proxy`. |
+| Treating the path the worktree lookup returns as a removable worktree | For a branch checked out in the main clone the lookup returns the repository root itself — acting on it means deleting the workspace you are standing in. Compare against `MAIN_ROOT` first. |
 | Leaving a branch unmerged because "it is just a skill" | A skill directory that exists only on a branch leaves the symlink installer pointing at a path that is not there — exactly how `progress-watch` produced two dangling links. |
 | Reporting "done" from the push command's output | It is condensed by the hook. Compare hashes, including `git ls-remote`. |
