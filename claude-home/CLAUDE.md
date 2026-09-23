@@ -444,7 +444,7 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** All repo skills (45 as of 2026-08-31; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
+**Rule:** All repo skills (46 as of 2026-09-23; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
 
 **Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
 
