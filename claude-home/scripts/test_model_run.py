@@ -925,3 +925,28 @@ def test_shipped_reviewer_role():
     role = shipped["roles"]["reviewer"]
     assert role["models"] == ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]
     assert role["timeout_seconds"] == 1800
+
+
+def test_answer_file_is_private_whatever_the_umask(env):
+    write_registry(
+        env,
+        registry({"cx": model(LOG_AND_ANSWER)}, {"executor": {"models": ["cx"]}}),
+    )
+    proc_env = {**os.environ, "MODEL_REGISTRY": str(env["registry"]), "MODEL_JOURNAL": str(env["journal"]),
+                "MODEL_PENALTIES": str(env["penalties"]), "MODEL_OUTPUTS": str(outputs_dir(env))}
+    cmd = f'umask 0002; bash "{SCRIPT}" --role executor --task "{env["task"]}" --out "{env["out"]}"'
+    result = subprocess.run(["bash", "-c", cmd], capture_output=True, text=True, env=proc_env, timeout=30)
+    assert result.returncode == 0, result.stderr
+    assert env["out"].stat().st_mode & 0o077 == 0, oct(env["out"].stat().st_mode)
+
+
+def test_failed_move_of_an_answer_file_leaves_only_the_answer(env, tmp_path):
+    write_registry(
+        env,
+        registry({"cx": model(LOG_AND_ANSWER)}, {"executor": {"models": ["cx"]}}),
+    )
+    result = run(env, "--role", "executor", "--out", str(tmp_path / "missing-dir" / "x.md"))
+    assert result.returncode == 2
+    kept = list(outputs_dir(env).iterdir())
+    assert len(kept) == 1 and kept[0].read_text() == "FINAL ANSWER\nVERDICT-OK\n"
+    assert str(kept[0]) in result.stderr

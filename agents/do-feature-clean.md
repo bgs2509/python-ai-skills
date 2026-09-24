@@ -51,7 +51,7 @@ Step 8:  Q&A Contracts
 Step 9:  Writing Plans
 Step 10: USER APPROVAL — plan
 Step 11: Execution (with HARD GUARDS above)
-Step 12: Review (strong-tier code-reviewer, scoped to cross-phase deltas + FR/NFR coverage + verification-before-completion)
+Step 12: Review (external code review via model-run.sh --role reviewer per do-feature/reference.md Step 12 and ADR-003, scoped to cross-phase deltas + FR/NFR coverage + verification-before-completion)
 Step 13: Finish (git-commit meta, completion report, bd close)
 ```
 

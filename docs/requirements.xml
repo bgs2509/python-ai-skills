@@ -42,9 +42,7 @@
     </non_functional_requirements>
     <constraints>
       <Item>Registry is the single home for which model serves the reviewer role (CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
-      <Item>
-        <Planning_and_design_steps_stay_on_Anthropic__user_requirement key="Planning and design steps stay on Anthropic (user requirement">plans by Anthropic, review by GLM/GPT).</Planning_and_design_steps_stay_on_Anthropic__user_requirement>
-      </Item>
+      <Item>Planning and design steps stay on Anthropic (user requirement: plans by Anthropic, review by GLM/GPT).</Item>
     </constraints>
   </Feature>
   <Feature source="20260924-model-run-evidence-discovery.md" bd_id="python-ai-skills-2fu">

@@ -292,8 +292,8 @@ If any step diverges from the approved plan (new module not in plan, different a
 **Code review procedure (orchestrator, inline):**
 1. Create a throwaway tree at the reviewed commit: `git worktree add --detach <tmp>/review-wt HEAD` — the reviewer's Bash may write in its working directory, so only a separate tree guarantees the real one stays untouched.
 2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary).
-3. From inside the worktree run `~/.claude/scripts/model-run.sh --role reviewer --task <task> --out <review.md> --expect '^(READY|READY WITH FIXES|NOT READY)$'` (runs up to 30 min; run it in the background). A codex reviewer's answer is its final message only (the runner's answer file), not its log.
-4. `git worktree remove --force <tmp>/review-wt`.
+3. From inside the worktree run `~/.claude/scripts/model-run.sh --role reviewer --task <task> --out <review.md> --expect '^(READY|READY WITH FIXES|NOT READY)$'` (runs up to 30 min; run it in the background and WAIT for it to finish before step 4 — removing the worktree under a running reviewer breaks the review). Exit 0 = a review was delivered to `<review.md>`; exit 1 = every reviewer failed (stop and tell the user); exit 2 = usage error. A codex reviewer's answer is its final message only (the runner's answer file), not its log.
+4. After the runner has exited: `git worktree remove --force <tmp>/review-wt` (always, whatever the exit code).
 5. If the journal line of the answering attempt names an Anthropic model, log it as a routing exception (`bd update <epic> --notes`).
 6. Verify EVERY finding yourself (read the code or reproduce) before fixing it — Trust = 0% applies to the external reviewer exactly as to any delegate. Unverifiable findings stay labelled HYPOTHESIS and are not acted on silently.
 

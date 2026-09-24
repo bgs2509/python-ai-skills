@@ -243,6 +243,9 @@ for MODEL in $CANDIDATES; do
   tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX") \
     || die "cannot create an output file in $OUTPUTS"
   answer_file="${tmp_out%.out}-answer.out"
+  # Pre-created private: a writer that truncates an existing file keeps its
+  # mode, so the answer stays 0600 like the capture file whatever the umask.
+  (umask 077; : > "$answer_file")
   t0=$(date +%s.%N)
   # Background + wait: bash runs a trap only after a FOREGROUND child exits,
   # which would delay an interrupt by up to the model timeout.
@@ -281,6 +284,8 @@ for MODEL in $CANDIDATES; do
       if [ -n "$OUT" ]; then
         mv -- "$deliver" "$OUT" || {
           printf 'model-run: cannot write --out %s; answer kept at %s\n' "$OUT" "$deliver" >&2
+          # Keep only the file that holds the answer (it is named above).
+          if [ "$deliver" = "$tmp_out" ]; then rm -f "$answer_file"; else rm -f "$tmp_out"; fi
           exit 2
         }
       else

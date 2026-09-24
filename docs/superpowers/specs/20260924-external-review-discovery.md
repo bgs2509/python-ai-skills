@@ -30,7 +30,7 @@ non_functional_requirements:
     text: make test stays green; new model-run.sh behaviour is covered by tests on the synthetic registry.
 constraints:
   - Registry is the single home for which model serves the reviewer role (CLAUDE.md "choosing WHICH model").
-  - Planning and design steps stay on Anthropic (user requirement: plans by Anthropic, review by GLM/GPT).
+  - "Planning and design steps stay on Anthropic (user requirement: plans by Anthropic, review by GLM/GPT)."
 ---
 
 # Discovery: external code review in do-feature Step 12 (python-ai-skills-xp4)
