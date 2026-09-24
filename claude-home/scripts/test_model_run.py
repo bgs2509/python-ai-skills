@@ -441,3 +441,65 @@ def test_journal_line_has_no_output_text(env):
     assert marker not in raw_journal
     kept = Path(journal_lines(env)[0]["out_path"])
     assert marker in kept.read_text()
+
+
+def test_expect_miss_is_check_failed_and_next_model_answers(env):
+    write_registry(
+        env,
+        registry(
+            {
+                "vague": model("cat >/dev/null; echo NO URL"),
+                "precise": model("cat >/dev/null; echo '=== URL ==='"),
+            },
+            {"executor": {"models": ["vague", "precise"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "^=== URL ===$")
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text().strip() == "=== URL ==="
+
+    outcomes = [line["outcome"] for line in journal_lines(env)]
+    assert outcomes == ["check_failed", "ok"]
+    assert json.loads(env["penalties"].read_text()) == {}
+
+
+def test_empty_exit_zero_output_is_check_failed(env):
+    write_registry(
+        env,
+        registry(
+            {"mute": model("cat >/dev/null")},
+            {"executor": {"models": ["mute"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    line = journal_lines(env)[0]
+    assert line["outcome"] == "check_failed"
+    assert line["out_bytes"] == 0
+
+
+def test_invalid_expect_regex_is_usage_error(env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "(")
+    assert result.returncode == 2
+    assert "valid extended regex" in result.stderr
+    assert not env["journal"].exists() or journal_lines(env) == []
+
+
+def test_expect_matching_task_text_is_usage_error(env):
+    env["task"].write_text("please answer with === URL === at the end\n")
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "=== URL ===")
+    assert result.returncode == 2
+    assert "matches the task text" in result.stderr

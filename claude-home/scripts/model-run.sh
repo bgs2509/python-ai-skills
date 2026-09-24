@@ -28,12 +28,13 @@ CHARS_PER_TOKEN="${MODEL_CHARS_PER_TOKEN:-4.45}"
 
 die() { printf 'model-run: %s\n' "$*" >&2; exit 2; }
 
-ROLE=""; TASK=""; OUT=""; DRY=0
+ROLE=""; TASK=""; OUT=""; EXPECT=""; DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --role)    ROLE="${2:-}"; shift 2 ;;
     --task)    TASK="${2:-}"; shift 2 ;;
     --out)     OUT="${2:-}";  shift 2 ;;
+    --expect)  EXPECT="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -45,6 +46,12 @@ done
 [ -f "$TASK" ] || die "task file not found: $TASK"
 [ -f "$REGISTRY" ] || die "registry not found: $REGISTRY"
 command -v jq >/dev/null 2>&1 || die "jq is required"
+
+if [ -n "$EXPECT" ]; then
+  grep -qE -- "$EXPECT" </dev/null
+  [ $? -eq 2 ] && die "--expect is not a valid extended regex: $EXPECT"
+  grep -qE -- "$EXPECT" "$TASK" && die "--expect matches the task text; it would pass on an echoed prompt"
+fi
 
 CANDIDATES=$(jq -r --arg r "$ROLE" '.roles[$r].models[]?' "$REGISTRY") || die "cannot read registry"
 [ -n "$CANDIDATES" ] || die "role '$ROLE' has no models in $REGISTRY"
@@ -109,6 +116,8 @@ classify() {
     fi
     echo error; return
   fi
+  grep -q '[^[:space:]]' "$out_file" || { echo check_failed; return; }
+  if [ -n "$EXPECT" ] && ! grep -qE -- "$EXPECT" "$out_file"; then echo check_failed; return; fi
   echo ok
 }
 
@@ -196,6 +205,8 @@ for MODEL in $CANDIDATES; do
       printf 'model-run: %s timed out after %ss (output kept: %s)\n' "$MODEL" "$timeout_s" "$tmp_out" >&2 ;;
     context_overflow)
       printf 'model-run: %s reported context overflow (output kept: %s)\n' "$MODEL" "$tmp_out" >&2 ;;
+    check_failed)
+      printf 'model-run: %s answer failed the check (output kept: %s)\n' "$MODEL" "$tmp_out" >&2 ;;
     *)
       printf 'model-run: %s failed (exit %s, output kept: %s)\n' "$MODEL" "$code" "$tmp_out" >&2 ;;
   esac
