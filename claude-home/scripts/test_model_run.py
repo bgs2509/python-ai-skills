@@ -348,3 +348,96 @@ def test_shipped_registry_is_valid_and_self_consistent():
         if tier.startswith("_"):  # documentation key, not a tier
             continue
         assert name in known, f"tier {tier} references unknown model {name}"
+
+
+def test_timeout_output_is_kept_and_journalled(env):
+    write_registry(
+        env,
+        registry(
+            {"slow": model("echo PARTIAL; sleep 5", timeout_seconds=1)},
+            {"executor": {"models": ["slow"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+
+    line = journal_lines(env)[0]
+    assert line["outcome"] == "timeout"
+    kept = Path(line["out_path"])
+    assert kept.exists()
+    assert kept.read_text().strip() == "PARTIAL"
+    assert line["out_bytes"] == kept.stat().st_size
+    assert kept.parent == outputs_dir(env)
+
+
+def test_error_and_unavailable_outputs_are_kept(env):
+    write_registry(
+        env,
+        registry(
+            {
+                "broken": model("cat >/dev/null; echo 'Error: rate limit exceeded' >&2; exit 1"),
+                "buggy": model("cat >/dev/null; echo 'boom' >&2; exit 3"),
+            },
+            {"executor": {"models": ["broken", "buggy"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+
+    lines = journal_lines(env)
+    assert [line["outcome"] for line in lines] == ["unavailable", "error"]
+    for line in lines:
+        kept = Path(line["out_path"])
+        assert kept.exists(), f"{line['outcome']} output must be kept"
+        assert line["out_bytes"] > 0
+
+
+def test_ok_and_preflight_overflow_carry_null_paths(env):
+    write_registry(
+        env,
+        registry(
+            {
+                "tiny": model("cat >/dev/null; echo NEVER", context_tokens=1),
+                "roomy": model("cat >/dev/null; echo FITS", context_tokens=1000000),
+            },
+            {"executor": {"models": ["tiny", "roomy"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+
+    lines = journal_lines(env)
+    assert lines[0]["outcome"] == "context_overflow"
+    assert lines[0]["out_path"] is None
+    assert lines[0]["out_bytes"] is None
+    assert lines[1]["outcome"] == "ok"
+    assert lines[1]["out_path"] is None
+    assert lines[1]["out_bytes"] is None
+
+
+def test_outputs_default_next_to_journal(env):
+    """No MODEL_OUTPUTS override: the kept file must land next to the journal, not in /tmp."""
+    write_registry(
+        env,
+        registry(
+            {"buggy": model("cat >/dev/null; echo boom >&2; exit 3")},
+            {"executor": {"models": ["buggy"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    kept = Path(journal_lines(env)[0]["out_path"])
+    assert kept.parent == outputs_dir(env)
+    assert kept.parent == env["journal"].parent / "model-outputs"
+
+
+def test_journal_line_has_no_output_text(env):
+    marker = "SUPER_SECRET_TASK_MARKER_12345"
+    write_registry(
+        env,
+        registry(
+            {"buggy": model(f"cat >/dev/null; echo '{marker}' >&2; exit 3")},
+            {"executor": {"models": ["buggy"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    raw_journal = env["journal"].read_text()
+    assert marker not in raw_journal
+    kept = Path(journal_lines(env)[0]["out_path"])
+    assert marker in kept.read_text()

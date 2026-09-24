@@ -83,14 +83,16 @@ set_penalty() {
      '.[$m] = {until: $u, reason: $r}' "$PENALTIES" > "$tmp" && mv "$tmp" "$PENALTIES"
 }
 
-journal() { # model pool runner seconds outcome exit attempt
+journal() { # model pool runner seconds outcome exit attempt out_path out_bytes
   jq -nc --arg ts "$(date -Is)" --arg role "$ROLE" --arg model "$1" --arg pool "$2" \
      --arg runner "$3" --argjson ctx_chars "$CTX_CHARS" --argjson ctx_tokens "$CTX_TOKENS" \
      --argjson seconds "$4" --arg outcome "$5" --argjson exit "$6" --argjson attempt "$7" \
-     --arg session "$SESSION" \
+     --arg session "$SESSION" --arg out_path "${8:-}" --arg out_bytes "${9:-}" \
      '{ts:$ts,role:$role,model:$model,pool:$pool,runner:$runner,ctx_chars:$ctx_chars,
        ctx_tokens:$ctx_tokens,seconds:$seconds,outcome:$outcome,exit:$exit,
-       attempt:$attempt,session:$session}' >> "$JOURNAL"
+       attempt:$attempt,session:$session,
+       out_path:(if $out_path == "" then null else $out_path end),
+       out_bytes:(if $out_bytes == "" then null else ($out_bytes | tonumber) end)}' >> "$JOURNAL"
 }
 
 # Classify an attempt from its exit code and captured output. Text patterns
@@ -163,7 +165,7 @@ for MODEL in $CANDIDATES; do
     continue
   fi
 
-  tmp_out=$(mktemp)
+  tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX")
   t0=$(date +%s.%N)
   timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1
   code=$?
@@ -171,7 +173,15 @@ for MODEL in $CANDIDATES; do
   secs=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
 
   outcome=$(classify "$code" "$tmp_out")
-  journal "$MODEL" "$pool" "$runner" "$secs" "$outcome" "$code" "$attempt"
+
+  out_path=""
+  out_bytes=""
+  if [ "$outcome" != "ok" ]; then
+    out_path="$tmp_out"
+    out_bytes=$(wc -c < "$tmp_out" | tr -d ' ')
+  fi
+
+  journal "$MODEL" "$pool" "$runner" "$secs" "$outcome" "$code" "$attempt" "$out_path" "$out_bytes"
 
   case "$outcome" in
     ok)
@@ -180,16 +190,15 @@ for MODEL in $CANDIDATES; do
       exit 0 ;;
     unavailable)
       set_penalty "$MODEL" unavailable
-      printf 'model-run: %s unavailable, penalised %ss\n' "$MODEL" "$PENALTY_SECONDS" >&2 ;;
+      printf 'model-run: %s unavailable, penalised %ss (output kept: %s)\n' "$MODEL" "$PENALTY_SECONDS" "$tmp_out" >&2 ;;
     timeout)
       [ "$penalize_timeout" = "true" ] && set_penalty "$MODEL" timeout
-      printf 'model-run: %s timed out after %ss\n' "$MODEL" "$timeout_s" >&2 ;;
+      printf 'model-run: %s timed out after %ss (output kept: %s)\n' "$MODEL" "$timeout_s" "$tmp_out" >&2 ;;
     context_overflow)
-      printf 'model-run: %s reported context overflow\n' "$MODEL" >&2 ;;
+      printf 'model-run: %s reported context overflow (output kept: %s)\n' "$MODEL" "$tmp_out" >&2 ;;
     *)
-      printf 'model-run: %s failed (exit %s)\n' "$MODEL" "$code" >&2 ;;
+      printf 'model-run: %s failed (exit %s, output kept: %s)\n' "$MODEL" "$code" "$tmp_out" >&2 ;;
   esac
-  rm -f "$tmp_out"
 done
 
 [ "$DRY" -eq 1 ] && exit 0
