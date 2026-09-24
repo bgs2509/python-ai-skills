@@ -15,12 +15,15 @@ import pytest
 SCRIPT = Path(__file__).resolve().parent / "model-run.sh"
 
 
-def registry(models, roles, penalty_seconds=3600):
+def registry(models, roles, penalty_seconds=3600, policy=None):
+    base_policy = {"penalty_seconds": penalty_seconds}
+    if policy:
+        base_policy.update(policy)
     return {
         "version": 1,
         "roles": roles,
         "models": models,
-        "policy": {"penalty_seconds": penalty_seconds},
+        "policy": base_policy,
     }
 
 
@@ -63,6 +66,11 @@ def journal_lines(env):
     if not env["journal"].exists():
         return []
     return [json.loads(line) for line in env["journal"].read_text().splitlines() if line.strip()]
+
+
+def outputs_dir(env):
+    """Default kept-outputs location: next to the journal (no MODEL_OUTPUTS override)."""
+    return env["journal"].parent / "model-outputs"
 
 
 def model(cmd, **kw):
@@ -289,6 +297,37 @@ def test_dry_run_touches_nothing(env):
     assert "good" in result.stdout
     assert not env["journal"].exists() or journal_lines(env) == []
     assert not env["out"].exists()
+    assert not outputs_dir(env).exists(), "a dry run must not create the outputs directory"
+
+
+def test_old_outputs_are_pruned_young_and_foreign_files_kept(env):
+    """Retention runs on every real (non-dry) invocation, days from the registry."""
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+            policy={"output_retention_days": 14},
+        ),
+    )
+    outputs = outputs_dir(env)
+    outputs.mkdir()
+    old_out = outputs / "old.out"
+    young_out = outputs / "young.out"
+    old_txt = outputs / "old.txt"
+    for f in (old_out, young_out, old_txt):
+        f.write_text("x")
+    old_time = time.time() - 15 * 86400
+    young_time = time.time() - 13 * 86400
+    os.utime(old_out, (old_time, old_time))
+    os.utime(old_txt, (old_time, old_time))
+    os.utime(young_out, (young_time, young_time))
+
+    run(env, "--role", "executor", "--out", str(env["out"]))
+
+    assert not old_out.exists(), "a 15-day .out file must be pruned"
+    assert young_out.exists(), "a 13-day .out file must survive 14-day retention"
+    assert old_txt.exists(), "pruning must only touch *.out files"
 
 
 def test_unknown_role_is_a_usage_error(env):

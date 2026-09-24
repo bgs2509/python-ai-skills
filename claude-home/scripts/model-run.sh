@@ -52,9 +52,19 @@ CANDIDATES=$(jq -r --arg r "$ROLE" '.roles[$r].models[]?' "$REGISTRY") || die "c
 CTX_CHARS=$(wc -c < "$TASK" | tr -d ' ')
 CTX_TOKENS=$(awk -v c="$CTX_CHARS" -v r="$CHARS_PER_TOKEN" 'BEGIN{printf "%d", c/r}')
 PENALTY_SECONDS=$(jq -r '.policy.penalty_seconds // 3600' "$REGISTRY")
+OUTPUTS="${MODEL_OUTPUTS:-$(dirname "$JOURNAL")/model-outputs}"
+RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
 
 mkdir -p "$(dirname "$JOURNAL")"
 [ -f "$PENALTIES" ] || echo '{}' > "$PENALTIES"
+
+# Kept outputs are machine-local evidence of non-ok attempts (NFR-3). Pruned
+# here, on every real run, so the component that creates the state expires
+# it — same ownership pattern as the penalty expiry below.
+if [ "$DRY" -eq 0 ]; then
+  mkdir -p "$OUTPUTS"
+  find "$OUTPUTS" -maxdepth 1 -type f -name '*.out' -mmin "+$((RETENTION_DAYS * 1440))" -delete
+fi
 
 now() { date +%s; }
 
