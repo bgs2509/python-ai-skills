@@ -6,11 +6,13 @@
     "not model names. Matrix answers 'this step needs tier X'; this file answers",
     "'tier/role X is served by these models, in this order, with these parameters'.",
     "Numbers come from docs/research/model-passports-2026-09.md (measured 2026-09-22).",
-    "Consumed by claude-home/scripts/model-run.sh. Edit here, never in a skill."
+    "Consumed by claude-home/scripts/model-run.sh. Edit here, never in a skill.",
+    "measured_seconds = ~2k-token single prompt incl. CLI startup (passport). Multi-turn tool/web tasks take far longer: read model-stats.py, not this field."
   ],
   "version": 1,
-  "updated": "2026-09-22",
+  "updated": "2026-09-24",
   "source": "docs/research/model-passports-2026-09.md",
+  "capabilities_source": "bd python-ai-skills-2fu comment 2026-09-24: real runs of all ten models, web search checked by a live PyPI query.",
 
   "roles": {
     "planner": {
@@ -53,6 +55,7 @@
       "measured_seconds": {"small": 7.6, "medium": 6.8, "large": 9.5},
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x — scarce, 5h rolling window",
+      "capabilities": {"web_search": true},
       "notes": "Fastest measured position at every context size."
     },
     "fable-medium": {
@@ -64,6 +67,7 @@
       "measured_seconds": {"small": 7.4, "medium": 11.8, "large": null},
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x — scarce",
+      "capabilities": {"web_search": true},
       "notes": "Twice the per-token price of opus and slower at high effort; keep for work that explicitly needs it."
     },
     "sonnet-low": {
@@ -75,6 +79,7 @@
       "measured_seconds": {"small": 6.3, "medium": 8.0, "large": 10.5},
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x — scarce, separate weekly Sonnet cap",
+      "capabilities": {"web_search": true},
       "notes": "Refused a word-salad test fixture under the AUP classifier; generate fixtures as coherent prose."
     },
     "haiku": {
@@ -86,6 +91,7 @@
       "measured_seconds": {"small": 8.8, "medium": 8.7, "large": null},
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x",
+      "capabilities": {"web_search": true},
       "notes": "Smallest Anthropic window. Fails with 'Prompt is too long' above ~170k tokens of usable context."
     },
     "glm-5.3-high": {
@@ -98,6 +104,7 @@
       "timeout_seconds": 420,
       "quota": "Z.ai Coding Plan — ~80 requests / 5h on Lite, resets on Beijing time",
       "unavailable_mcp": ["claude_ai_Claude_Docs", "claude_ai_Gmail", "claude_ai_Google_Calendar", "claude_ai_Google_Drive"],
+      "capabilities": {"web_search": true},
       "notes": "claude-glm remaps tiers: --model fable reaches glm-5.3. Reasoning cannot be disabled; only low/high/max exist."
     },
     "glm-4.7": {
@@ -110,6 +117,7 @@
       "timeout_seconds": 420,
       "quota": "Z.ai Coding Plan — ~80 requests / 5h on Lite",
       "unavailable_mcp": ["claude_ai_Claude_Docs", "claude_ai_Gmail", "claude_ai_Google_Calendar", "claude_ai_Google_Drive"],
+      "capabilities": {"web_search": true},
       "notes": "claude-glm remaps --model sonnet to glm-4.7. Window is ~205k, not 1M."
     },
     "gpt-sol-xhigh": {
@@ -121,6 +129,7 @@
       "measured_seconds": {"small": 22.9, "medium": null, "large": null},
       "timeout_seconds": 600,
       "quota": "ChatGPT Plus — 10-100 Sol messages / 5h, shared with ChatGPT Work",
+      "capabilities": {"web_search": true},
       "notes": "Slowest-but-strongest Codex position."
     },
     "gpt-terra-high": {
@@ -132,6 +141,7 @@
       "measured_seconds": {"small": 13.3, "medium": 13.8, "large": null},
       "timeout_seconds": 480,
       "quota": "ChatGPT Plus — 25-200 Terra messages / 5h",
+      "capabilities": {"web_search": true},
       "notes": "Best balance measured in the Codex pool."
     },
     "gpt-luna-low": {
@@ -143,6 +153,7 @@
       "measured_seconds": {"small": 7.9, "medium": 9.9, "large": 19.0},
       "timeout_seconds": 480,
       "quota": "ChatGPT Plus — 250-2000 Luna messages / 5h",
+      "capabilities": {"web_search": true},
       "notes": "Fastest non-Anthropic position at small and medium context."
     },
     "qwen38": {
@@ -154,6 +165,7 @@
       "measured_seconds": {"small": 80.5, "medium": 190.0, "large": null},
       "timeout_seconds": 900,
       "quota": "none — costs machine time only",
+      "capabilities": {"web_search": false},
       "notes": "Smallest window of any channel and 10-24x slower than every subscription pool. Batch work only. The only channel where code never leaves own infrastructure."
     }
   },
@@ -162,7 +174,8 @@
     "penalty_seconds": 3600,
     "penalty_scope": "whole model",
     "penalize_on": ["unavailable"],
-    "no_penalty_on": ["context_overflow", "timeout"],
+    "no_penalty_on": ["context_overflow", "timeout", "check_failed"],
+    "output_retention_days": 14,
     "_policy_comment": [
       "unavailable = quota exhausted, gateway 5xx, auth failure, network down: the model is",
       "genuinely unusable for a while, so a 1h circuit breaker avoids pointless retries.",
@@ -170,13 +183,15 @@
       "model with a bigger window instead of punishing this one.",
       "timeout is NOT penalised by default: qwen legitimately takes 190 s, and penalising",
       "slowness would evict the free pool permanently. Set penalize_on_timeout per model to",
-      "override."
+      "override.",
+      "check_failed = exit 0 but the answer is empty or misses the caller's --expect regex: the model works, the answer does not fit this task. Never penalised; the output is kept."
     ]
   },
 
   "state_files": {
     "_comment": "Runtime state, machine-local. NEVER committed: it is state, not configuration.",
     "journal": "~/.claude/model-journal.jsonl",
-    "penalties": "~/.claude/model-penalties.json"
+    "penalties": "~/.claude/model-penalties.json",
+    "outputs": "~/.claude/model-outputs/ (kept outputs of non-ok attempts; pruned by model-run.sh after policy.output_retention_days)"
   }
 }

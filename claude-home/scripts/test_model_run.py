@@ -348,6 +348,14 @@ def test_shipped_registry_is_valid_and_self_consistent():
         if tier.startswith("_"):  # documentation key, not a tier
             continue
         assert name in known, f"tier {tier} references unknown model {name}"
+    for name, spec in shipped["models"].items():
+        assert isinstance(spec.get("capabilities", {}).get("web_search"), bool), (
+            f"model {name} is missing capabilities.web_search"
+        )
+    assert shipped["models"]["qwen38"]["capabilities"]["web_search"] is False
+    assert "check_failed" in shipped["policy"]["no_penalty_on"]
+    assert isinstance(shipped["policy"]["output_retention_days"], int)
+    assert shipped["policy"]["output_retention_days"] > 0
 
 
 def test_timeout_output_is_kept_and_journalled(env):
