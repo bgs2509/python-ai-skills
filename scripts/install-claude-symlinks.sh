@@ -89,6 +89,8 @@ link "$REPO/claude-home/scripts"       "$CLAUDE_HOME/scripts"
 # Configuration, so it is symlinked. The runtime state it drives
 # (model-journal.jsonl, model-penalties.json) stays machine-local and uncommitted.
 link "$REPO/claude-home/model-registry.json" "$CLAUDE_HOME/model-registry.json"
+# RTK config (hook exclusions): lives under XDG, not ~/.claude.
+link "$REPO/claude-home/rtk/config.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/rtk/config.toml"
 
 # settings.json is RENDERED from a template (not symlinked): it needs absolute,
 # per-machine paths for hook commands (Claude does not expand ~ in hook commands).

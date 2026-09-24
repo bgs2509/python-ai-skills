@@ -1,0 +1,11 @@
+# RTK configuration — SSoT in python-ai-skills, linked to ~/.config/rtk/config.toml
+# by scripts/install-claude-symlinks.sh. Only overrides live here; every other
+# key keeps rtk's default (checked with `rtk config`, rtk 0.35.0).
+
+[hooks]
+# `rtk find` silently skips files hidden by .gitignore and by [filters].ignore_dirs
+# (.venv, node_modules, target, vendor, ...) and still exits 0, so an empty result
+# can be false. Verified 2026-09-24: in a repo with `a/` in .gitignore,
+# `rtk find . -name '*syn*'` listed 1 of 2 files; `.venv/pyvenv.cfg` -> "0 for".
+# Excluded from rewriting so plain `find` stays native (bd python-ai-skills-abh).
+exclude_commands = ["find"]

@@ -41,3 +41,24 @@ rtk proxy diff a b      # native diff, unfiltered
 ```
 
 Refer to CLAUDE.md for full command reference.
+
+## `rtk find` — excluded from rewriting (false empty results)
+
+`rtk find` skips files that `.gitignore` hides and directories listed in rtk's
+`[filters].ignore_dirs` (`.venv`, `node_modules`, `target`, `vendor`, ...), and it
+still **exits 0** — so "nothing found" may be false. Verified 2026-09-24 (rtk 0.35.0):
+in a repo with `a/` in `.gitignore`, `rtk find . -name '*syn*'` listed 1 of 2 files;
+`rtk find . -name pyvenv.cfg` answered `0 for 'pyvenv.cfg'` next to an existing
+`.venv/pyvenv.cfg`. In Sinayara-Isuzu this produced a wrong "snapshot never downloaded"
+conclusion (bd `python-ai-skills-abh`).
+
+**Fix in place:** `find` is listed in `[hooks] exclude_commands` of
+`claude-home/rtk/config.toml` (linked to `~/.config/rtk/config.toml` by
+`make install-symlinks`), so the hook leaves `find` native. Rules:
+
+- An empty result from `rtk find` (typed explicitly) is **not** evidence of absence.
+- Plain `find` is native again; `rtk proxy find ...` is equivalent.
+
+Checked and **not** affected on the same fixture: `rtk grep` (lists gitignored and
+`.venv` matches), `rtk ls`, `rtk read` (`cat`), `rtk wc`. `rtk tree` hides dot-dirs
+such as `.venv` exactly like native `tree` without `-a`.
