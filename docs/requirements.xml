@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<Requirements generated="auto" source="YAML frontmatter of markdown specs">
+  <Feature source="20260924-model-run-evidence-discovery.md" bd_id="python-ai-skills-2fu">
+    <feature>model-run-evidence</feature>
+    <related_bd_ids>
+      <Item>python-ai-skills-tlo</Item>
+    </related_bd_ids>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <risk_justification>Three modules touched (model-run.sh, model-stats.py, model-registry.json) plus a new machine-local state directory and an additive journal-schema change consumed by a second module; reversible, no public-API break, no security/auth surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Every claim is cited file:line from the repo, the live journal and the bd issues; all four open questions resolved by the user at the Step 3 gate (2026-09-24).</evidence_justification>
+    <open_questions/>
+    <decisions>
+      <Item>
+        <OQ-1_-__option_1__user__2026-09-24_ key="OQ-1 -&gt; option 1 (user, 2026-09-24)">kept outputs in one flat machine-local directory next to the journal, declared in the registry's state_files, 14-day age retention (precedent JOB_MAX_AGE_DAYS=14). Retention is IN scope (NFR-6).</OQ-1_-__option_1__user__2026-09-24_>
+      </Item>
+      <Item>
+        <OQ-2_-__option_1 key="OQ-2 -&gt; option 1">empty exit-0 output is always a non-ok outcome; the caller regex is an optional stricter check.</OQ-2_-__option_1>
+      </Item>
+      <Item>
+        <OQ-3_-__option_1 key="OQ-3 -&gt; option 1">the new outcome is never penalised.</OQ-3_-__option_1>
+      </Item>
+      <Item>
+        <OQ-4_-__option_3 key="OQ-4 -&gt; option 3">structured capability key only (qwen38 has no web search); latency stays in the journal.</OQ-4_-__option_3>
+      </Item>
+    </decisions>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>classify() maps an attempt to unavailable or context_overflow on output text only when the exit code is non-zero; an exit-0 attempt is never reclassified by words in the model's answer.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>Regression test - a model that exits 0 and whose answer contains &quot;quota&quot; and &quot;429&quot; yields outcome ok, the answer reaches --out, no penalty is written; the existing non-zero-exit true-positive tests stay green.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>The captured output of every attempt that actually ran and did not end ok (timeout, unavailable, error, runtime context_overflow, and the new check-failed outcome) is kept in a machine-local location instead of being deleted.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>The journal line of an attempt carries the path of the kept output and its size in bytes; ok attempts and pre-flight context_overflow skips carry null.</text>
+      </Item>
+      <Item id="FR-5">
+        <text>The caller may pass an answer check (a regex that must match the output); an output that fails the check is a new non-ok outcome, the attempt is journalled as such, and the run continues to the next model of the role.</text>
+      </Item>
+      <Item id="FR-6">
+        <text>An attempt classified by the new outcome is not penalised (see OQ-3).</text>
+      </Item>
+      <Item id="FR-7">
+        <text>model-stats.py counts and renders the new outcome and tolerates journal lines with and without the new optional keys.</text>
+      </Item>
+      <Item id="FR-8">
+        <text>The registry records that qwen38 has no working web search and states the latency observed for glm-4.7 on web tasks in a form that does not conflate it with the passport figure (see OQ-4).</text>
+      </Item>
+      <Item id="FR-9">
+        <text>task-57 is re-run through model-run.sh --role executor; at least one executor model returns a card quoting a fetched 57.mskobr.ru page with its URL, and the journal line is recorded in the bd issue.</text>
+      </Item>
+      <Item id="FR-10">
+        <text>The header help text of model-run.sh (printed by --help) lists the new flag and the new outcome.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>No new runtime dependency beyond what a stock Ubuntu has - bash, jq, GNU coreutils, grep, awk (already used) and GNU findutils (find, for retention) for the runner; Python 3 stdlib only for model-stats.py.</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>All 126 existing tests in `make test` stay green; new behaviour is covered by tests in test_model_run.py and test_model_stats.py using the synthetic-registry fixture (no real model, network or quota).</text>
+      </Item>
+      <Item id="NFR-3">
+        <text>Kept outputs and the journal remain machine-local under the user's home directory, never committed, never cited by absolute path in committed documents.</text>
+      </Item>
+      <Item id="NFR-4">
+        <text>The journal stays append-only, one line per attempt; schema changes are additive so existing lines still parse.</text>
+      </Item>
+      <Item id="NFR-5">
+        <text>The journal line contains only facts (path, bytes, outcome) - never the output text itself, so no task or model content can leak through the journal.</text>
+      </Item>
+      <Item id="NFR-6">
+        <text>Growth of kept outputs is bounded by an age-based retention rule.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Journal and penalties are machine-local runtime state, never committed (model-registry.json state_files, CLAUDE.md line 95).</Item>
+      <Item>model-registry.json is the single home for per-model parameters; skills and prompts must not restate them (claude-home/CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
+      <Item>stdout and stderr of a delegate are merged into one capture file (model-run.sh line 156); any stream-based distinction is a design change, not a given.</Item>
+      <Item>measured_seconds in the registry is documentation only - model-run.sh reads pool, runner, model_arg, effort, context_tokens, timeout_seconds, cmd_template, penalize_on_timeout (lines 107-114) and nothing else.</Item>
+      <Item>Out of scope by prior decision - delegates running Bash without sandbox; the codex config warning.</Item>
+    </constraints>
+    <dependencies>
+      <Item>model-stats.py reads journal keys model, pool, role, outcome, seconds (lines 75-95) and counts ok per pool/role (line 92).</Item>
+      <Item>test_model_run.py (12 tests) pins today's classification via cmd_template models; test_model_stats.py (12 tests) pins the journal summary.</Item>
+      <Item>test_delegation_pool_nudge.py asserts only that the hook text contains &quot;model-run.sh&quot; (lines 42, 112); flag names are not asserted.</Item>
+      <Item>CLAUDE.md lines 358-362 and do-feature/SKILL.md line 89 document the runner's outcomes and invocation for humans.</Item>
+      <Item>housekeeping.py prunes ~/.claude/jobs/&lt;id&gt;/ by age (JOB_MAX_AGE_DAYS=14, line 41) - the only existing retention rule for machine-local state.</Item>
+    </dependencies>
+    <risks>
+      <Item id="R-1">
+        <risk>Gating text patterns on non-zero exit hides a real outage whose wrapper exits 0.</risk>
+        <mitigation>The answer then reaches --out where the caller sees the error text; the caller check (FR-5) moves the run on without a wrong penalty; exit and outcome stay in the journal for a later sweep.</mitigation>
+      </Item>
+      <Item id="R-2">
+        <risk>Kept outputs grow unbounded or hold task text the caller considers sensitive.</risk>
+        <mitigation>Machine-local only, age-based retention (NFR-6), never cited by absolute path.</mitigation>
+      </Item>
+      <Item id="R-3">
+        <risk>A new outcome value is miscounted by an older reader.</risk>
+        <mitigation>model-stats.py is the only reader; updated and tested in the same change; its ok counting is unaffected.</mitigation>
+      </Item>
+      <Item id="R-4">
+        <risk>A timed-out claude -p run leaves an empty kept file because the answer is buffered until the end.</risk>
+        <mitigation>The journal records the byte size (FR-4) so the reader knows before opening; tracing the 420 s cause stays LATER.</mitigation>
+      </Item>
+      <Item id="R-5">
+        <risk>An over-strict caller regex turns every model into the new outcome and exhausts the role.</risk>
+        <mitigation>Exit 1 &quot;exhausted&quot; already exists (model-run.sh lines 184-185); every answer is kept (FR-3), so nothing is lost.</mitigation>
+      </Item>
+      <Item id="R-6">
+        <risk>Refreshing glm-4.7 timing mixes two measurements (2k-token single prompt vs multi-turn web task).</risk>
+        <mitigation>OQ-4 - keep the two figures apart; only timeout_seconds matters at runtime.</mitigation>
+      </Item>
+      <Item id="R-7">
+        <risk>The task-57 acceptance run depends on live pools and on 57.mskobr.ru being reachable for the chosen runner.</risk>
+        <mitigation>Acceptance asks for at least one executor model; the run is recorded evidence, never a pytest.</mitigation>
+      </Item>
+    </risks>
+    <scope>
+      <in>
+        <Item>FR-1 to FR-10 above, phased tlo (FR-1, FR-2) then 2fu (FR-3 to FR-10) on the shared file model-run.sh</Item>
+      </in>
+      <out>
+        <Item>Delegates running Bash without sandbox (separate decision)</Item>
+        <Item>The codex configuration warning</Item>
+        <Item>Keeping outputs of ok attempts (the caller already receives them via --out)</Item>
+        <Item>Any change to which models serve which role or their order</Item>
+      </out>
+      <later>
+        <Item>model-run.sh consulting a capability field to skip a model unfit for the task</Item>
+        <Item>Tracing why glm-4.7 spent 420 s on task-57 (needs a tool-trace run, not the captured stdout)</Item>
+        <Item>A command to clear or inspect a penalty without waiting for the clock</Item>
+      </later>
+    </scope>
+  </Feature>
+</Requirements>

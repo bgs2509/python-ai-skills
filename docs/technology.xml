@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<Technology generated="auto" source="YAML frontmatter of markdown specs">
+  <Feature source="20260924-model-run-evidence-design.md" bd_id="python-ai-skills-2fu">
+    <feature>model-run-evidence</feature>
+    <related_bd_ids>
+      <Item>python-ai-skills-tlo</Item>
+    </related_bd_ids>
+    <date>2026-09-24</date>
+    <status>design</status>
+    <discovery>docs/superpowers/specs/20260924-model-run-evidence-discovery.md</discovery>
+    <risk>medium</risk>
+    <risk_justification>Unchanged from discovery - three modules (model-run.sh, model-stats.py tests, model-registry.json), one new machine-local directory, additive journal keys; no public API break, no auth surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Every design choice cites file:line of the current code or a local command run on 2026-09-24 (GNU grep 3.11, GNU findutils 4.9.0, GNU coreutils 9.4 mktemp, jq 1.7).</evidence_justification>
+    <open_questions/>
+    <context7_verified/>
+    <technology_stack>
+      <Item>bash (runner, unchanged)</Item>
+      <Item>jq 1.7 (journal line, registry reads - already used)</Item>
+      <Item>GNU coreutils (mktemp --suffix, wc, date, timeout - already used except --suffix)</Item>
+      <Item>GNU grep (already used by classify; now also for --expect)</Item>
+      <Item>GNU findutils find (new for the runner - retention)</Item>
+      <Item>Python 3 stdlib (model-stats.py, tests)</Item>
+    </technology_stack>
+    <decisions>
+      <Item>
+        <D-1__FR-1_ key="D-1 (FR-1)">exit-code gate - text patterns are consulted only when exit is non-zero; exit 0 goes to the answer checks.</D-1__FR-1_>
+      </Item>
+      <Item>
+        <D-2__FR-3_FR-4_NFR-6_ key="D-2 (FR-3/FR-4/NFR-6)">kept outputs in $(dirname JOURNAL)/model-outputs, override MODEL_OUTPUTS; files created there by mktemp from the start; retention by find inside model-run.sh on every real run, days from registry policy.output_retention_days (14).</D-2__FR-3_FR-4_NFR-6_>
+      </Item>
+      <Item>
+        <D-3__FR-5_FR-6_ key="D-3 (FR-5/FR-6)">flag --expect REGEX (grep -E, case-sensitive, validated at startup, rejected if it matches the task file); one new outcome check_failed for both empty output and regex miss; never penalised.</D-3__FR-5_FR-6_>
+      </Item>
+      <Item>
+        <D-4__FR-7_ key="D-4 (FR-7)">model-stats.py code unchanged; new tests pin rendering of check_failed and tolerance of new keys.</D-4__FR-7_>
+      </Item>
+      <Item>
+        <D-5__FR-8_ key="D-5 (FR-8)">models.&lt;name&gt;.capabilities = {web_search - bool} on all ten models, provenance in top-level capabilities_source; latency explained in one _comment line, no new number.</D-5__FR-8_>
+      </Item>
+      <Item>
+        <D-6__FR-9_ key="D-6 (FR-9)">task-57 re-run through the phase-2 runner with an anchored --expect; acceptance verified by the main session with curl; journal lines recorded in a bd comment with out_path reduced to its file name.</D-6__FR-9_>
+      </Item>
+    </decisions>
+    <phases>
+      <Item id="phase-1">
+        <bd_id>python-ai-skills-tlo</bd_id>
+        <covers>
+          <Item>FR-1</Item>
+          <Item>FR-2</Item>
+        </covers>
+        <committable_alone>True</committable_alone>
+      </Item>
+      <Item id="phase-2">
+        <bd_id>python-ai-skills-2fu</bd_id>
+        <covers>
+          <Item>FR-3</Item>
+          <Item>FR-4</Item>
+          <Item>FR-5</Item>
+          <Item>FR-6</Item>
+          <Item>FR-7</Item>
+          <Item>FR-8</Item>
+          <Item>FR-9</Item>
+          <Item>FR-10</Item>
+          <Item>NFR-6</Item>
+        </covers>
+      </Item>
+    </phases>
+  </Feature>
+</Technology>
