@@ -149,3 +149,27 @@ def test_cli_text_output_mentions_each_model(tmp_path, capsys):
     text = capsys.readouterr().out
     assert "glm-4.7" in text and "qwen38" in text
     assert "active penalties: none" in text
+
+
+def test_check_failed_is_counted_and_rendered(tmp_path):
+    journal = tmp_path / "j.jsonl"
+    write_journal(journal, [entry(outcome="ok"), entry(outcome="check_failed", seconds=5)])
+    stats = model_stats.summarize(model_stats.read_journal(journal, None))
+    assert stats["by_model"]["glm-4.7"]["outcomes"] == {"ok": 1, "check_failed": 1}
+    assert stats["by_pool"]["zai"] == {"calls": 2, "ok": 1}
+    text = model_stats.render(stats, {})
+    assert "check_failed=1" in text
+
+
+def test_lines_with_and_without_new_keys_both_parse(tmp_path):
+    journal = tmp_path / "j.jsonl"
+    old_line = entry(outcome="ok")  # no out_path/out_bytes, as written before this feature
+    new_line = entry(outcome="check_failed", seconds=3)
+    new_line["out_path"] = "/home/user/.claude/model-outputs/x.out"
+    new_line["out_bytes"] = None
+    write_journal(journal, [old_line, new_line])
+    rows = model_stats.read_journal(journal, None)
+    assert len(rows) == 2
+    stats = model_stats.summarize(rows)
+    assert stats["total_attempts"] == 2
+    assert stats["by_model"]["glm-4.7"]["outcomes"] == {"ok": 1, "check_failed": 1}

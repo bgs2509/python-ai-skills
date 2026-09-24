@@ -7,7 +7,10 @@
   4. Which models are penalised right now?
 
 Facts only: every number here is counted from journal lines written by
-model-run.sh. Nothing is scored, judged, or estimated.
+model-run.sh. Nothing is scored, judged, or estimated. Outcome names are
+whatever model-run.sh writes (ok, unavailable, context_overflow, timeout,
+check_failed, error) — this module counts and renders them generically and
+never special-cases one, so a new outcome value needs no change here.
 
   model-stats.py [--journal PATH] [--penalties PATH] [--since HOURS] [--json]
 """
