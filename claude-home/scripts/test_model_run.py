@@ -751,3 +751,40 @@ def test_shipped_roles_other_than_researcher_keep_model_timeouts():
     for name, role in shipped["roles"].items():
         if name != "researcher":
             assert "timeout_seconds" not in role, f"role {name} must keep per-model timeouts"
+
+
+@pytest.mark.parametrize("bad", [False, "", "900", -3])
+def test_role_timeout_must_be_a_json_positive_integer(bad, env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"researcher": {"models": ["good"], "timeout_seconds": bad}},
+        ),
+    )
+    result = run(env, "--role", "researcher", "--out", str(env["out"]))
+    assert result.returncode == 2, result.stderr
+    assert "timeout_seconds" in result.stderr
+
+
+def test_reference_only_role_is_refused(env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"orchestrator": {"models": ["good"], "dispatch": False}},
+        ),
+    )
+    for extra in ([], ["--dry-run"]):
+        result = run(env, "--role", "orchestrator", "--out", str(env["out"]), *extra)
+        assert result.returncode == 2
+        assert "reference-only" in result.stderr
+    assert journal_lines(env) == []
+
+
+def test_shipped_orchestrator_role_is_reference_only():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    assert shipped["roles"]["orchestrator"]["dispatch"] is False
+    for name, role in shipped["roles"].items():
+        if name != "orchestrator":
+            assert role.get("dispatch", True) is True, name

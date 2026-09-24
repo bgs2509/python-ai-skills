@@ -37,6 +37,7 @@
       "models": ["qwen38", "glm-4.7", "gpt-luna-low", "sonnet-low"]
     },
     "orchestrator": {
+      "dispatch": false,
       "purpose": "REFERENCE ONLY — not dispatched by model-run.sh. The orchestrator is the main session, chosen by a human via /model at session start; a session cannot re-pick its own model from inside itself.",
       "order_rationale": "Listed so the choice is informed, not automated. A whole session can run on an external pool — `claude-glm` (no /model switch needed, the wrapper remaps tiers) or the Codex CLI — which is why they are listed first: the cheapest orchestrator you are willing to accept should be the default choice at session start. Note a session on claude-glm loses the four claude.ai connectors (Docs, Gmail, Calendar, Drive); the seven local MCP servers keep working.",
       "models": ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]

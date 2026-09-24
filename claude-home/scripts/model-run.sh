@@ -75,6 +75,9 @@ if [ -n "$EXPECT" ]; then
   grep -qE -- "$EXPECT" "$TASK" && die "--expect matches the task text; it would pass on an echoed prompt"
 fi
 
+# A role marked "dispatch": false (orchestrator) is a reference list for humans.
+[ "$(jq -r --arg r "$ROLE" '.roles[$r].dispatch' "$REGISTRY")" = "false" ] \
+  && die "role '$ROLE' is reference-only (dispatch: false) and cannot be run"
 CANDIDATES=$(jq -r --arg r "$ROLE" '.roles[$r].models[]?' "$REGISTRY") || die "cannot read registry"
 [ -n "$CANDIDATES" ] || die "role '$ROLE' has no models in $REGISTRY"
 
@@ -82,9 +85,14 @@ CTX_CHARS=$(wc -c < "$TASK" | tr -d ' ')
 CTX_TOKENS=$(awk -v c="$CTX_CHARS" -v r="$CHARS_PER_TOKEN" 'BEGIN{printf "%d", c/r}')
 PENALTY_SECONDS=$(jq -r '.policy.penalty_seconds // 3600' "$REGISTRY")
 PENALIZE_ON=$(jq -c '.policy.penalize_on // ["unavailable"]' "$REGISTRY")
-ROLE_TIMEOUT=$(jq -r --arg r "$ROLE" '.roles[$r].timeout_seconds // empty' "$REGISTRY")
+# Must be a JSON positive integer when present: false, "", "900" or 1.5 are
+# rejected instead of silently falling back to the model timeout.
+ROLE_TIMEOUT=$(jq -r --arg r "$ROLE" '.roles[$r] | if has("timeout_seconds")
+  then (.timeout_seconds | if type == "number" and . == floor and . > 0 then tostring
+        else "INVALID:\(tojson)" end)
+  else empty end' "$REGISTRY")
 [ -z "$ROLE_TIMEOUT" ] || [[ "$ROLE_TIMEOUT" =~ ^[1-9][0-9]*$ ]] \
-  || die "roles.$ROLE.timeout_seconds must be a positive integer, got: '$ROLE_TIMEOUT'"
+  || die "roles.$ROLE.timeout_seconds must be a positive integer, got: ${ROLE_TIMEOUT#INVALID:}"
 OUTPUTS="${MODEL_OUTPUTS:-$(dirname "$JOURNAL")/model-outputs}"
 RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
 [[ "$RETENTION_DAYS" =~ ^[1-9][0-9]*$ ]] \
