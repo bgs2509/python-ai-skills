@@ -1886,3 +1886,10 @@ Task 9 (`--expect` must exist to use it operationally). Task 6 has no code depen
 review narrative refers to the finished behaviour. Task 7 depends only on Task 3/4's journal shape.
 Task 8 last among the TDD/doc tasks (documents the finished whole). Task 9 last overall (needs
 everything committed and working).
+
+## Execution record (2026-09-24)
+
+- Phase 1: `ddf0dc6`. Deviation: the CHANGELOG bullet of Task 1 was skipped by the worker (write scope given by the controller omitted CHANGELOG.md) and added in Task 8 (`d8f81aa`).
+- Phase 2: `9c41c1a`, `2cce8fc`, `f137245`, `af1afe7`, `df2b1cd`, `7d3b773`, `d8f81aa` — as planned.
+- Step 12 review fixes, not in this plan, applied inline by the controller with TDD: `e057cef` (value flags, outputs dir, retention validation, failed --out move), `f4e7d4d` (docs wording, FR-8 text).
+- Task 9: done; results in the bd comment on `python-ai-skills-2fu`. 57.mskobr.ru content pages are JS-rendered (≈590 chars of HTML text), so only the weak form of acceptance 1 is reachable.
