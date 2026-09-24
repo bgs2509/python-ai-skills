@@ -75,4 +75,12 @@
     <open_questions/>
     <context7_verified/>
   </Feature>
+  <Feature source="20260924-model-run-researcher-design.md" bd_id="python-ai-skills-a67">
+    <feature>model-run-researcher</feature>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
 </Technology>

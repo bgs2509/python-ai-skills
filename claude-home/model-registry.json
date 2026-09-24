@@ -25,6 +25,12 @@
       "order_rationale": "External pools first: this is where the Anthropic quota is saved. Anthropic is the last resort so a step never dies for lack of a worker.",
       "models": ["glm-4.7", "gpt-terra-high", "sonnet-low"]
     },
+    "researcher": {
+      "purpose": "Web research with sources: read official pages (including a site's own content API when its HTML is empty) and cite them.",
+      "order_rationale": "Measured on task-57 (school No. 57 facts), 2026-09-24: glm-5.3-high built a verified level-1 card through the site's content API in 648 s; gpt-terra-high answered in 206-463 s from another official site found by search (codex could not open the target site); sonnet-low answered in 148 s with an almost empty card and sits last as the Anthropic safety net. glm-4.7 (executor #1) timed out at 420 s and at 900 s, so it is not in this role. timeout_seconds overrides each model's own timeout for this role only: glm-5.3-high's 420 s would cut off the 648 s run, and raising the model timeout would also slow the planner role.",
+      "timeout_seconds": 900,
+      "models": ["glm-5.3-high", "gpt-terra-high", "sonnet-low"]
+    },
     "batch": {
       "purpose": "Queued background work nobody waits on: corpus annotation, sweeps, scoring.",
       "order_rationale": "Free-then-cheap. qwen costs no quota at all but 80-190 s per call, which is acceptable only when no human and no loop is blocked. sonnet-low sits last as a safety net so a queued job never dies when all three cheaper channels are penalised or exhausted.",

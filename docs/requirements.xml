@@ -180,4 +180,42 @@
       <Item>Timeout diagnosis of glm-4.7 is python-ai-skills-v6z, not this feature.</Item>
     </scope_later>
   </Feature>
+  <Feature source="20260924-model-run-researcher-discovery.md" bd_id="python-ai-skills-a67">
+    <feature>model-run-researcher</feature>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <risk_justification>Two modules (model-registry.json schema + model-run.sh) plus tests and CLAUDE.md; additive, no breaking change, no security surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Measured in this session on task-57 (stream-json traces and journal lines; see bd comments on python-ai-skills-v6z and -2fu); registry timeouts read from claude-home/model-registry.json; open_questions resolved.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>The registry has a role for web research whose models, in order, are glm-5.3-high, gpt-terra-high, sonnet-low.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>A role may declare timeout_seconds; when present, model-run.sh uses it instead of each model's timeout_seconds for attempts made under that role; roles without it keep per-model timeouts.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>The web-research role declares timeout_seconds 900.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>Every model of the web-research role has capabilities.web_search true (checked by the shipped-registry test).</text>
+      </Item>
+      <Item id="FR-5">
+        <text>CLAUDE.md names the role and when to use it; --help mentions the role-level timeout.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>No new runtime dependency; existing roles behave exactly as before (same timeouts).</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>make test green; FR-2 proven with the synthetic-registry fixture.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>The registry stays the single home for model and role parameters (CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
+    </constraints>
+  </Feature>
 </Requirements>

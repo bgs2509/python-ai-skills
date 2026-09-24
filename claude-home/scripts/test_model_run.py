@@ -678,3 +678,57 @@ def test_help_lists_interrupted_and_penalize_on():
     result = subprocess.run(["bash", str(SCRIPT), "--help"], capture_output=True, text=True, timeout=10)
     assert "interrupted" in result.stdout
     assert "penalize_on" in result.stdout
+
+
+def test_role_timeout_overrides_a_shorter_model_timeout(env):
+    write_registry(
+        env,
+        registry(
+            {"slowish": model("cat >/dev/null; sleep 2; echo LATE", timeout_seconds=1)},
+            {"researcher": {"models": ["slowish"], "timeout_seconds": 5}},
+        ),
+    )
+    result = run(env, "--role", "researcher", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text().strip() == "LATE"
+
+
+def test_model_timeout_applies_when_role_has_none(env):
+    write_registry(
+        env,
+        registry(
+            {"slowish": model("cat >/dev/null; sleep 2; echo LATE", timeout_seconds=1)},
+            {"executor": {"models": ["slowish"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    assert [ln["outcome"] for ln in journal_lines(env)] == ["timeout"]
+
+
+@pytest.mark.parametrize("bad", ["abc", "0", "1.5"])
+def test_invalid_role_timeout_is_usage_error(bad, env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"researcher": {"models": ["good"], "timeout_seconds": bad}},
+        ),
+    )
+    result = run(env, "--role", "researcher", "--out", str(env["out"]))
+    assert result.returncode == 2
+    assert "timeout_seconds" in result.stderr
+    assert journal_lines(env) == []
+
+
+def test_shipped_researcher_role():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    role = shipped["roles"]["researcher"]
+    assert role["models"] == ["glm-5.3-high", "gpt-terra-high", "sonnet-low"]
+    assert role["timeout_seconds"] == 900
+    for name in role["models"]:
+        assert shipped["models"][name]["capabilities"]["web_search"] is True, name
+
+
+def test_help_mentions_role_timeout():
+    result = subprocess.run(["bash", str(SCRIPT), "--help"], capture_output=True, text=True, timeout=10)
+    assert "roles.<role>.timeout_seconds" in result.stdout

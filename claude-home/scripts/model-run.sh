@@ -21,6 +21,9 @@
 #   interrupted      — model-run.sh got SIGINT/SIGTERM mid-attempt; the model
 #                      command is stopped and the run exits 130 / 143.
 #
+# Timeout: the model's timeout_seconds, unless the role declares its own
+# roles.<role>.timeout_seconds, which then applies to every model of that role.
+#
 # Penalties: an outcome listed in the registry's policy.penalize_on (default
 # ["unavailable"]) penalises the whole model for policy.penalty_seconds; a
 # timeout also does when the model sets penalize_on_timeout.
@@ -79,6 +82,9 @@ CTX_CHARS=$(wc -c < "$TASK" | tr -d ' ')
 CTX_TOKENS=$(awk -v c="$CTX_CHARS" -v r="$CHARS_PER_TOKEN" 'BEGIN{printf "%d", c/r}')
 PENALTY_SECONDS=$(jq -r '.policy.penalty_seconds // 3600' "$REGISTRY")
 PENALIZE_ON=$(jq -c '.policy.penalize_on // ["unavailable"]' "$REGISTRY")
+ROLE_TIMEOUT=$(jq -r --arg r "$ROLE" '.roles[$r].timeout_seconds // empty' "$REGISTRY")
+[ -z "$ROLE_TIMEOUT" ] || [[ "$ROLE_TIMEOUT" =~ ^[1-9][0-9]*$ ]] \
+  || die "roles.$ROLE.timeout_seconds must be a positive integer, got: '$ROLE_TIMEOUT'"
 OUTPUTS="${MODEL_OUTPUTS:-$(dirname "$JOURNAL")/model-outputs}"
 RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
 [[ "$RETENTION_DAYS" =~ ^[1-9][0-9]*$ ]] \
@@ -173,6 +179,7 @@ for MODEL in $CANDIDATES; do
   effort=$(jq -r '.effort // empty' <<<"$spec")
   window=$(jq -r '.context_tokens // 0' <<<"$spec")
   timeout_s=$(jq -r '.timeout_seconds // 300' <<<"$spec")
+  [ -n "$ROLE_TIMEOUT" ] && timeout_s="$ROLE_TIMEOUT"
   cmd_template=$(jq -r '.cmd_template // empty' <<<"$spec")
   penalize_timeout=$(jq -r '.penalize_on_timeout // false' <<<"$spec")
 
