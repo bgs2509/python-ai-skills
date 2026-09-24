@@ -21,6 +21,11 @@
 #   interrupted      — model-run.sh got SIGINT/SIGTERM mid-attempt; the model
 #                      command is stopped and the run exits 130 / 143.
 #
+# Answer file: each attempt gets MODEL_RUN_ANSWER_FILE in its environment. A
+# command that writes its final answer there (the codex runner does, via -o)
+# has that file taken as the answer — for the empty/--expect checks and for
+# --out — instead of its full stdout log. Otherwise stdout is the answer.
+#
 # Timeout: the model's timeout_seconds, unless the role declares its own
 # roles.<role>.timeout_seconds, which then applies to every model of that role.
 #
@@ -150,7 +155,8 @@ journal() { # model pool runner seconds outcome exit attempt out_path out_bytes
 # Classify an attempt from its exit code and captured output. Text patterns
 # refine a non-zero exit; they never override a zero one (exit 0 -> ok).
 classify() {
-  local code="$1" out_file="$2"
+  local code="$1" out_file="$2" answer="$2"
+  [ -s "${3:-}" ] && answer="$3"
   [ "$code" -eq 124 ] && { echo timeout; return; }
   if [ "$code" -ne 0 ]; then
     if grep -qiE 'prompt is too long|context (length|window) exceeded|too many tokens|maximum context' "$out_file" 2>/dev/null; then
@@ -161,8 +167,8 @@ classify() {
     fi
     echo error; return
   fi
-  grep -q '[^[:space:]]' "$out_file" || { echo check_failed; return; }
-  if [ -n "$EXPECT" ] && ! grep -qE -- "$EXPECT" "$out_file"; then echo check_failed; return; fi
+  grep -q '[^[:space:]]' "$answer" || { echo check_failed; return; }
+  if [ -n "$EXPECT" ] && ! grep -qE -- "$EXPECT" "$answer"; then echo check_failed; return; fi
   echo ok
 }
 
@@ -172,6 +178,7 @@ on_signal() {
   local exit_code="$1" secs bytes
   kill -TERM "$child" 2>/dev/null
   wait "$child" 2>/dev/null
+  rm -f "$answer_file"
   secs=$(awk -v a="$t0" -v b="$(date +%s.%N)" 'BEGIN{printf "%.2f", b-a}')
   bytes=$(wc -c < "$tmp_out" | tr -d ' ')
   journal "$MODEL" "$pool" "$runner" "$secs" interrupted "$exit_code" "$attempt" "$tmp_out" "$bytes"
@@ -223,7 +230,7 @@ for MODEL in $CANDIDATES; do
       codex)
         CMD="codex exec -s read-only --skip-git-repo-check -m $model_arg"
         [ -n "$effort" ] && CMD="$CMD -c model_reasoning_effort=$effort"
-        CMD="$CMD -" ;;
+        CMD="$CMD -o \"\$MODEL_RUN_ANSWER_FILE\" -" ;;
       *) printf 'model-run: unknown runner %s for %s, skipped\n' "$runner" "$MODEL" >&2; continue ;;
     esac
   fi
@@ -235,10 +242,11 @@ for MODEL in $CANDIDATES; do
 
   tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX") \
     || die "cannot create an output file in $OUTPUTS"
+  answer_file="${tmp_out%.out}-answer.out"
   t0=$(date +%s.%N)
   # Background + wait: bash runs a trap only after a FOREGROUND child exits,
   # which would delay an interrupt by up to the model timeout.
-  timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1 &
+  MODEL_RUN_ANSWER_FILE="$answer_file" timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1 &
   child=$!
   trap 'on_signal 130' INT
   trap 'on_signal 143' TERM
@@ -248,7 +256,9 @@ for MODEL in $CANDIDATES; do
   t1=$(date +%s.%N)
   secs=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
 
-  outcome=$(classify "$code" "$tmp_out")
+  outcome=$(classify "$code" "$tmp_out" "$answer_file")
+  deliver="$tmp_out"
+  [ "$outcome" = ok ] && [ -s "$answer_file" ] && deliver="$answer_file"
 
   out_path=""
   out_bytes=""
@@ -259,6 +269,7 @@ for MODEL in $CANDIDATES; do
 
   journal "$MODEL" "$pool" "$runner" "$secs" "$outcome" "$code" "$attempt" "$out_path" "$out_bytes"
 
+  [ "$outcome" = ok ] || rm -f "$answer_file"
   penalty_note=""
   if penalised_outcome "$outcome" || { [ "$outcome" = timeout ] && [ "$penalize_timeout" = "true" ]; }; then
     set_penalty "$MODEL" "$outcome"
@@ -268,13 +279,15 @@ for MODEL in $CANDIDATES; do
   case "$outcome" in
     ok)
       if [ -n "$OUT" ]; then
-        mv -- "$tmp_out" "$OUT" || {
-          printf 'model-run: cannot write --out %s; answer kept at %s\n' "$OUT" "$tmp_out" >&2
+        mv -- "$deliver" "$OUT" || {
+          printf 'model-run: cannot write --out %s; answer kept at %s\n' "$OUT" "$deliver" >&2
           exit 2
         }
       else
-        cat "$tmp_out"; rm -f "$tmp_out"
+        cat "$deliver"; rm -f "$deliver"
       fi
+      [ "$deliver" = "$tmp_out" ] || rm -f "$tmp_out"
+      rm -f "$answer_file"
       printf 'model-run: %s answered in %ss\n' "$MODEL" "$secs" >&2
       exit 0 ;;
     unavailable)

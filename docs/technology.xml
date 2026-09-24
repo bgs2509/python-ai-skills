@@ -1,5 +1,18 @@
 <?xml version="1.0" ?>
 <Technology generated="auto" source="YAML frontmatter of markdown specs">
+  <Feature source="20260924-external-review-design.md" bd_id="python-ai-skills-xp4">
+    <feature>external-review</feature>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <open_questions/>
+    <decisions>
+      <Item>DQ-1 -&gt; sequential reviewer role, gpt-sol-xhigh first, glm-5.3-high on failure (user, 2026-09-24)</Item>
+      <Item>DQ-2 -&gt; Anthropic (opus-xhigh) automatically last, logged as a routing exception (user)</Item>
+      <Item>DQ-3 -&gt; reviewer runs in a detached temporary worktree at HEAD, removed afterwards (user)</Item>
+    </decisions>
+    <context7_verified/>
+  </Feature>
   <Feature source="20260924-model-run-evidence-design.md" bd_id="python-ai-skills-2fu">
     <feature>model-run-evidence</feature>
     <related_bd_ids>

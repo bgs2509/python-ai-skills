@@ -1,5 +1,52 @@
 <?xml version="1.0" ?>
 <Requirements generated="auto" source="YAML frontmatter of markdown specs">
+  <Feature source="20260924-external-review-discovery.md" bd_id="python-ai-skills-xp4">
+    <feature>external-review</feature>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <risk_justification>Three modules (do-feature SKILL.md/reference.md, model-registry.json + model-run.sh codex output, a new reviewer prompt template) and it reverses a documented routing rule (ADR-002); reversible, no data migration.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>One measured comparison on range ddf0dc6^..d8f81aa (bd comment on python-ai-skills-xp4) plus a second Anthropic review baseline on python-ai-skills-a67; user requirement stated 2026-09-24.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>do-feature Step 12 code review is performed by a non-Anthropic model from the registry (GLM or GPT) via model-run.sh, not by an Anthropic Agent subagent.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>The reviewer receives an exhaustive prompt from a versioned template in the repo that states inputs (commit range, discovery FR/NFR, design, plan), what to check, how to verify (read-only, repro outside the repo, HYPOTHESIS label) and a strict output format.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>The review answer is checked by model-run.sh --expect on the verdict line; an answer without it is check_failed and the next reviewer model is tried.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>When every external reviewer fails, an Anthropic model reviews as the last resort, and that fallback is logged as a routing exception.</text>
+      </Item>
+      <Item id="FR-5">
+        <text>The orchestrator verifies every finding (code reading or repro) before acting on it — Trust = 0% unchanged.</text>
+      </Item>
+      <Item id="FR-6">
+        <text>The reviewer cannot modify the working repository.</text>
+      </Item>
+      <Item id="FR-7">
+        <text>The routing change is recorded in an ADR that supersedes the Step 12 part of ADR-002, and SKILL.md (outward fork + matrix row) and reference.md (Step 12) state it consistently.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>A review delivered by a codex model is its final message only, not the full execution log (the comparison run produced 327 KB of log around a 3 KB report).</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>make test stays green; new model-run.sh behaviour is covered by tests on the synthetic registry.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Registry is the single home for which model serves the reviewer role (CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
+      <Item>
+        <Planning_and_design_steps_stay_on_Anthropic__user_requirement key="Planning and design steps stay on Anthropic (user requirement">plans by Anthropic, review by GLM/GPT).</Planning_and_design_steps_stay_on_Anthropic__user_requirement>
+      </Item>
+    </constraints>
+  </Feature>
   <Feature source="20260924-model-run-evidence-discovery.md" bd_id="python-ai-skills-2fu">
     <feature>model-run-evidence</feature>
     <related_bd_ids>

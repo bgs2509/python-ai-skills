@@ -83,12 +83,12 @@ The matrix below answers *which tier*. Before applying it, answer a prior questi
 
 Ask, per unit of work, in this order:
 
-1. **Does it need Anthropic-level judgement?** Design, contracts, review, security, root-cause debugging, anything the user will approve at a gate → **Agent tool**, apply the matrix, stop here. Quality on external pools is unmeasured (Phase C cancelled), so judgement work never leaves.
+1. **Does it need Anthropic-level judgement?** Design, contracts, security, root-cause debugging, anything the user will approve at a gate → **Agent tool**, apply the matrix, stop here. Quality on external pools is unmeasured (Phase C cancelled), so judgement work never leaves.
 2. **Is the output consumed directly by this conversation as reasoning?** (open questions to resolve inline, a design the orchestrator must weigh) → **Agent tool**: the runner returns a file, not a participant.
 3. **Does the delegate need tools mid-flight?** (iterative grep→read→edit loops, MCP servers) → **Agent tool**: the runner is a one-shot call with a task file in and a result file out.
 4. **Otherwise — bulk or mechanical with a written spec:** mass reading and inventory, drafting docs/tests from a finished spec, format-only or rename passes, corpus annotation → **outward**: `~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>` (`--role batch` when nothing is waiting on it; `--role researcher` for web research with sources). Verify the result yourself — Trust = 0% is not relaxed by delegation.
 
-Per-step defaults: Steps 2, 4, 7, 8, 12 always inward (judgement). Step 6 and Step 11 workers are the realistic outward candidates, decided per unit of work by the four questions above, not blanket-assigned. Log an outward dispatch in the Step 11 audit trail the same way a tier exception is logged.
+Per-step defaults: Steps 2, 4, 7, 8 always inward (judgement). Step 12 code review always outward via `--role reviewer` (ADR-003: plans by Anthropic, review by GPT/GLM; Anthropic only as the registry's logged last resort). Step 6 and Step 11 workers are the realistic outward candidates, decided per unit of work by the four questions above, not blanket-assigned. Log an outward dispatch in the Step 11 audit trail the same way a tier exception is logged.
 
 **Tiers:** `top` (frontier reasoning, Mythos-class) · `strong` (deep reasoning, high cost) · `mid` (structural/codegen work) · `cheap` (mechanical/navigation). The tier→model mapping is **not written here** — it lives in the registry's `tiers` block (`claude-home/model-registry.json`), set by user decision 2026-08-28 and unchanged since. Read it from there; a copy on this line would drift.
 
@@ -114,7 +114,7 @@ Per-step defaults: Steps 2, 4, 7, 8, 12 always inward (judgement). Step 6 and St
 | 11. Execution — workers | one subagent per phase batch | mid | **default mid, not cheap** (ADR-002) |
 | 11. Execution — escalation | re-dispatch stuck step alone | one tier up | on 2 consecutive test fails on the step's current tier |
 | 11. Execution — trivial | optional | cheap | only rename / format / mechanical |
-| 12. Review | `Agent(model=<strong>, subagent_type="general-purpose")` + reviewer template | strong | strongest review coverage, catches GRACE conventions (ADR-002) |
+| 12. Review | `model-run.sh --role reviewer` + `do-feature/reviewer-prompt.md`, in a temporary worktree | registry `reviewer` role | external review matched 8/9 of the Anthropic review and found 2 defects it missed (ADR-003) |
 | 13. Finish | inline | — | mechanical: commit + refresh + close |
 
 ### Escalation rule (Step 11)
@@ -166,7 +166,7 @@ Step 8:  Q&A CONTRACTS (analysis subagent + inline Q&A + _adr if significant)
 Step 9:  WRITING PLANS (writing-plans + self-review vs FR/NFR/verification)
 Step 10: [USER APPROVAL] — implementation plan
 Step 11: EXECUTION (controller per grace-execute + sonnet workers + TDD)
-Step 12: REVIEW (grace-reviewer full-integrity + code-review subagent + verification-before-completion)
+Step 12: REVIEW (grace-reviewer full-integrity + external code review via model-run.sh --role reviewer + verification-before-completion)
 Step 13: FINISH (git-commit meta + grace-refresh + _adr if new + _report if major + changelog if major + bd close)
 ```
 

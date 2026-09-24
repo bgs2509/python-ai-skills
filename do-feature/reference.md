@@ -285,9 +285,17 @@ If any step diverges from the approved plan (new module not in plan, different a
 
 **Goal:** Verify quality before finalizing.
 
-**Dispatch:** per Model Routing Matrix (strong tier) — `Agent(model=<strong>, subagent_type="general-purpose")` prompted with the reviewer template from `superpowers:requesting-code-review` (`code-reviewer.md`), fed the feature's git SHA range + FR/NFR from Discovery + the accumulated phase-review verdicts from Step 11. Model choice evidence: ADR-002.
+**Dispatch:** outward, per Model Routing Matrix — the code review runs on a non-Anthropic model through `model-run.sh --role reviewer` (registry order: GPT first, GLM on failure, Anthropic last as a logged fallback). Plans and designs stay on Anthropic; only the review leaves. Decision and evidence: `docs/adr/ADR-003-external-review-step-12.md` (supersedes the Step 12 part of ADR-002).
 
-**Tools:** `grace-reviewer` (full-integrity) + `superpowers:requesting-code-review` template + `superpowers:verification-before-completion`
+**Tools:** `grace-reviewer` (full-integrity) + `do-feature/reviewer-prompt.md` + `~/.claude/scripts/model-run.sh --role reviewer` + `superpowers:verification-before-completion`
+
+**Code review procedure (orchestrator, inline):**
+1. Create a throwaway tree at the reviewed commit: `git worktree add --detach <tmp>/review-wt HEAD` — the reviewer's Bash may write in its working directory, so only a separate tree guarantees the real one stays untouched.
+2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary).
+3. From inside the worktree run `~/.claude/scripts/model-run.sh --role reviewer --task <task> --out <review.md> --expect '^(READY|READY WITH FIXES|NOT READY)$'` (runs up to 30 min; run it in the background). A codex reviewer's answer is its final message only (the runner's answer file), not its log.
+4. `git worktree remove --force <tmp>/review-wt`.
+5. If the journal line of the answering attempt names an Anthropic model, log it as a routing exception (`bd update <epic> --notes`).
+6. Verify EVERY finding yourself (read the code or reproduce) before fixing it — Trust = 0% applies to the external reviewer exactly as to any delegate. Unverifiable findings stay labelled HYPOTHESIS and are not acted on silently.
 
 **Scope (tiered review — do not re-review what phase reviews already covered):** Step 11 already
 runs a scoped `grace-reviewer` at each phase boundary — small-diff review catches more defects and
@@ -295,7 +303,7 @@ is the industry-validated model (Google, Linux kernel tiered review). Step 12 do
 code already passed by a phase review. Its scope is:
 1. `grace-reviewer` full-integrity — contracts match code? Graph synced? Verification plan fulfilled?
    (This is an artifacts/graph check, not a code re-review — always runs in full.)
-2. Code review via the template subagent, scoped to:
+2. Code review via the external reviewer (procedure above), scoped to:
    - deltas since the last phase-boundary review (e.g. Step 12-time fixes, review responses)
    - cross-phase integration seams (interfaces between phase batches)
    - FR/NFR coverage across the whole feature (a phase review can't see this)

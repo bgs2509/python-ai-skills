@@ -4,7 +4,7 @@
 python-ai-skills-7u9 (do-feature audit round 2)
 
 ## Status
-Accepted
+Accepted. The Step 12 (review) routing is superseded by ADR-003 (2026-09-24): review now runs on an external model via the registry `reviewer` role.
 
 ## Context
 `do-feature` routes each workflow step to a model tier (opus / sonnet / haiku) via the

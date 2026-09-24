@@ -749,7 +749,7 @@ def test_dry_run_shows_the_effective_timeout(env):
 def test_shipped_roles_other_than_researcher_keep_model_timeouts():
     shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
     for name, role in shipped["roles"].items():
-        if name != "researcher":
+        if name not in ("researcher", "reviewer"):
             assert "timeout_seconds" not in role, f"role {name} must keep per-model timeouts"
 
 
@@ -853,3 +853,75 @@ def test_dry_run_creates_no_state(env, tmp_path):
     result = run(env, "--role", "executor", "--dry-run")
     assert result.returncode == 0, result.stderr
     assert not (tmp_path / "state").exists(), "dry run must not create the journal dir or penalties file"
+
+
+def test_codex_command_writes_the_final_message_to_the_answer_file(env):
+    write_registry(
+        env,
+        registry(
+            {"cx": {"pool": "openai", "runner": "codex", "model_arg": "m", "timeout_seconds": 10}},
+            {"executor": {"models": ["cx"]}},
+        ),
+    )
+    out = run(env, "--role", "executor", "--dry-run").stdout
+    assert '-o "$MODEL_RUN_ANSWER_FILE"' in out
+
+
+LOG_AND_ANSWER = 'cat >/dev/null; echo "LOG LINE 1"; echo "LOG LINE 2"; printf "FINAL ANSWER\\nVERDICT-OK\\n" > "$MODEL_RUN_ANSWER_FILE"'
+
+
+def test_answer_file_is_delivered_instead_of_the_log(env):
+    write_registry(
+        env,
+        registry({"cx": model(LOG_AND_ANSWER)}, {"executor": {"models": ["cx"]}}),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text() == "FINAL ANSWER\nVERDICT-OK\n"
+    assert list(outputs_dir(env).glob("*")) == [], "an ok attempt leaves no files behind"
+
+
+def test_expect_is_checked_against_the_answer_file(env):
+    write_registry(
+        env,
+        registry(
+            {"cx": model('cat >/dev/null; echo "VERDICT-OK in the log only"; echo "no verdict" > "$MODEL_RUN_ANSWER_FILE"'),
+             "good": model(LOG_AND_ANSWER)},
+            {"executor": {"models": ["cx", "good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "^VERDICT-OK$")
+    assert result.returncode == 0, result.stderr
+    assert [ln["outcome"] for ln in journal_lines(env)] == ["check_failed", "ok"]
+
+
+def test_empty_answer_file_falls_back_to_stdout(env):
+    write_registry(
+        env,
+        registry({"plain": model("cat >/dev/null; echo STDOUT ANSWER")}, {"executor": {"models": ["plain"]}}),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text().strip() == "STDOUT ANSWER"
+
+
+def test_non_ok_attempt_keeps_the_log_and_no_answer_file(env):
+    write_registry(
+        env,
+        registry(
+            {"cx": model('cat >/dev/null; echo "LOG ONLY"; echo "partial" > "$MODEL_RUN_ANSWER_FILE"; exit 3')},
+            {"executor": {"models": ["cx"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    line = journal_lines(env)[0]
+    assert line["outcome"] == "error"
+    assert "LOG ONLY" in Path(line["out_path"]).read_text()
+    assert [p.name for p in outputs_dir(env).iterdir()] == [Path(line["out_path"]).name]
+
+
+def test_shipped_reviewer_role():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    role = shipped["roles"]["reviewer"]
+    assert role["models"] == ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]
+    assert role["timeout_seconds"] == 1800

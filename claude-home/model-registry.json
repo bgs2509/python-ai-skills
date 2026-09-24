@@ -31,6 +31,12 @@
       "timeout_seconds": 900,
       "models": ["glm-5.3-high", "gpt-terra-high", "sonnet-low"]
     },
+    "reviewer": {
+      "purpose": "do-feature Step 12 code review from the versioned template do-feature/reviewer-prompt.md; plans and designs stay on Anthropic (user requirement 2026-09-24).",
+      "order_rationale": "Measured 2026-09-24 on range ddf0dc6^..d8f81aa with the same prompt (bd python-ai-skills-xp4): gpt-sol-xhigh found 8 of the 9 findings of the Anthropic review plus 2 real defects it missed (558 s); glm-5.3-high found 6 of 9 (533 s). Sequential, first valid review wins (user decision DQ-1). opus-xhigh is last so a feature never stalls at Step 12 when both external quotas are out (DQ-2); using it is logged as a routing exception. timeout_seconds 1800: both externals needed about 9 minutes for 8 commits.",
+      "timeout_seconds": 1800,
+      "models": ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]
+    },
     "batch": {
       "purpose": "Queued background work nobody waits on: corpus annotation, sweeps, scoring.",
       "order_rationale": "Free-then-cheap. qwen costs no quota at all but 80-190 s per call, which is acceptable only when no human and no loop is blocked. sonnet-low sits last as a safety net so a queued job never dies when all three cheaper channels are penalised or exhausted.",
