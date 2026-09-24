@@ -22,7 +22,9 @@
 # Non-ok attempts that ran keep their output under $MODEL_OUTPUTS (default:
 # next to the journal); the journal line's out_path/out_bytes point to it.
 #
-# Exit: 0 when some model answered, 1 when the role was exhausted.
+# Exit: 0 when some model answered, 1 when the role was exhausted, 2 on a
+# usage or local error (bad flag, bad registry value, unusable outputs dir,
+# unwritable --out).
 set -uo pipefail
 
 REGISTRY="${MODEL_REGISTRY:-$HOME/.claude/model-registry.json}"
@@ -35,14 +37,17 @@ SESSION="${MODEL_RUN_SESSION:-${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-unk
 CHARS_PER_TOKEN="${MODEL_CHARS_PER_TOKEN:-4.45}"
 
 die() { printf 'model-run: %s\n' "$*" >&2; exit 2; }
+# A flag that takes a value must have one; without this check `shift 2` fails
+# on the last argument and the parse loop never ends.
+need_value() { [ "$1" -ge 2 ] || die "$2 needs a value"; }
 
 ROLE=""; TASK=""; OUT=""; EXPECT=""; DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --role)    ROLE="${2:-}"; shift 2 ;;
-    --task)    TASK="${2:-}"; shift 2 ;;
-    --out)     OUT="${2:-}";  shift 2 ;;
-    --expect)  EXPECT="${2:-}"; shift 2 ;;
+    --role)    need_value $# "$1"; ROLE="$2"; shift 2 ;;
+    --task)    need_value $# "$1"; TASK="$2"; shift 2 ;;
+    --out)     need_value $# "$1"; OUT="$2";  shift 2 ;;
+    --expect)  need_value $# "$1"; EXPECT="$2"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -69,6 +74,8 @@ CTX_TOKENS=$(awk -v c="$CTX_CHARS" -v r="$CHARS_PER_TOKEN" 'BEGIN{printf "%d", c
 PENALTY_SECONDS=$(jq -r '.policy.penalty_seconds // 3600' "$REGISTRY")
 OUTPUTS="${MODEL_OUTPUTS:-$(dirname "$JOURNAL")/model-outputs}"
 RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
+[[ "$RETENTION_DAYS" =~ ^[1-9][0-9]*$ ]] \
+  || die "policy.output_retention_days must be a positive integer, got: '$RETENTION_DAYS'"
 
 mkdir -p "$(dirname "$JOURNAL")"
 [ -f "$PENALTIES" ] || echo '{}' > "$PENALTIES"
@@ -77,7 +84,10 @@ mkdir -p "$(dirname "$JOURNAL")"
 # here, on every real run, so the component that creates the state expires
 # it — same ownership pattern as the penalty expiry below.
 if [ "$DRY" -eq 0 ]; then
-  mkdir -p "$OUTPUTS"
+  # A local fault here must stop the run: otherwise every model would be
+  # journalled as a failed attempt although none of them ran.
+  mkdir -p "$OUTPUTS" 2>/dev/null && [ -d "$OUTPUTS" ] && [ -w "$OUTPUTS" ] \
+    || die "outputs dir not usable: $OUTPUTS"
   find "$OUTPUTS" -maxdepth 1 -type f -name '*.out' -mmin "+$((RETENTION_DAYS * 1440))" -delete
 fi
 
@@ -182,7 +192,8 @@ for MODEL in $CANDIDATES; do
     continue
   fi
 
-  tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX")
+  tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX") \
+    || die "cannot create an output file in $OUTPUTS"
   t0=$(date +%s.%N)
   timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1
   code=$?
@@ -202,7 +213,14 @@ for MODEL in $CANDIDATES; do
 
   case "$outcome" in
     ok)
-      if [ -n "$OUT" ]; then mv "$tmp_out" "$OUT"; else cat "$tmp_out"; rm -f "$tmp_out"; fi
+      if [ -n "$OUT" ]; then
+        mv "$tmp_out" "$OUT" || {
+          printf 'model-run: cannot write --out %s; answer kept at %s\n' "$OUT" "$tmp_out" >&2
+          exit 2
+        }
+      else
+        cat "$tmp_out"; rm -f "$tmp_out"
+      fi
       printf 'model-run: %s answered in %ss\n' "$MODEL" "$secs" >&2
       exit 0 ;;
     unavailable)

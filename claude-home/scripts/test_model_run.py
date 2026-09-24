@@ -43,6 +43,8 @@ def env(tmp_path):
 
 def run(env, *args):
     proc_env = dict(os.environ)
+    # A developer's exported MODEL_OUTPUTS must not redirect test outputs.
+    proc_env.pop("MODEL_OUTPUTS", None)
     proc_env.update(
         MODEL_REGISTRY=str(env["registry"]),
         MODEL_JOURNAL=str(env["journal"]),
@@ -524,3 +526,78 @@ def test_help_lists_expect_and_check_failed():
     assert "--expect" in result.stdout
     assert "check_failed" in result.stdout
     assert "set -uo" not in result.stdout
+
+
+@pytest.mark.parametrize("flag", ["--role", "--task", "--out", "--expect"])
+def test_value_flag_without_value_is_usage_error_not_a_hang(flag, env):
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--role", "executor", "--task", str(env["task"]), flag],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert result.returncode == 2
+    assert "needs a value" in result.stderr
+
+
+def test_unusable_outputs_dir_stops_before_any_attempt(env, tmp_path):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    # A regular file where the directory should be: mkdir -p cannot create it.
+    outputs_dir(env).write_text("not a directory\n")
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 2
+    assert "outputs dir" in result.stderr
+    assert journal_lines(env) == [], "a local fault must not be journalled as a model failure"
+
+
+@pytest.mark.parametrize("days", ["abc", "1.5", "0", ""])
+def test_invalid_retention_days_is_usage_error(days, env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+            policy={"output_retention_days": days},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 2
+    assert "output_retention_days" in result.stderr
+    assert journal_lines(env) == []
+
+
+def test_failed_move_to_out_is_not_success_and_keeps_answer(env, tmp_path):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    bad_out = tmp_path / "no-such-dir" / "out.md"
+    result = run(env, "--role", "executor", "--out", str(bad_out))
+    assert result.returncode != 0
+    kept = list(outputs_dir(env).glob("*.out"))
+    assert len(kept) == 1 and kept[0].read_text().strip() == "ANSWER"
+    assert str(kept[0]) in result.stderr
+
+
+def test_kept_output_is_private_and_ok_answer_leaves_no_file(env):
+    write_registry(
+        env,
+        registry(
+            {"broken": model("cat >/dev/null; exit 3"), "good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["broken", "good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    kept = list(outputs_dir(env).glob("*.out"))
+    assert len(kept) == 1, "only the non-ok attempt keeps a file"
+    assert (kept[0].stat().st_mode & 0o777) == 0o600
