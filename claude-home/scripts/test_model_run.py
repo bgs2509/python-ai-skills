@@ -788,3 +788,68 @@ def test_shipped_orchestrator_role_is_reference_only():
     for name, role in shipped["roles"].items():
         if name != "orchestrator":
             assert role.get("dispatch", True) is True, name
+
+
+@pytest.mark.parametrize("flag", ["--role", "--task", "--out", "--expect"])
+def test_a_flag_is_not_taken_as_another_flags_value(flag, env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo RAN")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    args = {"--role": "executor", "--task": str(env["task"]), "--out": str(env["out"])}
+    argv = [a for k, v in args.items() if k != flag for a in (k, v)]
+    result = subprocess.run(
+        ["bash", str(SCRIPT), *argv, flag, "--dry-run"],
+        capture_output=True, text=True, timeout=10,
+        env={**os.environ, "MODEL_REGISTRY": str(env["registry"]), "MODEL_JOURNAL": str(env["journal"]),
+             "MODEL_PENALTIES": str(env["penalties"]), "MODEL_OUTPUTS": str(outputs_dir(env))},
+    )
+    assert result.returncode == 2, result.stderr
+    assert "needs a value" in result.stderr
+    assert journal_lines(env) == [], "the model must not run"
+
+
+def test_empty_expect_is_usage_error(env):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo RAN")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "")
+    assert result.returncode == 2
+    assert "--expect" in result.stderr
+    assert journal_lines(env) == []
+
+
+def test_out_path_starting_with_dash_is_written(env, tmp_path, monkeypatch):
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    monkeypatch.chdir(tmp_path)
+    result = run(env, "--role", "executor", "--out", "-answer.md")
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "-answer.md").read_text().strip() == "ANSWER"
+
+
+def test_dry_run_creates_no_state(env, tmp_path):
+    env["journal"] = tmp_path / "state" / "journal.jsonl"
+    env["penalties"] = tmp_path / "state" / "penalties.json"
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo SHOULD_NOT_RUN")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--dry-run")
+    assert result.returncode == 0, result.stderr
+    assert not (tmp_path / "state").exists(), "dry run must not create the journal dir or penalties file"

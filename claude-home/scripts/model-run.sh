@@ -47,16 +47,18 @@ CHARS_PER_TOKEN="${MODEL_CHARS_PER_TOKEN:-4.45}"
 
 die() { printf 'model-run: %s\n' "$*" >&2; exit 2; }
 # A flag that takes a value must have one; without this check `shift 2` fails
-# on the last argument and the parse loop never ends.
-need_value() { [ "$1" -ge 2 ] || die "$2 needs a value"; }
+# on the last argument and the parse loop never ends. Another flag in the value
+# position (`--out --dry-run`) is a missing value too, not a path.
+is_flag() { case "$1" in --role|--task|--out|--expect|--dry-run|-h|--help) return 0 ;; esac; return 1; }
+need_value() { [ "$1" -ge 2 ] && ! is_flag "$3" || die "$2 needs a value"; }
 
-ROLE=""; TASK=""; OUT=""; EXPECT=""; DRY=0
+ROLE=""; TASK=""; OUT=""; EXPECT=""; EXPECT_SET=0; DRY=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --role)    need_value $# "$1"; ROLE="$2"; shift 2 ;;
-    --task)    need_value $# "$1"; TASK="$2"; shift 2 ;;
-    --out)     need_value $# "$1"; OUT="$2";  shift 2 ;;
-    --expect)  need_value $# "$1"; EXPECT="$2"; shift 2 ;;
+    --role)    need_value $# "$1" "${2-}"; ROLE="$2"; shift 2 ;;
+    --task)    need_value $# "$1" "${2-}"; TASK="$2"; shift 2 ;;
+    --out)     need_value $# "$1" "${2-}"; OUT="$2";  shift 2 ;;
+    --expect)  need_value $# "$1" "${2-}"; EXPECT="$2"; EXPECT_SET=1; shift 2 ;;
     --dry-run) DRY=1; shift ;;
     -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -69,6 +71,8 @@ done
 [ -f "$REGISTRY" ] || die "registry not found: $REGISTRY"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 
+[ "$EXPECT_SET" -eq 1 ] && [ -z "$EXPECT" ] \
+  && die "--expect needs a non-empty regex; an empty one would silently disable the check"
 if [ -n "$EXPECT" ]; then
   grep -qE -- "$EXPECT" </dev/null
   [ $? -eq 2 ] && die "--expect is not a valid extended regex: $EXPECT"
@@ -98,13 +102,13 @@ RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
 [[ "$RETENTION_DAYS" =~ ^[1-9][0-9]*$ ]] \
   || die "policy.output_retention_days must be a positive integer, got: '$RETENTION_DAYS'"
 
-mkdir -p "$(dirname "$JOURNAL")"
-[ -f "$PENALTIES" ] || echo '{}' > "$PENALTIES"
-
 # Kept outputs are machine-local evidence of non-ok attempts (NFR-3). Pruned
 # here, on every real run, so the component that creates the state expires
 # it — same ownership pattern as the penalty expiry below.
 if [ "$DRY" -eq 0 ]; then
+  # State is created only by a real run; a dry run reads it if present.
+  mkdir -p "$(dirname "$JOURNAL")"
+  [ -f "$PENALTIES" ] || echo '{}' > "$PENALTIES"
   # A local fault here must stop the run: otherwise every model would be
   # journalled as a failed attempt although none of them ran.
   mkdir -p "$OUTPUTS" 2>/dev/null && [ -d "$OUTPUTS" ] && [ -w "$OUTPUTS" ] \
@@ -264,7 +268,7 @@ for MODEL in $CANDIDATES; do
   case "$outcome" in
     ok)
       if [ -n "$OUT" ]; then
-        mv "$tmp_out" "$OUT" || {
+        mv -- "$tmp_out" "$OUT" || {
           printf 'model-run: cannot write --out %s; answer kept at %s\n' "$OUT" "$tmp_out" >&2
           exit 2
         }
