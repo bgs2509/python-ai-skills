@@ -15,7 +15,7 @@
 #   ok               — model answered, exit 0, non-empty, --expect matched.
 #   unavailable      — quota exhausted / 5xx / auth / network.
 #   context_overflow — task does not fit this model's window.
-#   timeout          — exceeded the model's timeout.
+#   timeout          — exceeded the effective timeout (role or model).
 #   check_failed     — exit 0 but empty or missed --expect.
 #   error            — anything else (bad flag, crash).
 #   interrupted      — model-run.sh got SIGINT/SIGTERM mid-attempt; the model

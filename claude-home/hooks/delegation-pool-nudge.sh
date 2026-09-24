@@ -70,7 +70,7 @@ print('nudge')
 
 [ "${VERDICT:-}" = "nudge" ] || exit 0
 
-REASON="This Task will run on an Anthropic model — the Agent tool cannot reach any other pool, so it spends the scarce quota. The work you are delegating looks bulk/mechanical, which the executor or batch role handles acceptably at another pool's expense: \`~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>\` (roles, fallback order and timeouts live in ~/.claude/model-registry.json; every attempt is journalled). Dispatching the subagent anyway is fine when the work needs Anthropic-level judgement, when the result must come back into this conversation directly, or when the delegate needs tools the runner's one-shot call cannot give it."
+REASON="This Task will run on an Anthropic model — the Agent tool cannot reach any other pool, so it spends the scarce quota. The work you are delegating looks bulk/mechanical, which the executor or batch role handles acceptably at another pool's expense: \`~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>\` (web research with sources: \`--role researcher\`; roles, fallback order and timeouts live in ~/.claude/model-registry.json; every attempt is journalled). Dispatching the subagent anyway is fine when the work needs Anthropic-level judgement, when the result must come back into this conversation directly, or when the delegate needs tools the runner's one-shot call cannot give it."
 
 REASON="$REASON" python3 -c "
 import json, os

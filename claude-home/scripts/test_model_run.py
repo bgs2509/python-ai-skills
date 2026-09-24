@@ -732,3 +732,22 @@ def test_shipped_researcher_role():
 def test_help_mentions_role_timeout():
     result = subprocess.run(["bash", str(SCRIPT), "--help"], capture_output=True, text=True, timeout=10)
     assert "roles.<role>.timeout_seconds" in result.stdout
+
+
+def test_dry_run_shows_the_effective_timeout(env):
+    write_registry(
+        env,
+        registry(
+            {"m": model("echo X", timeout_seconds=1)},
+            {"withrole": {"models": ["m"], "timeout_seconds": 5}, "plain": {"models": ["m"]}},
+        ),
+    )
+    assert "timeout=5" in run(env, "--role", "withrole", "--dry-run").stdout
+    assert "timeout=1" in run(env, "--role", "plain", "--dry-run").stdout
+
+
+def test_shipped_roles_other_than_researcher_keep_model_timeouts():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    for name, role in shipped["roles"].items():
+        if name != "researcher":
+            assert "timeout_seconds" not in role, f"role {name} must keep per-model timeouts"
