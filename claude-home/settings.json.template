@@ -404,8 +404,24 @@
       "docker",
       "docker-compose",
       "{{CLAUDE_HOME}}/scripts/model-run.sh *",
-      "~/.claude/scripts/model-run.sh *"
-    ]
+      "~/.claude/scripts/model-run.sh *",
+      "gh *"
+    ],
+    "credentials": {
+      "files": [
+        { "path": "~/.ssh", "mode": "deny" },
+        { "path": "~/.gnupg", "mode": "deny" },
+        { "path": "~/.config/gh/hosts.yml", "mode": "deny" },
+        { "path": "~/.codex/auth.json", "mode": "deny" },
+        { "path": "~/.claude/.credentials.json", "mode": "deny" },
+        { "path": "~/.claude/secrets.env", "mode": "deny" },
+        { "path": "~/.config/zai/glm.env", "mode": "deny" },
+        { "path": "~/.config/spark/qwen38.env", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "CONTEXT7_API_KEY", "mode": "deny" }
+      ]
+    }
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
