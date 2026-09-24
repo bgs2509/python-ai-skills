@@ -102,6 +102,33 @@ def test_first_healthy_model_wins_and_is_journalled(env):
     assert lines[0]["ctx_chars"] > 0
 
 
+def test_journal_lines_start_with_a_five_digit_sequence_number(env):
+    write_registry(
+        env,
+        registry(
+            {"bad": model("exit 1"), "good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["bad", "good"]}},
+        ),
+    )
+    run(env, "--role", "executor")
+    run(env, "--role", "executor")
+
+    raw = env["journal"].read_text().splitlines()
+    assert all(line.startswith('{"n":"') for line in raw), "n must be the first key"
+    assert [row["n"] for row in journal_lines(env)] == ["00001", "00002", "00003", "00004"]
+
+
+def test_journal_sequence_wraps_after_99999(env):
+    env["journal"].write_text('{"n":"99999","ts":"x"}\n')
+    write_registry(
+        env,
+        registry({"good": model("cat >/dev/null; echo ANSWER")}, {"executor": {"models": ["good"]}}),
+    )
+    run(env, "--role", "executor")
+    run(env, "--role", "executor")
+    assert [row["n"] for row in journal_lines(env)] == ["99999", "00001", "00002"]
+
+
 def test_exit_zero_answer_mentioning_quota_is_ok(env):
     """Regression: exit 0 must not be relabelled by quota/429 words in the answer.
 

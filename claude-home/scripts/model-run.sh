@@ -140,16 +140,26 @@ set_penalty() {
 
 penalised_outcome() { jq -e --arg o "$1" 'index($o) != null' <<<"$PENALIZE_ON" >/dev/null; }
 
+# Each line opens with n — a five-digit sequence number, the last line's n plus
+# one, wrapping 99999 -> 00001. Read-increment-append runs under flock so that
+# parallel runs never share a number.
 journal() { # model pool runner seconds outcome exit attempt out_path out_bytes
-  jq -nc --arg ts "$(date -Is)" --arg role "$ROLE" --arg model "$1" --arg pool "$2" \
+  local last n
+  exec {lock}>>"$JOURNAL"
+  flock "$lock"
+  last=$(tail -n 1 "$JOURNAL" | jq -r '.n // empty' 2>/dev/null)
+  n=1
+  [[ "$last" =~ ^[0-9]{5}$ ]] && n=$(( 10#$last % 99999 + 1 ))
+  jq -nc --arg n "$(printf '%05d' "$n")" --arg ts "$(date -Is)" --arg role "$ROLE" --arg model "$1" --arg pool "$2" \
      --arg runner "$3" --argjson ctx_chars "$CTX_CHARS" --argjson ctx_tokens "$CTX_TOKENS" \
      --argjson seconds "$4" --arg outcome "$5" --argjson exit "$6" --argjson attempt "$7" \
      --arg session "$SESSION" --arg out_path "${8:-}" --arg out_bytes "${9:-}" \
-     '{ts:$ts,role:$role,model:$model,pool:$pool,runner:$runner,ctx_chars:$ctx_chars,
+     '{n:$n,ts:$ts,role:$role,model:$model,pool:$pool,runner:$runner,ctx_chars:$ctx_chars,
        ctx_tokens:$ctx_tokens,seconds:$seconds,outcome:$outcome,exit:$exit,
        attempt:$attempt,session:$session,
        out_path:(if $out_path == "" then null else $out_path end),
-       out_bytes:(if $out_bytes == "" then null else ($out_bytes | tonumber) end)}' >> "$JOURNAL"
+       out_bytes:(if $out_bytes == "" then null else ($out_bytes | tonumber) end)}' >&"$lock"
+  exec {lock}>&-
 }
 
 # Classify an attempt from its exit code and captured output. Text patterns
