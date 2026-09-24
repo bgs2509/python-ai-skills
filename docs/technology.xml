@@ -67,4 +67,12 @@
       </Item>
     </phases>
   </Feature>
+  <Feature source="20260924-model-run-policy-trap-design.md" bd_id="python-ai-skills-xwa">
+    <feature>model-run-policy-trap</feature>
+    <date>2026-09-24</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
 </Technology>

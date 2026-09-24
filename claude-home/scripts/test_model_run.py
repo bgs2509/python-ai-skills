@@ -6,6 +6,7 @@ snippets, so no real model, network, or quota is touched.
 
 import json
 import os
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -355,7 +356,9 @@ def test_shipped_registry_is_valid_and_self_consistent():
             f"model {name} is missing capabilities.web_search"
         )
     assert shipped["models"]["qwen38"]["capabilities"]["web_search"] is False
-    assert "check_failed" in shipped["policy"]["no_penalty_on"]
+    # penalize_on is read by model-run.sh; its complement is not stored (one source).
+    assert shipped["policy"]["penalize_on"] == ["unavailable"]
+    assert "no_penalty_on" not in shipped["policy"]
     assert isinstance(shipped["policy"]["output_retention_days"], int)
     assert shipped["policy"]["output_retention_days"] > 0
 
@@ -601,3 +604,77 @@ def test_kept_output_is_private_and_ok_answer_leaves_no_file(env):
     kept = list(outputs_dir(env).glob("*.out"))
     assert len(kept) == 1, "only the non-ok attempt keeps a file"
     assert (kept[0].stat().st_mode & 0o777) == 0o600
+
+
+def test_penalize_on_from_registry_is_honoured(env):
+    write_registry(
+        env,
+        registry(
+            {"mute": model("cat >/dev/null"), "good": model("cat >/dev/null; echo ANSWER")},
+            {"executor": {"models": ["mute", "good"]}},
+            policy={"penalize_on": ["unavailable", "check_failed"]},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    penalties = json.loads(env["penalties"].read_text())
+    assert penalties["mute"]["reason"] == "check_failed"
+
+
+def test_unavailable_is_penalised_when_policy_has_no_penalize_on(env):
+    write_registry(
+        env,
+        registry(
+            {"broken": model("cat >/dev/null; echo 'quota exceeded' >&2; exit 1")},
+            {"executor": {"models": ["broken"]}},
+        ),
+    )
+    run(env, "--role", "executor", "--out", str(env["out"]))
+    assert json.loads(env["penalties"].read_text())["broken"]["reason"] == "unavailable"
+
+
+def test_sigterm_during_attempt_is_journalled_as_interrupted(env):
+    marker = "37.4242"  # unique sleep argument to find the child process
+    write_registry(
+        env,
+        registry(
+            {"slow": model(f"cat >/dev/null; sleep {marker}", timeout_seconds=60)},
+            {"executor": {"models": ["slow"]}},
+        ),
+    )
+    proc_env = dict(os.environ)
+    proc_env.pop("MODEL_OUTPUTS", None)
+    proc_env.update(
+        MODEL_REGISTRY=str(env["registry"]),
+        MODEL_JOURNAL=str(env["journal"]),
+        MODEL_PENALTIES=str(env["penalties"]),
+        MODEL_RUN_SESSION="test",
+    )
+    proc = subprocess.Popen(
+        ["bash", str(SCRIPT), "--task", str(env["task"]), "--role", "executor", "--out", str(env["out"])],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=proc_env,
+    )
+    deadline = time.time() + 10
+    while time.time() < deadline and not list(outputs_dir(env).glob("*.out")):
+        time.sleep(0.1)
+    time.sleep(0.5)  # let the model command start
+    started = time.time()
+    proc.send_signal(signal.SIGTERM)
+    _, err = proc.communicate(timeout=10)
+    assert proc.returncode == 143, err
+    assert time.time() - started < 5, "the trap must not wait for the model timeout"
+    lines = journal_lines(env)
+    assert [ln["outcome"] for ln in lines] == ["interrupted"]
+    assert Path(lines[0]["out_path"]).exists()
+    time.sleep(0.3)
+    ps = subprocess.run(["pgrep", "-f", f"sleep {marker}"], capture_output=True, text=True)
+    assert ps.stdout.strip() == "", "the model command must be stopped"
+
+
+def test_help_lists_interrupted_and_penalize_on():
+    result = subprocess.run(["bash", str(SCRIPT), "--help"], capture_output=True, text=True, timeout=10)
+    assert "interrupted" in result.stdout
+    assert "penalize_on" in result.stdout

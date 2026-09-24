@@ -174,7 +174,6 @@
     "penalty_seconds": 3600,
     "penalty_scope": "whole model",
     "penalize_on": ["unavailable"],
-    "no_penalty_on": ["context_overflow", "timeout", "check_failed"],
     "output_retention_days": 14,
     "_policy_comment": [
       "unavailable = quota exhausted, gateway 5xx, auth failure, network down: the model is",
@@ -184,7 +183,8 @@
       "timeout is NOT penalised by default: qwen legitimately takes 190 s, and penalising",
       "slowness would evict the free pool permanently. Set penalize_on_timeout per model to",
       "override.",
-      "check_failed = exit 0 but the answer is empty or misses the caller's --expect regex: the model works, the answer does not fit this task. Never penalised; the output is kept."
+      "check_failed = exit 0 but the answer is empty or misses the caller's --expect regex: the model works, the answer does not fit this task. Not in penalize_on, so not penalised; the output is kept.",
+      "penalize_on is READ by scripts/model-run.sh: an outcome in this list penalises the whole model; every other outcome does not (plus the per-model penalize_on_timeout override)."
     ]
   },
 

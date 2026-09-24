@@ -13,11 +13,17 @@
 #
 # Outcomes per attempt, written to the journal one line each:
 #   ok               — model answered, exit 0, non-empty, --expect matched.
-#   unavailable      — quota exhausted / 5xx / auth / network. Penalised (see registry).
-#   context_overflow — task does not fit this model's window. NOT penalised.
-#   timeout          — exceeded the model's timeout. NOT penalised by default.
-#   check_failed     — exit 0 but empty or missed --expect. NOT penalised.
-#   error            — anything else (bad flag, crash). NOT penalised.
+#   unavailable      — quota exhausted / 5xx / auth / network.
+#   context_overflow — task does not fit this model's window.
+#   timeout          — exceeded the model's timeout.
+#   check_failed     — exit 0 but empty or missed --expect.
+#   error            — anything else (bad flag, crash).
+#   interrupted      — model-run.sh got SIGINT/SIGTERM mid-attempt; the model
+#                      command is stopped and the run exits 130 / 143.
+#
+# Penalties: an outcome listed in the registry's policy.penalize_on (default
+# ["unavailable"]) penalises the whole model for policy.penalty_seconds; a
+# timeout also does when the model sets penalize_on_timeout.
 #
 # Non-ok attempts that ran keep their output under $MODEL_OUTPUTS (default:
 # next to the journal); the journal line's out_path/out_bytes point to it.
@@ -72,6 +78,7 @@ CANDIDATES=$(jq -r --arg r "$ROLE" '.roles[$r].models[]?' "$REGISTRY") || die "c
 CTX_CHARS=$(wc -c < "$TASK" | tr -d ' ')
 CTX_TOKENS=$(awk -v c="$CTX_CHARS" -v r="$CHARS_PER_TOKEN" 'BEGIN{printf "%d", c/r}')
 PENALTY_SECONDS=$(jq -r '.policy.penalty_seconds // 3600' "$REGISTRY")
+PENALIZE_ON=$(jq -c '.policy.penalize_on // ["unavailable"]' "$REGISTRY")
 OUTPUTS="${MODEL_OUTPUTS:-$(dirname "$JOURNAL")/model-outputs}"
 RETENTION_DAYS=$(jq -r '.policy.output_retention_days // 14' "$REGISTRY")
 [[ "$RETENTION_DAYS" =~ ^[1-9][0-9]*$ ]] \
@@ -108,6 +115,8 @@ set_penalty() {
      '.[$m] = {until: $u, reason: $r}' "$PENALTIES" > "$tmp" && mv "$tmp" "$PENALTIES"
 }
 
+penalised_outcome() { jq -e --arg o "$1" 'index($o) != null' <<<"$PENALIZE_ON" >/dev/null; }
+
 journal() { # model pool runner seconds outcome exit attempt out_path out_bytes
   jq -nc --arg ts "$(date -Is)" --arg role "$ROLE" --arg model "$1" --arg pool "$2" \
      --arg runner "$3" --argjson ctx_chars "$CTX_CHARS" --argjson ctx_tokens "$CTX_TOKENS" \
@@ -137,6 +146,19 @@ classify() {
   grep -q '[^[:space:]]' "$out_file" || { echo check_failed; return; }
   if [ -n "$EXPECT" ] && ! grep -qE -- "$EXPECT" "$out_file"; then echo check_failed; return; fi
   echo ok
+}
+
+# Stop the running model command (timeout forwards TERM to its process group),
+# journal the attempt with its kept output, and exit 128+signal.
+on_signal() {
+  local exit_code="$1" secs bytes
+  kill -TERM "$child" 2>/dev/null
+  wait "$child" 2>/dev/null
+  secs=$(awk -v a="$t0" -v b="$(date +%s.%N)" 'BEGIN{printf "%.2f", b-a}')
+  bytes=$(wc -c < "$tmp_out" | tr -d ' ')
+  journal "$MODEL" "$pool" "$runner" "$secs" interrupted "$exit_code" "$attempt" "$tmp_out" "$bytes"
+  printf 'model-run: %s interrupted (output kept: %s)\n' "$MODEL" "$tmp_out" >&2
+  exit "$exit_code"
 }
 
 attempt=0
@@ -195,8 +217,15 @@ for MODEL in $CANDIDATES; do
   tmp_out=$(mktemp --suffix=.out "$OUTPUTS/$(date +%Y%m%dT%H%M%S)-${MODEL//[^A-Za-z0-9._-]/_}-XXXXXX") \
     || die "cannot create an output file in $OUTPUTS"
   t0=$(date +%s.%N)
-  timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1
+  # Background + wait: bash runs a trap only after a FOREGROUND child exits,
+  # which would delay an interrupt by up to the model timeout.
+  timeout "$timeout_s" bash -c "$CMD" < "$TASK" > "$tmp_out" 2>&1 &
+  child=$!
+  trap 'on_signal 130' INT
+  trap 'on_signal 143' TERM
+  wait "$child"
   code=$?
+  trap - INT TERM
   t1=$(date +%s.%N)
   secs=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
 
@@ -211,6 +240,12 @@ for MODEL in $CANDIDATES; do
 
   journal "$MODEL" "$pool" "$runner" "$secs" "$outcome" "$code" "$attempt" "$out_path" "$out_bytes"
 
+  penalty_note=""
+  if penalised_outcome "$outcome" || { [ "$outcome" = timeout ] && [ "$penalize_timeout" = "true" ]; }; then
+    set_penalty "$MODEL" "$outcome"
+    penalty_note=", penalised ${PENALTY_SECONDS}s"
+  fi
+
   case "$outcome" in
     ok)
       if [ -n "$OUT" ]; then
@@ -224,17 +259,15 @@ for MODEL in $CANDIDATES; do
       printf 'model-run: %s answered in %ss\n' "$MODEL" "$secs" >&2
       exit 0 ;;
     unavailable)
-      set_penalty "$MODEL" unavailable
-      printf 'model-run: %s unavailable, penalised %ss (output kept: %s)\n' "$MODEL" "$PENALTY_SECONDS" "$tmp_out" >&2 ;;
+      printf 'model-run: %s unavailable%s (output kept: %s)\n' "$MODEL" "$penalty_note" "$tmp_out" >&2 ;;
     timeout)
-      [ "$penalize_timeout" = "true" ] && set_penalty "$MODEL" timeout
-      printf 'model-run: %s timed out after %ss (output kept: %s)\n' "$MODEL" "$timeout_s" "$tmp_out" >&2 ;;
+      printf 'model-run: %s timed out after %ss%s (output kept: %s)\n' "$MODEL" "$timeout_s" "$penalty_note" "$tmp_out" >&2 ;;
     context_overflow)
-      printf 'model-run: %s reported context overflow (output kept: %s)\n' "$MODEL" "$tmp_out" >&2 ;;
+      printf 'model-run: %s reported context overflow%s (output kept: %s)\n' "$MODEL" "$penalty_note" "$tmp_out" >&2 ;;
     check_failed)
-      printf 'model-run: %s answer failed the check (output kept: %s)\n' "$MODEL" "$tmp_out" >&2 ;;
+      printf 'model-run: %s answer failed the check%s (output kept: %s)\n' "$MODEL" "$penalty_note" "$tmp_out" >&2 ;;
     *)
-      printf 'model-run: %s failed (exit %s, output kept: %s)\n' "$MODEL" "$code" "$tmp_out" >&2 ;;
+      printf 'model-run: %s failed (exit %s%s, output kept: %s)\n' "$MODEL" "$code" "$penalty_note" "$tmp_out" >&2 ;;
   esac
 done
 
