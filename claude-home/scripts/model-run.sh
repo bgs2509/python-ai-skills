@@ -5,14 +5,22 @@
 # (which model, which launch flags, how long to wait, what to do on failure,
 # what to record) is decided here, deterministically, from the registry.
 #
-#   model-run.sh --role executor --task task.txt [--out result.md]
+#   model-run.sh --role executor --task task.txt [--out result.md] [--expect REGEX]
+#
+# --expect REGEX — extended regex (grep -E) the answer must contain; a miss
+#   or an empty answer becomes check_failed instead of ok. Rejected at
+#   startup (exit 2) if the regex is invalid or matches the task file itself.
 #
 # Outcomes per attempt, written to the journal one line each:
-#   ok               — model answered, exit 0. Run stops, result is in --out.
+#   ok               — model answered, exit 0, non-empty, --expect matched.
 #   unavailable      — quota exhausted / 5xx / auth / network. Penalised (see registry).
 #   context_overflow — task does not fit this model's window. NOT penalised.
 #   timeout          — exceeded the model's timeout. NOT penalised by default.
+#   check_failed     — exit 0 but empty or missed --expect. NOT penalised.
 #   error            — anything else (bad flag, crash). NOT penalised.
+#
+# Non-ok attempts that ran keep their output under $MODEL_OUTPUTS (default:
+# next to the journal); the journal line's out_path/out_bytes point to it.
 #
 # Exit: 0 when some model answered, 1 when the role was exhausted.
 set -uo pipefail
@@ -36,7 +44,7 @@ while [ $# -gt 0 ]; do
     --out)     OUT="${2:-}";  shift 2 ;;
     --expect)  EXPECT="${2:-}"; shift 2 ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0 ;;
     *) die "unknown argument: $1" ;;
   esac
 done

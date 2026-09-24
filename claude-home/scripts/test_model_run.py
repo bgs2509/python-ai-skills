@@ -503,3 +503,16 @@ def test_expect_matching_task_text_is_usage_error(env):
     result = run(env, "--role", "executor", "--out", str(env["out"]), "--expect", "=== URL ===")
     assert result.returncode == 2
     assert "matches the task text" in result.stderr
+
+
+def test_help_lists_expect_and_check_failed():
+    result = subprocess.run(
+        ["bash", str(SCRIPT), "--help"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert result.returncode == 0
+    assert "--expect" in result.stdout
+    assert "check_failed" in result.stdout
+    assert "set -uo" not in result.stdout
