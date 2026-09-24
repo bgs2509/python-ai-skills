@@ -91,6 +91,41 @@ def test_first_healthy_model_wins_and_is_journalled(env):
     assert lines[0]["ctx_chars"] > 0
 
 
+def test_exit_zero_answer_mentioning_quota_is_ok(env):
+    """Regression: exit 0 must not be relabelled by quota/429 words in the answer.
+
+    Evidence: ~/.claude/model-journal.jsonl, 2026-09-22 19:44-19:48, session b2b75c8a —
+    five consecutive exit-0 answers were mislabelled unavailable and their models penalised.
+    """
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo 'quota 429 rate limit'")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text().strip() == "quota 429 rate limit"
+    assert journal_lines(env)[0]["outcome"] == "ok"
+    assert json.loads(env["penalties"].read_text()) == {}
+
+
+def test_exit_zero_answer_mentioning_context_window_is_ok(env):
+    """Regression: exit 0 must not be relabelled by overflow words in the answer."""
+    write_registry(
+        env,
+        registry(
+            {"good": model("cat >/dev/null; echo 'maximum context'")},
+            {"executor": {"models": ["good"]}},
+        ),
+    )
+    result = run(env, "--role", "executor", "--out", str(env["out"]))
+    assert result.returncode == 0, result.stderr
+    assert env["out"].read_text().strip() == "maximum context"
+    assert journal_lines(env)[0]["outcome"] == "ok"
+
+
 def test_unavailable_model_is_penalised_and_next_one_answers(env):
     write_registry(
         env,

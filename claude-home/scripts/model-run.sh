@@ -83,19 +83,21 @@ journal() { # model pool runner seconds outcome exit attempt
        attempt:$attempt,session:$session}' >> "$JOURNAL"
 }
 
-# Classify an attempt from its exit code and captured output. Order matters:
-# context overflow and quota messages can both accompany a non-zero exit.
+# Classify an attempt from its exit code and captured output. Text patterns
+# refine a non-zero exit; they never override a zero one (exit 0 -> ok).
 classify() {
   local code="$1" out_file="$2"
   [ "$code" -eq 124 ] && { echo timeout; return; }
-  if grep -qiE 'prompt is too long|context (length|window) exceeded|too many tokens|maximum context' "$out_file" 2>/dev/null; then
-    echo context_overflow; return
+  if [ "$code" -ne 0 ]; then
+    if grep -qiE 'prompt is too long|context (length|window) exceeded|too many tokens|maximum context' "$out_file" 2>/dev/null; then
+      echo context_overflow; return
+    fi
+    if grep -qiE 'rate.?limit|quota|usage limit|429|50[0-9] (server|error)|overloaded|authentication|unauthorized|invalid api key|connection (refused|reset)|could not connect' "$out_file" 2>/dev/null; then
+      echo unavailable; return
+    fi
+    echo error; return
   fi
-  if grep -qiE 'rate.?limit|quota|usage limit|429|50[0-9] (server|error)|overloaded|authentication|unauthorized|invalid api key|connection (refused|reset)|could not connect' "$out_file" 2>/dev/null; then
-    echo unavailable; return
-  fi
-  [ "$code" -eq 0 ] && { echo ok; return; }
-  echo error
+  echo ok
 }
 
 attempt=0
