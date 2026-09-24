@@ -31,7 +31,7 @@ functional_requirements:
   - id: FR-7
     text: model-stats.py counts and renders the new outcome and tolerates journal lines with and without the new optional keys.
   - id: FR-8
-    text: The registry records that qwen38 has no working web search and states the latency observed for glm-4.7 on web tasks in a form that does not conflate it with the passport figure (see OQ-4).
+    text: The registry records that qwen38 has no working web search as a structured capability; observed latency stays in the journal (read via model-stats.py), not in the registry (OQ-4 decision).
   - id: FR-9
     text: task-57 is re-run through model-run.sh --role executor; at least one executor model returns a card quoting a fetched 57.mskobr.ru page with its URL, and the journal line is recorded in the bd issue.
   - id: FR-10
