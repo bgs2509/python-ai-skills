@@ -305,6 +305,8 @@ natively — this rule removes the PR step from the assistant's own default, not
 
 **Rule:** `bd dolt push` (Beads persistence for multi-machine sync) IS allowed automatically as part of session close protocol.
 
+**Rule (delivery to machines, owner decision 2026-10-07, every repository):** everything that is tracked in git reaches a server only through GitHub — `git push` here, `git pull --ff-only` there; never copy tracked files with `rsync`, `scp` or a hand copy. `rsync` is allowed in every repository **only for git-ignored artifacts** (data archives, model weights, exports); check with `git check-ignore` first. Generated pages that a server serves (e.g. the static sites behind the Isuzu portal's Caddy) are kept in git, not delivered by `rsync`.
+
 ## Security
 
 **Rule:** Do NOT read `.env*`, `*.pem`, `*.key`, `*.ppk`, `id_rsa*`, `credentials.*`, `.aws/credentials`, `.netrc`, `.npmrc`, `*secret*`, `*_token*`.
