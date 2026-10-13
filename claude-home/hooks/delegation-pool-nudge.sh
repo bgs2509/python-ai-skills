@@ -34,7 +34,7 @@ set -euo pipefail
 # Opt out entirely (e.g. while measuring a baseline).
 [ "${DELEGATION_NUDGE:-on}" = "off" ] && exit 0
 
-INPUT=$(cat)
+INPUT=$(cat 2>/dev/null) || exit 0   # unreadable stdin degrades to silence
 
 echo "$INPUT" | REGISTRY="${MODEL_REGISTRY:-$HOME/.claude/model-registry.json}" python3 -c "
 import json, os, re, sys
@@ -93,9 +93,12 @@ def model_hint(ti):
     if kind == 'Explore':
         head = ('This Explore subagent has no \`model\`: Explore runs on the session model, '
                 'whatever CLAUDE_CODE_SUBAGENT_MODEL says.')
-    else:
+    elif kind == 'general-purpose':
         head = ('This subagent has no \`model\`: it runs on CLAUDE_CODE_SUBAGENT_MODEL, '
                 'or on the session model when that is unset.')
+    else:
+        head = (f'This {kind} subagent has no \`model\` in the call: it runs on the model its agent '
+                'definition sets, otherwise on CLAUDE_CODE_SUBAGENT_MODEL, otherwise on the session model.')
     lines = mapping_lines(os.environ['REGISTRY'])
     if not lines:
         return head + ' Pass \`model\` to match the work type (mapping: agent_work_types in ~/.claude/model-registry.json).'

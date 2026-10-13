@@ -418,8 +418,8 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To research online:** hook input schema for `SubagentStart` and `agent_id`/agent type fields.
 - **Acceptance:** guard test suite: writer agents unaffected, explorers blocked on writes.
 - **Done (2026-10-13):** decided not to build a custom guard — read-only work goes to `Explore`, which has no Edit/Write tools; the hook reminds that `Explore` needs an explicit `model`.
-- **Decision (2026-10-13):** Do it with our own hook (not the third-party script), scoped to read-only agent types only (Explore and named explorer agents); writer agents (`do-multiagent`, `do-feature-clean`) keep write access.
-- **Still open:** Which hook input field carries the agent type (`agent_id` is confirmed in the binary; the type field is not yet checked).
+- **Decision (2026-10-13):** superseded by the Done line above — no custom guard hook.
+- **Still open:** none.
 
 #### 3d. Fable and inherited launches audit
 

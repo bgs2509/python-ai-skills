@@ -15,12 +15,13 @@ import pytest
 HOOK = Path(__file__).resolve().parent / "delegation-pool-nudge.sh"
 
 
-def run(payload, env_extra=None):
+def run(payload, env_extra=None, hook_cmd=("bash",)):
     env = dict(os.environ)
+    env.pop("DELEGATION_NUDGE", None)  # a developer's opt-out must not leak into the tests
     if env_extra:
         env.update(env_extra)
     return subprocess.run(
-        ["bash", str(HOOK)],
+        [*hook_cmd, str(HOOK)],
         input=json.dumps(payload) if not isinstance(payload, str) else payload,
         capture_output=True,
         text=True,
@@ -188,6 +189,26 @@ def test_bulk_and_model_hints_combine(registry):
     text = context(run(launch(description="inventory all modules"), env_extra=registry))
     assert "looks bulk/mechanical" in text
     assert "`alias-cheap`" in text
+
+
+def test_named_agent_hint_puts_its_definition_first(registry):
+    text = context(run(launch(subagent_type="do-feature-clean"), env_extra=registry))
+    assert "do-feature-clean" in text
+    assert text.index("agent definition") < text.index("CLAUDE_CODE_SUBAGENT_MODEL")
+
+
+def test_unreadable_stdin_tool_still_exits_zero(registry):
+    """No `cat` on PATH: the hook must stay silent, not fail the launch."""
+    import shutil
+    bash = shutil.which("bash")
+    result = run(launch(), env_extra={**registry, "PATH": "/nonexistent"}, hook_cmd=(bash,))
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""
+
+
+def test_developer_opt_out_does_not_leak_into_tests(registry, monkeypatch):
+    monkeypatch.setenv("DELEGATION_NUDGE", "off")
+    assert "`alias-top`" in context(run(launch(), env_extra=registry))
 
 
 def test_shipped_registry_renders_real_aliases():
