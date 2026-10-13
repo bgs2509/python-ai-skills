@@ -15,8 +15,11 @@ from the first step whose artifact (spec, plan, commit) is missing. Otherwise:
 
 ```bash
 bd create --title="Feature: {name}" --type=epic --priority=2 \
-  --description="Epic for feature development workflow"
+  --description="<the user's request, verbatim, plus any decisions already stated in this conversation>"
 ```
+
+The description is what a fresh session resumes from (the fresh-session offer in SKILL.md
+Pre-dispatch), so it carries the request itself, not a generic label.
 
 ## Step 2: DISCOVERY
 

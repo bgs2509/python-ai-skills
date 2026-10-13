@@ -144,10 +144,13 @@ when it is unavailable.
        git show-ref --verify --quiet "refs/heads/$b" && BASE=$b && break
    done
    ```
-   Still empty, or `--base` was passed → use the argument; otherwise ask. Never hardcode
+   `--base` was passed → it wins. Still empty → **mode `unknown-base`**: STOP and ask the
+   user for the base branch; never continue to Phase 3 without one. Never hardcode
    `master`: the user may say "master" while the repo's base branch is `main`.
 4. Current branch equal to `$BASE` → **mode `base`**: go to Phase 5.
    Otherwise → **mode `branch`**: continue with Phase 3.
+   Any `error=` line in the probe output → STOP and report it; a failed git command is not
+   a state to act on.
 5. **Report the plan** — mode, base branch, branch being finished, whether a worktree
    will be removed, whether the branch also exists on the remote. Then proceed.
 
@@ -204,11 +207,10 @@ Skipped with `--keep-branch`. Order matters: the worktree goes first — a branc
 out in a worktree cannot be deleted — and worktree removal must run from outside that
 worktree.
 
-```bash
-WT=$(rtk proxy git worktree list --porcelain | awk -v b="refs/heads/<branch>" \
-    '/^worktree /{p=$2} /^branch /{if ($2==b) print p}')
-MAIN_ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
-```
+Take `WT` = `worktree` and `MAIN_ROOT` = `main_root` from the Phase 1.1 probe output —
+it detects a linked worktree by its own git dir, which stays correct for paths with spaces
+and for repositories created with `--separate-git-dir`; do not recompute them by parsing
+`git worktree list` or taking `dirname` of the common git dir.
 
 > **Two traps here, both hit in practice.**
 >

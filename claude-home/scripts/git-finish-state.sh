@@ -25,7 +25,11 @@ BASE_ARG=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --base)
-            if [ -n "${2:-}" ]; then BASE_ARG="$2"; shift 2; else echo "error=--base needs a value"; shift; fi ;;
+            case "${2:-}" in
+                ""|-*) BASE_ERR="--base needs a branch name"; shift ;;
+                *) BASE_ARG="$2"; shift 2 ;;
+            esac ;;
+        --*) shift ;;              # unknown long option: ignored, never a directory
         -*) DIR="./$1"; shift ;;   # bash `cd -- -` still means $OLDPWD
         *) DIR="$1"; shift ;;
     esac
@@ -33,6 +37,8 @@ done
 
 MODE=""; BRANCH=""; BASE=""; MAIN_ROOT=""; WORKTREE=""; REMOTE=""; ON_REMOTE=""; AHEAD=""
 ERRORS=()
+[ -n "${BASE_ERR:-}" ] && ERRORS+=("$BASE_ERR")
+IN_DIR=yes
 LOG=""
 
 emit() {
@@ -48,8 +54,10 @@ emit() {
     echo "--- log"
     [ -n "$LOG" ] && echo "$LOG"
     echo "--- bd in_progress"
-    if command -v bd >/dev/null 2>&1; then
-        bd list --status=in_progress 2>&1
+    if [ "$IN_DIR" != yes ]; then
+        echo "bd: skipped, directory not entered"
+    elif command -v bd >/dev/null 2>&1; then
+        bd list --status=in_progress --limit 0 --no-pager 2>&1
     else
         echo "bd: not on PATH"
     fi
@@ -59,16 +67,17 @@ emit() {
 g() { git --no-optional-locks "$@"; }
 
 if ! cd -- "$DIR" 2>/dev/null; then
-    MODE=no-git; ERRORS+=("cannot enter $DIR"); emit
+    MODE=no-git; IN_DIR=no; ERRORS+=("cannot enter $DIR"); emit
 fi
 if [ "$(g rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
     MODE=no-git; emit
 fi
 
-BRANCH=$(g branch --show-current 2>/dev/null)
-TOP=$(g rev-parse --show-toplevel 2>/dev/null)
-GIT_DIR_ABS=$(g rev-parse --path-format=absolute --git-dir 2>/dev/null)
-COMMON_DIR=$(g rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+# Mandatory facts: a failure is reported, never turned into a plausible state.
+BRANCH=$(g branch --show-current 2>/dev/null) || { ERRORS+=("git branch --show-current failed"); MODE=error; emit; }
+TOP=$(g rev-parse --show-toplevel 2>/dev/null) || ERRORS+=("git rev-parse --show-toplevel failed")
+GIT_DIR_ABS=$(g rev-parse --path-format=absolute --git-dir 2>/dev/null) || ERRORS+=("git rev-parse --git-dir failed")
+COMMON_DIR=$(g rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || ERRORS+=("git rev-parse --git-common-dir failed")
 # A linked worktree has its own git dir (.git/worktrees/<name>) apart from the
 # common one; the main working tree does not — whatever the repository layout
 # (with --separate-git-dir neither `dirname` of the common dir nor the first

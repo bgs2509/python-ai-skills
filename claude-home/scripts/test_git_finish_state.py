@@ -118,7 +118,7 @@ def test_base_override_wins(repo, env):
 
 def test_lone_base_flag_terminates_with_an_error(repo, env):
     fields, errors, _ = probe(repo, env, ".", "--base", timeout=5)
-    assert "--base needs a value" in errors
+    assert "--base needs a branch name" in errors
     assert fields["base"] == "main"
 
 
@@ -167,3 +167,38 @@ def test_probe_writes_nothing(repo, env):
     before = git(repo, env, "status", "--porcelain").stdout
     probe(repo, env, ".")
     assert git(repo, env, "status", "--porcelain").stdout == before
+
+
+def test_base_value_that_is_a_flag_is_rejected(repo, env):
+    fields, errors, _ = probe(repo, env, ".", "--base", "--no-push")
+    assert fields["base"] == "main"
+    assert "--base needs a branch name" in errors
+
+
+def test_failing_mandatory_git_command_is_an_error_not_a_state(repo, env, tmp_path):
+    fake = tmp_path / "fakebin"
+    fake.mkdir()
+    real = subprocess.run(["which", "git"], capture_output=True, text=True).stdout.strip()
+    (fake / "git").write_text(f'#!/bin/bash\nfor a in "$@"; do [ "$a" = --show-current ] && exit 42; done\nexec {real} "$@"\n')
+    (fake / "git").chmod(0o755)
+    fields, errors, _ = probe(repo, {**env, "PATH": f"{fake}:/usr/bin:/bin"}, ".")
+    assert fields["mode"] == "error"
+    assert any("--show-current" in e for e in errors)
+
+
+def test_bd_is_not_run_after_a_failed_cd(tmp_path, env):
+    fake = tmp_path / "fakebin"
+    fake.mkdir()
+    (fake / "bd").write_text('#!/bin/bash\necho "BD RAN IN $PWD"\n')
+    (fake / "bd").chmod(0o755)
+    _, errors, out = probe(tmp_path, {**env, "PATH": f"{fake}:/usr/bin:/bin"}, str(tmp_path / "missing"))
+    assert "BD RAN" not in out and "bd: skipped" in out
+
+
+def test_bd_listing_is_unlimited(repo, env, tmp_path):
+    fake = tmp_path / "fakebin"
+    fake.mkdir()
+    (fake / "bd").write_text('#!/bin/bash\necho "ARGS $*"\n')
+    (fake / "bd").chmod(0o755)
+    _, _, out = probe(repo, {**env, "PATH": f"{fake}:/usr/bin:/bin"}, ".")
+    assert "--limit 0" in out
