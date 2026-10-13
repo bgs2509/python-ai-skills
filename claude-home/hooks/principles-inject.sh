@@ -22,7 +22,7 @@ set -uo pipefail
 SKILLS=(
   do-feature do-autopilot do-multiagent pipeline
   grace-plan grace-execute grace-multiagent-execute grace-fix grace-refactor grace-reviewer
-  best-research best-approach best-rank best-questions audit-loop full-audit
+  best-research best-approach best-rank best-questions audit-loop full-audit _testing
   simplify code-review
   superpowers:brainstorming superpowers:writing-plans superpowers:executing-plans
   superpowers:subagent-driven-development superpowers:test-driven-development
@@ -30,7 +30,7 @@ SKILLS=(
   superpowers:systematic-debugging
 )
 
-FILE="${PRINCIPLES_FILE:-$HOME/.claude/skills/_code-quality/principles.md}"
+FILE="${PRINCIPLES_FILE:-${HOME:-}/.claude/skills/_code-quality/principles.md}"
 SKILL=$(jq -r '.tool_input.skill // empty' 2>/dev/null) || exit 0
 [ -n "$SKILL" ] && [ -r "$FILE" ] || exit 0
 

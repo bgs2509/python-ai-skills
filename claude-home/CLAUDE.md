@@ -218,9 +218,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 ## Preferences
 
-**Rule:** Code principles (KISS, YAGNI, SSoT/DRY, SOTA first, then the rest of the 17) are defined only in `~/.claude/skills/_code-quality/principles.md`. Read it before planning, writing or reviewing code and run its excess-code check on every plan and diff; never restate a principle in another file. `~/.claude/hooks/principles-inject.sh` injects it into code-related skills.
-
-**Rule:** SSoT (Single Source of Truth): every fact has exactly one authoritative location. Duplication creates drift.
+**Rule:** Code principles (KISS, YAGNI, SSoT/DRY, SOTA first, then the rest of the 17) are defined only in `~/.claude/skills/_code-quality/principles.md`. Read it before planning, writing or reviewing code and run its excess-code check on every plan and diff; never restate a principle in another file. `~/.claude/hooks/principles-inject.sh` injects it into code-related skills. Its SSoT principle covers instructions and documents too, not only code.
 
 **Rule:** Do NOT create unnecessary files, folders, or structures outside of what `do-feature` explicitly requires for dev-projects.
 
@@ -228,7 +226,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Rule:** Prefer editing existing files over creating new ones.
 
-**Rule:** Match scope to request — don't bundle refactor with bug fix, don't add features not explicitly requested.
+**Rule:** Match scope to request — don't bundle refactor with bug fix.
 
 **Rule:** Evidence before assertions — verify before claiming work complete (run tests, check output, don't assume).
 

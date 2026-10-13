@@ -11,7 +11,7 @@ description: >
 
 # Testing
 
-> Dependencies are injected (DIP), no global state (Testability).
+> Dependencies are injected (DIP), no global state (Testability). Code principles: `~/.claude/skills/_code-quality/principles.md` (KISS and YAGNI first — test code included).
 
 ## Three Levels
 

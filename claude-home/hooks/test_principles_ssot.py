@@ -10,14 +10,21 @@ when the hook's skill list names a repo skill that does not exist.
 import re
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[2]
 SSOT = REPO / "_code-quality" / "principles.md"
 HOOK = REPO / "claude-home" / "hooks" / "principles-inject.sh"
 
-NAMES = r"KISS|YAGNI|DRY|SSoT|SOTA|SoC|CoC|SRP|OCP|LSP|ISP|DIP|LoD|Fail Fast"
+NAMES = (
+    r"SSoT / DRY|KISS|YAGNI|DRY|SSoT|SOTA|SoC|CoC|SRP|OCP|LSP|ISP|DIP|LoD|Fail Fast|Security|Testability"
+    r"|Explicit > Implicit|Composition > Inheritance"
+)
 DEFINITION = re.compile(
     rf"\*\*({NAMES})\*\*\s*[—–-]"  # "**KISS** — ..."
-    rf"|^\|\s*(\d+\s*\|\s*)?\*\*({NAMES})\*\*\s*\|"  # "| 2 | **KISS** | ..."
+    # Numbered table row "| 2 | **KISS** | ..."; the number column keeps NFR category
+    # tables ("| **Security** | Authentication, ...") from matching.
+    rf"|^\|\s*\d+\s*\|\s*\*\*({NAMES})\*\*\s*\|"
     rf"|\b(KISS|SRP)\s*\(\s*(≤|<=|<|>)",  # "KISS (≤50 lines ..."
     re.M,
 )
@@ -28,6 +35,8 @@ SKIP_FILES = {"CHANGELOG.md"}
 # Consumer file -> text that proves it is wired to the SSoT.
 CONSUMERS = {
     "_code-quality/SKILL.md": "principles.md",
+    "agents/py-test-writer.md": "principles.md",
+    "_testing/SKILL.md": "principles.md",
     "agents/py-quality.md": "principles.md",
     "best-research/SKILL.md": "principles.md",
     "audit-loop/SKILL.md": "principles.md",
@@ -51,6 +60,45 @@ def maintained_markdown():
         if rel.parts[0] in SKIP_DIRS or rel.name in SKIP_FILES or path == SSOT:
             continue
         yield rel, path
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "1. **KISS** — simplest code",
+        "**SSoT / DRY** — every fact has one home",
+        "**Security** - no secrets",
+        "**Explicit > Implicit** — type hints",
+        "**Composition > Inheritance** – is-a only",
+        "| 2 | **YAGNI** | only what is needed |",
+        "| 17 | **Testability** | injected |",
+        "KISS (≤50 lines)",
+    ],
+)
+def test_definition_pattern_catches_restatements(line):
+    assert DEFINITION.search(line)
+
+
+def test_nfr_category_table_is_not_a_definition():
+    assert not DEFINITION.search("| **Security** | Authentication, authorization, encryption |")
+
+
+def test_every_principle_label_in_ssot_is_guarded():
+    labels = re.findall(r"^\d+\.\s+\*\*(.+?)\*\*", SSOT.read_text(), re.M)
+    assert len(labels) == 17
+    assert [x for x in labels if not re.fullmatch(NAMES, x)] == []
+
+
+def test_ssot_file_stays_short_enough_to_inject():
+    assert len(SSOT.read_text().splitlines()) <= 70
+
+
+def test_codex_prompt_body_has_no_backticks():
+    # audit-loop passes the prompt through an unquoted heredoc so ${N} and
+    # ${PRINCIPLES} expand; a backtick in the body would run as a command.
+    text = (REPO / "audit-loop" / "reference" / "codex-prompt.md").read_text()
+    body = text.split("```", 2)[1]
+    assert "`" not in body and "$(" not in body
 
 
 def test_ssot_file_exists_and_puts_kiss_yagni_first():

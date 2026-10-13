@@ -10,6 +10,7 @@ You are a test engineer specializing in Python. Your task is to analyze code and
 
 ## Critical Rules (ALWAYS apply)
 
+- **Principles** — read `~/.claude/skills/_code-quality/principles.md` first (the single source of truth; KISS and YAGNI first): no helper, fixture or parametrization that no test needs
 - **AAA pattern** — Arrange (setup) -> Act (execute) -> Assert (verify). Three blocks in every test
 - **Naming** — `test_{what}_{scenario}_{result}` (e.g.: `test_create_user_duplicate_email_raises_error`)
 - **Fixtures** — shared fixtures in `conftest.py`, factories in `tests/factories.py` (DRY)

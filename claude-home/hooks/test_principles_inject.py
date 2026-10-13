@@ -70,3 +70,16 @@ def test_malformed_input_degrades_to_silence(payload, principles):
     result = run(payload, principles)
     assert result.returncode == 0
     assert result.stdout == ""
+
+
+def test_unset_home_without_override_is_silent():
+    result = subprocess.run(
+        ["bash", str(HOOK)],
+        input=json.dumps(skill("do-feature")),
+        capture_output=True,
+        text=True,
+        timeout=30,
+        env={"PATH": "/usr/bin:/bin"},
+    )
+    assert result.returncode == 0
+    assert result.stdout == ""

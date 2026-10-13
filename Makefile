@@ -11,8 +11,9 @@ install-symlinks:
 install-symlinks-force:
 	@bash scripts/install-claude-symlinks.sh --force
 
-# Every test suite in the repo. The commit-time gate runs only the hook suite,
-# and only on commits that touch claude-home/hooks/ — this is the full sweep.
+# Every test suite in the repo — the full sweep. The commit-time gate runs only
+# scoped suites (see .pre-commit-config.yaml): hooks on claude-home/hooks/,
+# scripts on claude-home/scripts/, the principles guard on any *.md.
 test:
 	@python3 -m pytest claude-home/hooks/test_block_no_verify.py \
 	                   claude-home/hooks/test_delegation_pool_nudge.py \

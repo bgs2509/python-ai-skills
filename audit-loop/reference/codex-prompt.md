@@ -31,7 +31,7 @@ PRINCIPLES:
 ${PRINCIPLES}
 
 OUTPUT: pure JSON to stdout. No prose. No markdown fences. No leading text.
-The very first character must be `{`. Schema:
+The very first character must be '{'. Schema:
 {
   "round": <N>,
   "summary": {"critical": <int>, "medium": <int>, "minor": <int>},
