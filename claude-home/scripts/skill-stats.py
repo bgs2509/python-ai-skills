@@ -55,6 +55,8 @@ BUILTINS = {
     "usage-credits", "voice",
 }
 CMD_RE = re.compile(r"<command-name>/?([^<\s]+)</command-name>")
+# Scheduled checks that re-enter without a /command (prompt text prefix -> skill).
+SCHEDULED_PREFIXES = {"progress-watch check pw-": "progress-watch"}
 NOT_HUMAN = ("<", "Base directory for this skill", "[Request interrupted", "Caveat:")
 TOKEN_FIELDS = ("input", "cache_write", "cache_read", "output")
 
@@ -158,7 +160,12 @@ def scan(path: Path):
         elif record.get("type") == "user" and not record.get("isMeta"):
             text, has_result = message_text(msg.get("content"))
             command = CMD_RE.search(text)
-            if command:
+            scheduled = next((name for prefix, name in SCHEDULED_PREFIXES.items()
+                              if text.lstrip().startswith(prefix)), None)
+            if scheduled:
+                key = record.get("uuid") or (ts, scheduled)
+                yield {"kind": "skill", "ts": ts, "name": scheduled, "via": "scheduled", "key": key}
+            elif command:
                 key = record.get("uuid") or (ts, command.group(1))
                 yield {"kind": "skill", "ts": ts, "name": command.group(1), "via": "slash", "key": key}
             elif not has_result and text.strip() and not text.lstrip().startswith(NOT_HUMAN):
@@ -180,7 +187,7 @@ def cost_usd(ev: dict) -> float | None:
 
 def new_skill() -> dict:
     return {
-        "calls": 0, "tool_calls": 0, "slash_calls": 0, "sessions": set(),
+        "calls": 0, "tool_calls": 0, "slash_calls": 0, "scheduled_calls": 0, "sessions": set(),
         "tokens_low": 0, "tokens_high": 0, "non_cache_read_low": 0, "output_low": 0,
         "subagent_tokens": 0, "cost_usd": 0.0, "per_call": [],
         "subagent_models": defaultdict(lambda: {"calls": 0, "tokens": 0}),
@@ -331,6 +338,7 @@ def summarize(raw: dict) -> dict:
         rows.append({
             "skill": name,
             "calls": s["calls"], "tool_calls": s["tool_calls"], "slash_calls": s["slash_calls"],
+            "scheduled_calls": s["scheduled_calls"],
             "sessions": len(s["sessions"]),
             "tokens_low": s["tokens_low"], "tokens_high": s["tokens_high"],
             "non_cache_read_low": s["non_cache_read_low"], "output_low": s["output_low"],

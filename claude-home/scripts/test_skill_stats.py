@@ -408,3 +408,13 @@ def test_template_skill_overrides_name_existing_repo_skills():
         assert state == "name-only", name
     for kept in ("do-feature", "best-questions", "git-finish", "progress-watch"):
         assert kept not in overrides
+
+
+def test_plain_scheduled_progress_watch_check_counts_as_invocation(tmp_path):
+    write(tmp_path / "p" / "s1.jsonl", [
+        human(T.format(1), "progress-watch check pw-build (do not invoke the progress-watch skill).\nState: ..."),
+        assistant(T.format(2), "m1", cr=100, inp=0, out=0),
+    ])
+    r = row(run(tmp_path), "progress-watch")
+    assert r["calls"] == 1 and r["scheduled_calls"] == 1
+    assert r["tokens_low"] == 100

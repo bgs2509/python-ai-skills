@@ -212,6 +212,7 @@ Hypotheses `[hypothesis]`:
   1. Claude Code `CronCreate` / `/loop` execution model and cost guidance.
   2. Whether a scheduled prompt can run on a different model than the session.
 - **Acceptance:** median tokens per firing down by the target agreed in the hypothesis step, with
+- **Done (2026-10-13), change part:** measured 145 checks: median 2 requests per check, median 494k context per request (p90 777k), median 1.09M tokens per check — the host context is the cost, the skill text is under 1 %. Changed `progress-watch/SKILL.md`: bootstrap offers a fresh cheap-tier session for targets that do not need this session's `TaskList`; scheduled checks re-enter as a plain prompt (no skill re-injection); probe + liveness in one Bash call. Re-measure 2026-10-20: `skill-stats.py --since 7`, compare median tokens per check. Method checklist written after the re-measure.
 - **Decision (2026-10-13):** Run the pilot right after step 0. First hypothesis to test: move each firing into a separate `claude -p` run on Haiku 5.5 (Haiku 5.5 handled read-only tasks correctly in §1.8).
 - **Still open:** Does the progress report need the host session's context, or only the watched process's files/logs?
   report quality checked on 5 firings.

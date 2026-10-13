@@ -34,6 +34,15 @@ argument-hint: "[target: file | pid | task id | command] [--every 10m] [--once] 
 
 ## Phase 0 — Bootstrap (first call, no `--iteration`)
 
+0. **Choose the session.** A check runs inside the session that scheduled it, and every
+   request re-reads that session's whole context. Measured 2026-10-13 over 145 checks: two
+   requests per check, median 494k tokens of context each — about 1.1M tokens per check,
+   almost none of it the watch itself. When the target does not need this session's
+   `TaskList` (a file, a PID, a CI run, a GPU), say this in one line and offer the cheap form:
+   a fresh session on the cheap tier — `claude --model haiku`, then
+   `/progress-watch <target> --every <N>`. Continue here when the user prefers, or when the
+   target is a subagent of this session (its liveness is visible only here).
+
 1. **Resolve the target** into a probe. Recognised kinds:
    - *log file / output file* — a path that grows. Probe: `stat -c '%s %Y' <path>`.
    - *background Bash task* — the output-file path returned when the task was started. Same probe as a log file.
@@ -57,18 +66,29 @@ argument-hint: "[target: file | pid | task id | command] [--every 10m] [--once] 
      `3,13,23,33,43,53 * * * *`; for 5 minutes `2,7,12,17,22,27,32,37,42,47,52,57 * * * *`.
      Offsetting away from `:00`/`:30` is the scheduler's own documented preference.
    - `recurring: true`
-   - `prompt`: the full re-entry line, which is what carries the state —
+   - `prompt`: a plain re-entry text — **not** a `/progress-watch` call, which would paste
+     this whole file into the session on every check. It carries the state and the rules a
+     check needs:
      ```
-     /progress-watch --iteration --marker=pw-<slug> --target=<...> --probe=<...> --liveness=<...> --since=<ISO> --baseline=<value> --total=<value|unknown> --expect=<...>
+     progress-watch check pw-<slug> (do not invoke the progress-watch skill).
+     State: target=<...> since=<ISO> baseline=<value> total=<value|unknown> expect=<...>.
+     Run ONE Bash call: timeout 10 ionice -c3 nice -n19 <probe>; timeout 10 ionice -c3 nice -n19 <liveness>
+     Previous value = the one in your last pw-<slug> report. Classify: running | застой (unchanged 3 checks, keep watching) | завершено (process gone, expect present) | крах (gone without expect, or tail shows Traceback/Error/FAILED/Killed/OOM) | probe broken (non-zero or 124).
+     Answer in exactly four Russian lines: "<HH:MM> (+<elapsed> от старта)" / "Прогресс: ..." / "Осталось: ..." (with total=unknown write "Осталось: не вычислимо — общий объём неизвестен") / "Ожидаем: <expect>".
+     On завершено, крах, or probe broken twice in a row: CronList, CronDelete the job whose prompt contains pw-<slug>, then the final summary.
+     Never stop or signal the watched work, never read a subagent's output file, never write in its directory.
      ```
    `<slug>` is a short unique name for this target. The marker is how the skill finds
    its own job later; state lives in this prompt text, so it survives context compaction.
+   Jobs created before 2026-10-13 still re-enter as `/progress-watch --iteration ...`; that
+   form keeps working (Phase 1 below).
 
 5. Tell the user the interval and how to stop it (`/progress-watch --stop <slug>`). One line.
 
-## Phase 1 — Probe (every `--iteration` call)
+## Phase 1 — Probe (every check)
 
-Run **at most two** wrapped commands: one probe, one liveness check. Wrap every one:
+Run **at most two** wrapped commands — one probe, one liveness check — in **one** Bash call,
+so a check costs one tool round-trip. Wrap every one:
 
 ```bash
 timeout 10 ionice -c3 nice -n19 <command>
