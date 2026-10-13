@@ -291,8 +291,8 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
   bot sessions would still see a moved spec; who else edits this file.
 - **To research online:** nothing.
 - **Acceptance:** a bot session still validates `planner.json`; dev sessions no longer load the spec.
-- **Decision (2026-10-13):** User decision 2026-10-13: the multi-user bot concept is retired. Delete `ai-steward/CLAUDE.md`, all `planner.json` files (67 found, every one has an empty `items` list; 16 are tracked in git → one commit per repo) and the empty `ai-steward/.worktrees`. Keep every folder, user file, `_output/` and project.
-- **Still open:** Awaiting explicit confirmation of the exact deletion list (files outside this repo, not recoverable outside git). Separate decision: user-level profiles `Dari/`, `Marat/`, `Tania/`, `Gena_MTS/` `CLAUDE.md` — delete or keep? Recommendation: keep `Gena_Beeline_Local/CLAUDE.md` — it carries the user's working-style rules into every session; any still-needed bit of `ai-steward/CLAUDE.md` moves there.
+- **Decision (2026-10-13, executed):** user confirmed. Deleted `ai-steward/CLAUDE.md` (not in any git repo; the README of `claude_bot` points to a template copy that does not exist), the empty `ai-steward/.worktrees/`, 51 untracked `planner.json` files, and 15 tracked ones with one commit per repo (`chore(planner): remove unused ai-steward bot planner file`). User profiles `Dari/`, `Marat/`, `Tania/`, `Gena_MTS/`, `Gena_Beeline_Local/` `CLAUDE.md` are kept (user decision).
+- **Still open:** `Sinayara-Isuzu/planner.json` remains: the project's `no-commit-to-branch` pre-commit hook blocks commits to `master`; the file was restored, to be removed through that project's branch workflow.
 
 #### 2e. Positive phrasing instead of prohibitions
 
@@ -397,7 +397,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To research online:** Anthropic guidance on Haiku 5.5 as a subagent for coding.
 - **Acceptance:** each spawning skill names a model per role; journal shows the mix.
 - **Decision (2026-10-13):** Mapping by work type: Discovery, Brainstorming, architecture and contracts → **Fable 5.1** (user decision); code exploration, search, log/transcript reading, digests → **Haiku 5.5** (§1.8 A/B); writing code and tests → **Sonnet 5.5**; code review → a GPT model through `codex` via the existing `reviewer` role (`gpt-sol-xhigh` = `gpt-5.6-sol`, effort `xhigh`). To protect Fable's scarce quota, Fable directs and Haiku explorers do the reading.
-- **Still open:** (1) The user named GPT-6 for review; the registry has `gpt-5.6-sol` — is GPT-6 available in Codex on the ChatGPT Plus plan? (2) Review through Codex takes ~12–13 min per run (journal: 739 s, 793 s) — acceptable inside `do-feature` Step 12? (3) Fable effort level (registry: `fable-medium`) and fallback when the Fable quota runs out (Opus `xhigh`?). (4) Where the Agent-tool mapping lives — a new registry section, so model names stay in one place.
+- **Still open:** (1) ~~GPT-6 for review~~ — resolved 2026-10-13: user chose `gpt-5.6-sol` with effort `xhigh` (registry `gpt-sol-xhigh`, already first in the `reviewer` role). (2) Review through Codex takes ~12–13 min per run (journal: 739 s, 793 s) — acceptable inside `do-feature` Step 12? (3) Fable effort level (registry: `fable-medium`) and fallback when the Fable quota runs out (Opus `xhigh`?). (4) Where the Agent-tool mapping lives — a new registry section, so model names stay in one place.
 
 #### 3c. Read-only guard for exploration subagents
 
