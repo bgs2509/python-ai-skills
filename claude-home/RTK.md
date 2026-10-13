@@ -77,5 +77,5 @@ sessions, where the harness refused `rtk git ...` outright.
 
 Calls that still run sandboxed even with the exclusion (sandboxing docs, `excludedCommands`):
 a pipe or chain with any non-git command (`git log | head`, `git add x && git commit`),
-a `cd`, a redirect to a file, `$(...)`, and an absolute path such as `/usr/bin/git`.
+a `cd` or `git -C <dir>` (verified 2026-10-13), a redirect to a file, `$(...)`, and an absolute path such as `/usr/bin/git`.
 Run git as a standalone call; never stage untracked paths that only such a call shows.

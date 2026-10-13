@@ -24,7 +24,7 @@ Run these commands in parallel:
 3. `git log --oneline -10` — recent commit style for this project
 4. Check if `.gitignore` exists in the project root
 
-Run each git command as a **standalone call** — no pipe, chain, `cd` or `/usr/bin/git`.
+Run each git command as a **standalone call** — no pipe, chain, `cd`, `git -C <dir>` or `/usr/bin/git`.
 Only a standalone `git ...` matches `sandbox.excludedCommands`; any other call runs in
 the Bash sandbox, where its mount points (`.bashrc`, `.gitconfig`, `.mcp.json`,
 `.claude/skills`, ...) show up as `??` files that do not exist on disk. Never stage such
