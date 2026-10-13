@@ -180,6 +180,7 @@ Plus: raise `cleanupPeriodDays` (e.g. 120–200) so future revisions have more t
   1. Claude Code docs: transcript JSONL schema, advisor usage reporting.
   2. Whether `/doctor prompt-audit` output is machine-readable.
 - **Acceptance:** script reproduces this session's numbers (±1 %), tests pass, `make test` green.
+- **Done (2026-10-13):** `claude-home/scripts/skill-stats.py` (17 tests) and `cleanupPeriodDays: 180` in the template, bd `python-ai-skills-8of.1`. First-request context measured on 1,879 main sessions: median 70.6 k, p90 83.5 k tokens.
 - **Decision (2026-10-13):** Do it first. Raise `cleanupPeriodDays` to 180 (six months, the period originally asked for). Add one metric: baseline context of a fresh session (66–67 k tokens measured, §1.8).
 - **Still open:** Disk budget: ~2.1 GB per 35 days → ~11 GB for 180 days — acceptable? Is `cleanupPeriodDays` template-owned or runtime-owned in `settings.json.template`?
 

@@ -1,6 +1,6 @@
 {
   "respectGitignore": true,
-  "cleanupPeriodDays": 30,
+  "cleanupPeriodDays": 180,
   "env": {
     "PYTHON_ENV": "development",
     "LOG_LEVEL": "DEBUG",
