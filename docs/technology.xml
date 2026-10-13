@@ -96,4 +96,36 @@
     <open_questions/>
     <context7_verified/>
   </Feature>
+  <Feature source="20261013-progress-watch-cost-design.md" bd_id="python-ai-skills-8of.2">
+    <feature>progress-watch-cost</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
+  <Feature source="20261013-skill-listing-design.md" bd_id="python-ai-skills-8of.3">
+    <feature>skill-listing</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
+  <Feature source="20261013-skill-stats-design.md" bd_id="python-ai-skills-8of.1">
+    <feature>skill-stats</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
+  <Feature source="20261013-subagent-models-design.md" bd_id="python-ai-skills-8of.4">
+    <feature>subagent-models</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
 </Technology>

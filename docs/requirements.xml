@@ -263,4 +263,186 @@
       <Item>The registry stays the single home for model and role parameters (CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
     </constraints>
   </Feature>
+  <Feature source="20261013-global-instructions-discovery.md" bd_id="python-ai-skills-8of.3">
+    <feature>global-instructions</feature>
+    <date>2026-10-13</date>
+    <status>awaiting-approval</status>
+    <risk>high</risk>
+    <risk_justification>claude-home/CLAUDE.md is loaded into every session of every project and is ~/.codex/AGENTS.md for Codex; changing it changes agent behaviour everywhere at once.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>/context breakdown (global CLAUDE.md 16.4k of ~43k tokens of a fresh session); section sizes measured; arXiv 2602.11988 abstract (context files add &gt;20 % cost without raising success); code.claude.com/docs/en/memory (&quot;target under 200 lines&quot;, imports do not reduce cost, path-scoped rules).</evidence_justification>
+    <open_questions>
+      <Item>Approve the cut list below, or name sections to keep as they are.</Item>
+      <Item>Explanation Protocol (2.6k tokens) - move only the worked examples, or leave the section untouched.</Item>
+    </open_questions>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>Global CLAUDE.md keeps every rule that must hold in every session (language, output format, anti-hallucination, explanation rules, security rules, push policy, pre-commit gate, trust-0 verification) and points to where moved rules live.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>Dev-workflow rules (GRACE, approval gates, plan sizing, documentation SSoT table, semantic markup, logging convention, modification rules) live in do-feature (or its reference) and in CLAUDE-APPENDIX.md, reachable through one pointer.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>Model Routing shrinks to the pool order, &quot;use model-run.sh --role&quot;, &quot;registry is the single home&quot;, and Trust = 0 %; the rest is already in model-registry.json and the launch hook.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>Multi-machine consistency moves to python-ai-skills/CLAUDE.md (needed only when editing this config repo).</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Global CLAUDE.md at most ~9k tokens (from 16.4k), measured with /context.</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>Behaviour check before and after on a fixed task set (claude -p, same prompts) - no regression on the rules that stay; Codex reads the same file.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Hooks already enforce part of the text (anti-hallucination.sh, explanation-terms.sh, block-no-verify.sh, delegation-pool-nudge.sh); the text for those can shrink to the rule plus a pointer.</Item>
+    </constraints>
+  </Feature>
+  <Feature source="20261013-progress-watch-cost-discovery.md" bd_id="python-ai-skills-8of.2">
+    <feature>progress-watch-cost</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <risk_justification>Text of one utility skill (progress-watch/SKILL.md); reversible; no code, no API, no security surface; the watched process is untouched by design.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>145 firings measured from transcripts with skill-stats.py internals - median 2 API requests per firing, median 494k context per request (p90 777k), median 1.09M tokens per firing; SKILL.md is 9.2k chars and is re-injected by every /progress-watch --iteration slash call.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>At bootstrap the skill states what one check costs in this session and, for targets that do not need this session's TaskList (files, PIDs, CI runs, GPUs), offers the cheap form - watch from a fresh session on the cheap tier.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>The scheduled re-entry is a compact plain prompt carrying state, probe and the report rules, not a /progress-watch slash call, so a firing does not re-inject the whole skill.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>Probe and liveness run in one Bash call per firing.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>All read-only and self-termination guarantees stay as they are (hard rules, whitelist, marker-based CronDelete).</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>Effect is re-measured after 7 days (skill-stats.py --since 7) and recorded in the revision plan.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Reports must reach the session the user watches, so a firing cannot leave that session; the lever is which session runs the watch and how much each firing adds.</Item>
+    </constraints>
+  </Feature>
+  <Feature source="20261013-skill-listing-discovery.md" bd_id="python-ai-skills-8of.3">
+    <feature>skill-listing</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <risk_justification>One settings key (skillOverrides) in settings.json.template; reversible by deleting the key; no code, no API, no security surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>skill-stats.py over 35 days of transcripts (30 repo skills with zero model and zero slash invocations); /context breakdown of a fresh session (Skills 10k tokens); skillOverrides semantics quoted from code.claude.com/docs/en/skills (&quot;name-only&quot; = listed by name only, still in the / menu).</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>Repo skills with no invocation in the measured period are listed to the model by name only (skillOverrides name-only); invoked skills keep their descriptions.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>The skill listing in a fresh session shrinks, measured with /context before and after.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Every skill stays invocable by name and from the / menu; make test green; template stays valid JSON.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Plugin skills are not affected by skillOverrides (docs) and are out of scope.</Item>
+    </constraints>
+  </Feature>
+  <Feature source="20261013-skill-stats-discovery.md" bd_id="python-ai-skills-8of.1">
+    <feature>skill-stats</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <risk_justification>One new read-only script with its test file plus one key in settings.json.template; additive, reversible, no public API, no security surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Prototype run on 2.1 GB of real transcripts in this session (docs/research/skills-revision-plan-2026-10.md §1.2-1.3, §1.8); structure follows claude-home/scripts/model-stats.py:1-60; open_questions resolved.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>skill-stats.py reads Claude Code transcripts (~/.claude/projects/**/*.jsonl, overridable) and attributes each API response, deduplicated by (message.id, requestId), to the skill whose window is open.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>A skill window opens at a Skill tool_use or a /command; it closes at the next human-typed message or next skill (low bound) or at the next skill or session end (high bound). Built-in commands are not skills; /clear closes every window.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>Subagent transcripts are attributed to the skill open in the parent session at the subagent's first timestamp; their model mix is reported per skill.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>Per skill - calls (tool and slash), sessions, tokens low/high, tokens without cache reads, output, subagent tokens, per-invocation median and p90 tokens (low bound), API-equivalent cost.</text>
+      </Item>
+      <Item id="FR-5">
+        <text>Totals - all tokens, cache-read share, API-equivalent cost by model split main/subagent, tokens of unpriced models; first-request context size of main sessions and subagents (median, p90).</text>
+      </Item>
+      <Item id="FR-6">
+        <text>CLI --projects PATH, --since DAYS, --top N, --json; a truncated or invalid JSONL line never breaks the report.</text>
+      </Item>
+      <Item id="FR-7">
+        <text>settings.json.template sets cleanupPeriodDays to 180.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Python 3 standard library only; facts only - every number is counted from transcript lines, prices are the only external constant and carry their source and date.</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>make test green; the script is collected by the scripts-regression-tests pre-commit hook.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Read-only - never writes into ~/.claude/projects.</Item>
+      <Item>Advisor spend is out of scope (not present in transcript usage, plan item 4b).</Item>
+    </constraints>
+  </Feature>
+  <Feature source="20261013-subagent-models-discovery.md" bd_id="python-ai-skills-8of.4">
+    <feature>subagent-models</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <risk_justification>Three files of behaviour (settings.json.template env, model-registry.json, delegation-pool-nudge.sh) plus do-feature SKILL.md text; additive, reversible, no breaking API, no security surface.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Measured in this session - 126 subagent launches classified (plan §3d), Haiku 5.5 vs Sonnet 5.5 A/B 4/4 (plan §1.8), env-var experiment (general-purpose obeys CLAUDE_CODE_SUBAGENT_MODEL, Explore inherits the session model), alias haiku resolves to claude-haiku-5-5, Haiku 5.5 window 1M verified on platform.claude.com models overview; user decisions on Fable and review recorded in the plan.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>settings.json.template sets env CLAUDE_CODE_SUBAGENT_MODEL to sonnet (without the _FORCE variant), so subagents launched without a model run on Sonnet instead of the session model.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>model-registry.json holds the single mapping from work type to a tier or role for Agent-tool launches (agent_work_types) - discovery/architecture/plan audits to top, read-only exploration and mechanical edits to cheap, writing code and docs to mid, code review to role reviewer, web research to role researcher.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>delegation-pool-nudge.sh adds a model hint when an Agent launch carries no model - it renders the work-type mapping from the registry (tier resolved to the model alias), and for subagent_type Explore states that it inherits the session model; silent for fork launches and when a model is given.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>The existing bulk-work nudge keeps its behaviour; both hints can appear in one additionalContext.</text>
+      </Item>
+      <Item id="FR-5">
+        <text>Registry entry haiku reflects Haiku 5.5 - 1M context, long-prompt price tier above 100k tokens, A/B evidence; do-feature window warning no longer claims a 200K cheap tier.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Hook stays advisory - exit 0 always, malformed input or missing/broken registry degrades to the previous behaviour, never blocks a launch.</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>No model names are restated in the hook - they come from the registry at run time (CLAUDE.md &quot;choosing WHICH model&quot;).</text>
+      </Item>
+      <Item id="NFR-3">
+        <text>make test green; registry stays valid JSON consumed by model-run.sh unchanged.</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>A custom read-only guard hook (plan 3c) is not built - Explore already lacks Edit/Write; decision recorded in the plan.</Item>
+    </constraints>
+  </Feature>
 </Requirements>
