@@ -202,7 +202,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Rule:** When a matching skill exists — use it. Skills take priority over manual task execution.
 
-**Rule:** Use MCP servers for integrations: GitHub, Docker, browsers (playwright/chrome-devtools), documentation (context7), reasoning (sequential-thinking).
+**Rule:** Use MCP servers for integrations: GitHub, Docker, browsers (playwright/chrome-devtools), documentation (context7). Reasoning (sequential-thinking) only when a skill or the user asks for it: each of its steps is one more request over the whole session context.
 
 **Rule:** Use parallel subagents/agent teams for independent/parallelizable tasks (Claude: `teammateMode` + agent-teams flag; Codex: `[features] multi_agent` + `/agent`).
 

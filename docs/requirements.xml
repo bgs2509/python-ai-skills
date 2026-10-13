@@ -263,6 +263,38 @@
       <Item>The registry stays the single home for model and role parameters (CLAUDE.md &quot;choosing WHICH model&quot;).</Item>
     </constraints>
   </Feature>
+  <Feature source="20261013-best-research-cost-discovery.md" bd_id="python-ai-skills-8of.7">
+    <feature>best-research-cost</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <risk_justification>Text of best-research/SKILL.md plus one clause of the global Tooling Preferences line; reversible; no code.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Tool calls inside best-* windows counted from transcripts - best-approach 31 calls with 83 sequential-thinking calls and 21 ToolSearch loads, 168 Bash; best-questions median 5 requests per call at 330k context, best-approach 10 at 155k; every host tool call re-reads the session context.</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>best-research reasons with built-in thinking and does not call sequential-thinking.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>best-research does not re-read CLAUDE.md files (already in context) and delegates code study needing more than three reads/searches to one Explore subagent with model haiku returning a file:line digest, spot-checked by the parent.</text>
+      </Item>
+      <Item id="FR-3">
+        <text>best-research no longer allows tables in the terminal, matching the global Output Formatting rule.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>Global Tooling Preferences calls sequential-thinking only when a skill or the user asks for it.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Re-measure after 7 days - requests per best-approach / best-questions call (skill-stats.py).</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>do-autopilot and audit-loop keep their explicit sequential-thinking steps (a skill asking for it).</Item>
+    </constraints>
+  </Feature>
   <Feature source="20261013-git-finish-state-discovery.md" bd_id="python-ai-skills-8of.6">
     <feature>git-finish-state</feature>
     <date>2026-10-13</date>

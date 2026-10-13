@@ -539,6 +539,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
   duplication between the four `SKILL.md` files.
 - **To research online:** nothing specific.
 - **Acceptance:** per-question tokens down with the same recommendation quality.
+- **Done (2026-10-13), change part:** per call best-questions 5 requests at 330k context, best-approach 10 at 155k; in best-approach windows 23 % of tool calls were `sequential-thinking`, 46 % Bash reads. `best-research` now uses built-in thinking, no CLAUDE.md re-reads, one Haiku `Explore` subagent for larger code study. Re-measure 2026-10-20.
 - **Decision (2026-10-13):** Delegate source reading to the GLM `researcher` role only where nobody waits for the answer; in interactive `best-questions` keep the dialogue in-session and use Haiku explorers for code reading.
 - **Still open:** Share of a `best-questions` window spent on research vs dialogue (step-0 tool).
 
