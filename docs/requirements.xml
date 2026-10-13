@@ -295,6 +295,32 @@
       <Item>do-autopilot and audit-loop keep their explicit sequential-thinking steps (a skill asking for it).</Item>
     </constraints>
   </Feature>
+  <Feature source="20261013-do-feature-cost-discovery.md" bd_id="python-ai-skills-8of.8">
+    <feature>do-feature-cost</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <risk_justification>Two text changes in the do-feature orchestrator used by every dev change - one routing row (Step 4 tier) and one advisory pre-dispatch step; reversible; no code.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>37 do-feature runs measured - median 19 orchestrator requests per run at 246k context (180k at the start), subagent mix sonnet 1436 / fable 631 / opus 485 calls; user decision 2026-10-13 &quot;discovery and architecture only on Fable&quot; recorded in the revision plan (3b).</evidence_justification>
+    <open_questions/>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>Step 4 Brainstorming routes to the top tier, matching the user's rule for discovery and architecture.</text>
+      </Item>
+      <Item id="FR-2">
+        <text>Pre-dispatch offers a fresh session once when the current one carries a long unrelated conversation.</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>Re-measure after 7 days - orchestrator requests and context per run, subagent mix (skill-stats.py).</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>Step 11 worker default stays mid until python-ai-skills-4f4 revalidates tiers (Haiku 5.5 passed small code tasks only).</Item>
+    </constraints>
+  </Feature>
   <Feature source="20261013-git-finish-state-discovery.md" bd_id="python-ai-skills-8of.6">
     <feature>git-finish-state</feature>
     <date>2026-10-13</date>

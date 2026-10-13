@@ -559,6 +559,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
   description, or retire).
 - **To research online:** Anthropic guidance on multi-agent token cost (blog: 3–10× vs single agent).
 - **Acceptance:** per-run cost by stage known; at least two stages re-routed with equal quality.
+- **Done (2026-10-13), change part:** 37 runs — median 19 orchestrator requests at 246k context (180k at the start); subagents sonnet 1436 / fable 631 / opus 485 calls. Step 4 moved to the `top` tier (user rule); Pre-dispatch offers a fresh session. Step 11 workers stay `mid` until `python-ai-skills-4f4`. Re-measure 2026-10-20.
 - **Decision (2026-10-13):** Route stages by the 3b mapping: Discovery/Brainstorming/GRACE plan → Fable; exploration → Haiku; execution → Sonnet; review → `reviewer` role (Codex). Keep `do-autopilot` / `do-multiagent` but list them `name-only` (2f).
 - **Still open:** Stage markers in transcripts for per-stage attribution; whether to retire `do-autopilot` / `do-multiagent` after 90 more days without use (user decision).
 

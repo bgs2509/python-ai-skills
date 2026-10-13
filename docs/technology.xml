@@ -104,6 +104,14 @@
     <open_questions/>
     <context7_verified/>
   </Feature>
+  <Feature source="20261013-do-feature-cost-design.md" bd_id="python-ai-skills-8of.8">
+    <feature>do-feature-cost</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
   <Feature source="20261013-git-finish-state-design.md" bd_id="python-ai-skills-8of.6">
     <feature>git-finish-state</feature>
     <date>2026-10-13</date>

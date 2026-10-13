@@ -103,7 +103,7 @@ Per-step defaults: Steps 2, 4, 7, 8 always inward (judgement). Step 12 code revi
 | 1. `bd create` | inline | — | CLI |
 | 2. Discovery | research subagent (returns artifact + open questions) | top | requirements insight depth (caregiver, liability, PII) benefits from the frontier tier |
 | 3. USER APPROVAL — requirements | inline | — | gate |
-| 4. Brainstorming | research subagent (returns design options + trade-offs) | strong | architectural fork, trade-offs |
+| 4. Brainstorming | research subagent (returns design options + trade-offs) | top | architectural fork, trade-offs; user decision 2026-10-13: discovery and architecture run only on the top tier |
 | 5. USER APPROVAL — design | inline | — | gate |
 | 6. GRACE Ask | `Agent(model=<cheap>, subagent_type="general-purpose")` | cheap | graph sync (writes) + navigation |
 | 7. GRACE Plan | `Agent(model=<top>, subagent_type="general-purpose")` | top | module architecture + contracts is the highest-leverage design step |
@@ -142,6 +142,12 @@ Subagents can NEVER interact with the user — their final message returns to th
 The orchestrator runs this block itself, BEFORE dispatching the Discovery subagent. It is never
 delegated: both STOP gates below require user interaction, which subagents cannot do.
 
+0. **Fresh-session offer** — every orchestrator request re-reads this session's whole context
+   (measured 2026-10-13 over 37 runs: median 19 requests per run, 246k tokens each; 180k already
+   at the start). When the session already carries a long conversation unrelated to this
+   feature, say once that `/clear` followed by `/do-feature <bd-id>` makes every later step
+   cheaper — the state lives in bd and the spec files, not in the conversation. Continue here
+   when the user prefers.
 1. **Preliminary risk triage** — classify `risk: low|medium|high` per the criteria in `## Flags`
    from the feature request + `knowledge-graph.xml`. This drives Adaptive Depth in Step 2;
    Discovery confirms or raises it (upward-only escalation — see the risk classifier above).
