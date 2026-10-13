@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify START_BLOCK_<NAME> / END_BLOCK_<NAME> markers are paired and unique.
 
-Per global CLAUDE.md "Semantic Markup Is Load-Bearing Structure":
+Per "Semantic Markup Is Load-Bearing Structure" (~/.claude/CLAUDE-APPENDIX.md -> Dev-project rules):
 markers MUST be uniquely named, paired, proportionally sized.
 """
 from __future__ import annotations

@@ -2,14 +2,12 @@
 feature: global-instructions
 bd_id: python-ai-skills-8of.3
 date: 2026-10-13
-status: awaiting-approval
+status: approved
 risk: high
 risk_justification: claude-home/CLAUDE.md is loaded into every session of every project and is ~/.codex/AGENTS.md for Codex; changing it changes agent behaviour everywhere at once.
 evidence: strong
 evidence_justification: /context breakdown (global CLAUDE.md 16.4k of ~43k tokens of a fresh session); section sizes measured; arXiv 2602.11988 abstract (context files add >20 % cost without raising success); code.claude.com/docs/en/memory ("target under 200 lines", imports do not reduce cost, path-scoped rules).
-open_questions:
-  - Approve the cut list below, or name sections to keep as they are.
-  - Explanation Protocol (2.6k tokens) - move only the worked examples, or leave the section untouched.
+open_questions: []
 functional_requirements:
   - id: FR-1
     text: Global CLAUDE.md keeps every rule that must hold in every session (language, output format, anti-hallucination, explanation rules, security rules, push policy, pre-commit gate, trust-0 verification) and points to where moved rules live.
@@ -67,3 +65,13 @@ It is re-read on every request of every session: ~50k requests per 35 days.
   rules move into `do-feature`, which every dev change already goes through; A/B check per NFR-2.
 - Codex: the same file is `~/.codex/AGENTS.md`; Codex does not run `do-feature` hooks, so dev-only
   rules for Codex sessions would be reachable only through the pointer.
+
+## Outcome (2026-10-13)
+
+User approved the cut list ("Да, одобряю. Делай все."); Explanation Protocol: only the worked examples
+moved (the default of the proposal). Result measured with `/context`: global `CLAUDE.md` 16.4k → 9.8k
+tokens (40.9k → 24.2k chars, 453 → 274 lines); fresh session in this repo 43k → 37.2k. Moved text is
+verbatim in `CLAUDE-APPENDIX.md` → "Moved rule text"; Multi-machine consistency now lives in
+`python-ai-skills/CLAUDE.md`. Behaviour check — six fixed prompts on Sonnet 5.5 before and after
+(Russian answer after reading, table on explicit request, subagent model choice, dev-feature entry via
+`do-feature`, fact verification, explanation without images): same outcome on all six.

@@ -266,15 +266,12 @@
   <Feature source="20261013-global-instructions-discovery.md" bd_id="python-ai-skills-8of.3">
     <feature>global-instructions</feature>
     <date>2026-10-13</date>
-    <status>awaiting-approval</status>
+    <status>approved</status>
     <risk>high</risk>
     <risk_justification>claude-home/CLAUDE.md is loaded into every session of every project and is ~/.codex/AGENTS.md for Codex; changing it changes agent behaviour everywhere at once.</risk_justification>
     <evidence>strong</evidence>
     <evidence_justification>/context breakdown (global CLAUDE.md 16.4k of ~43k tokens of a fresh session); section sizes measured; arXiv 2602.11988 abstract (context files add &gt;20 % cost without raising success); code.claude.com/docs/en/memory (&quot;target under 200 lines&quot;, imports do not reduce cost, path-scoped rules).</evidence_justification>
-    <open_questions>
-      <Item>Approve the cut list below, or name sections to keep as they are.</Item>
-      <Item>Explanation Protocol (2.6k tokens) - move only the worked examples, or leave the section untouched.</Item>
-    </open_questions>
+    <open_questions/>
     <functional_requirements>
       <Item id="FR-1">
         <text>Global CLAUDE.md keeps every rule that must hold in every session (language, output format, anti-hallucination, explanation rules, security rules, push policy, pre-commit gate, trust-0 verification) and points to where moved rules live.</text>

@@ -101,6 +101,24 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 ---
 
+## Multi-machine consistency (moved from the global CLAUDE.md, 2026-10-13)
+
+**Rule:** The SSoT instruction file is `python-ai-skills/claude-home/CLAUDE.md` (in git). `~/.claude/CLAUDE.md` is a symlink to it; `~/.claude/AGENTS.md` and `~/.codex/AGENTS.md` are symlinks in turn. Cross-machine identity is provided by git + `make install-symlinks`.
+
+**Rule:** Shared config (`settings.json`, `config.toml`) MUST be identical across machines.
+
+**Rule:** Machine-specific settings live in `~/.claude/settings.local.json` and `~/.codex/config.toml` profiles (not synced).
+
+**Exception (verified 2026-08-31):** `enabledPlugins` does NOT work from `settings.local.json` — `claude plugin enable` writes it into `~/.claude/settings.json`, and only that copy is honoured. Three plugins marked enabled in the local file loaded as disabled for months. Enable plugins with `claude plugin enable <name> --scope user`, never by hand-editing the local file; `install-claude-symlinks.sh` carries the key over on every render (see also `model`, written by `/model`).
+
+**Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
+
+**Rule:** All repo skills (47 as of 2026-09-23; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
+
+**Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
+
+---
+
 ## Language Standards
 
 | What | Language | Example |

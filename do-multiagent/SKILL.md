@@ -36,7 +36,7 @@ role: orchestrator
    - `do-multiagent` — any work → **bead dependency graph** → **parallel team** with git-worktree
      isolation and a controller-owned merge queue. Different execution model on purpose.
 4. **Decomposition SSoT** — this skill owns its own decomposition logic but obeys the shared
-   **Plan Sizing** rule in `~/.claude/CLAUDE.md`. It does NOT share code with `do-autopilot`
+   **Plan Sizing** rule in `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules. It does NOT share code with `do-autopilot`
    (rule of three — extract a shared engine only once a third, identical consumer appears).
 5. **Cross-reference key** — `bd_id` per bead, used in branch names, commit trailers, and notes.
 
@@ -84,7 +84,7 @@ The grouping decision uses **three factors** (all must be respected):
 1. **Dependencies** — independent beads MAY run in parallel; strictly dependent beads run in order.
 2. **Window budget** — a chain of small dependent beads that together fit one context window
    MAY be assigned to ONE subagent to run sequentially (avoids worktree/spawn overhead).
-   Split a group when scope > ~60% effective window (per Plan Sizing in `~/.claude/CLAUDE.md`).
+   Split a group when scope > ~60% effective window (per Plan Sizing in `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules).
 3. **Shared write-scope** — beads predicted to modify the **same files** are grouped into ONE
    session (run sequentially by one agent), NOT split across parallel branches. This prevents
    cross-branch merge conflicts at the source.
@@ -206,7 +206,7 @@ A red branch never reaches master.
 
 ## 13. Cross-References
 
-- `~/.claude/CLAUDE.md` — Plan Sizing, USER APPROVAL Gates, Trust=0%, Git Push Policy, SSoT table.
+- `~/.claude/CLAUDE.md` — USER APPROVAL Gates (summary), Trust=0%, Git Push Policy; `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules — Plan Sizing, full gate text, SSoT table.
 - `~/.claude/skills/do-feature/SKILL.md` — the inner per-bead orchestrator (`--auto-approve`).
 - `~/.claude/skills/do-autopilot/SKILL.md` — sibling: sequential draft→chain (boundary, §0.3).
 - `~/.claude/skills/grace-multiagent-execute/SKILL.md` — controller/worker ownership + disjoint-scope model.

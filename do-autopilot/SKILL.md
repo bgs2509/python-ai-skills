@@ -231,7 +231,7 @@ reopens it via `do-feature` Review path, does NOT advance K.
 
 ## 7. Chunking Rules
 
-1. Use the **Plan Sizing — Context-Window Budget** rule from `~/.claude/CLAUDE.md` as authoritative.
+1. Use the **Plan Sizing — Context-Window Budget** rule from `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules as authoritative.
 2. Estimate per chunk: files × avg-size + contracts + tests + logs + plan.md.
 3. Default target = `0.6 × effective_window` for Opus 4.7 (effective ≠ nominal — subtract system
    prompt, skills, MCP tools, history overhead; assume ~70% of nominal as baseline).
@@ -333,7 +333,7 @@ After successful Phase 6:
 
 ## 14. Cross-References
 
-- `~/.claude/CLAUDE.md` — Plan Sizing rule, Skill Hierarchy, USER APPROVAL Gates, SSoT table.
+- `~/.claude/CLAUDE.md` — Skill Hierarchy, USER APPROVAL Gates (summary); `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules — Plan Sizing, full gate text, SSoT table.
 - `~/.claude/skills/do-feature/SKILL.md` — the inner orchestrator this skill drives.
 - `~/.claude/skills/full-audit/SKILL.md` — read-only code+docs audit run in Phase 6 (critical-only fix gate).
 - `~/.claude/skills/best-questions/SKILL.md` — fallback when 3x-rule doesn't dominate.

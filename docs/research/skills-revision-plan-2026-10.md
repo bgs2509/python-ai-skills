@@ -243,6 +243,7 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
   (`claude -p` with/without `claudeMdExcludes`); the full arXiv paper sections on which instruction
   categories cost most (GLM-report: "Testing" category).
 - **Acceptance:** task set passes with equal quality; lines and per-call tokens down.
+- **Done (2026-10-13), with user approval:** global `CLAUDE.md` 16.4k → 9.8k tokens — dev-workflow rules, Model Routing detail, read-side gate limits, pre-commit template mechanics and explanation examples moved verbatim to `CLAUDE-APPENDIX.md`; Multi-machine consistency to `python-ai-skills/CLAUDE.md`; six-prompt behaviour check unchanged (spec `20261013-global-instructions-discovery.md`).
 - **Decision (2026-10-13):** Do it with the `claude -p` A/B harness built in §1.8, extended from 4 to ~10 tasks; 2e is folded into this step.
 - **Still open:** Task-set composition and the quality judge (parent session vs the `reviewer` role).
 
@@ -264,6 +265,7 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
 - **To research online:** Claude Code docs on user-level rules directory; Codex `AGENTS.md`
   scoping; Pocock's "pointer wording" guidance in full.
 - **Acceptance:** each moved rule demonstrably loads in a task that needs it (test transcript).
+- **Done (2026-10-13), with user approval:** global `CLAUDE.md` 16.4k → 9.8k tokens — dev-workflow rules, Model Routing detail, read-side gate limits, pre-commit template mechanics and explanation examples moved verbatim to `CLAUDE-APPENDIX.md`; Multi-machine consistency to `python-ai-skills/CLAUDE.md`; six-prompt behaviour check unchanged (spec `20261013-global-instructions-discovery.md`).
 - **Decision (2026-10-13):** Do it. Candidates: Plan Sizing, GRACE principles, Semantic Markup, Documentation SSoT table, Model Routing details (registry is SSoT), Multi-machine consistency.
 - **Still open:** Does Codex honour `.claude/rules/` with `paths:` (same file is `~/.codex/AGENTS.md`)? Is a user-level rules directory supported?
 
@@ -277,6 +279,7 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
   remaining rules are mechanically checkable (push, `--no-verify`, secret files…).
 - **To research online:** hook latency guidance; examples of rule→hook conversions.
 - **Acceptance:** regression suite of hooks passes; rule text replaced by a pointer.
+- **Done (2026-10-13), with user approval:** global `CLAUDE.md` 16.4k → 9.8k tokens — dev-workflow rules, Model Routing detail, read-side gate limits, pre-commit template mechanics and explanation examples moved verbatim to `CLAUDE-APPENDIX.md`; Multi-machine consistency to `python-ai-skills/CLAUDE.md`; six-prompt behaviour check unchanged (spec `20261013-global-instructions-discovery.md`).
 - **Decision (2026-10-13):** Do it, starting with an inventory: rule → existing hook → text that can shrink to one line.
 - **Still open:** None beyond the inventory.
 

@@ -34,82 +34,13 @@
 
 **Rule:** GRACE framework, `do-feature` skill, USER APPROVAL gates, and strict commit conventions apply **only** to `dev` projects. For `life` projects work conversationally without these frameworks.
 
-## GRACE Core Principles
+## Dev-project workflow (dev-projects only)
 
-> Applies only to **dev-type projects**. Life-type projects are exempt.
+**Rule:** In a `dev` project every feature, bugfix or significant change goes through the `do-feature` skill — the single entry point: `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`. Design is approved before contracts, contracts before code.
 
-### 0. Design Before Contract
+**Rule:** USER APPROVAL gates are never skipped on the agent's own initiative. Auto-approval only with explicit user opt-in (`--auto-approve`, an auto-approving orchestrator the user invoked, or a standing `feedback` memory) AND a passing risk × evidence matrix (`do-feature` → Flags); `high`-risk gates stay interactive. Auto-approval never bypasses quality gates, hooks or destructive-operation confirmations.
 
-**Rule:** Before creating or updating a MODULE_CONTRACT, the problem MUST be explored (discovery) and a design decision approved by the user. Contracts formalize decisions — they do not substitute for making them.
-
-**Flow:** Discovery → Brainstorming → USER APPROVAL → Contract → Code.
-
-### 1. Never Write Code Without a Contract
-
-**Rule:** After design approval, before generating or editing module code, create or update its MODULE_CONTRACT with PURPOSE, SCOPE, INPUTS, and OUTPUTS.
-
-**Scope:** Applies to **module boundaries** (public API between modules). Internal implementation details inside a module MAY evolve code-first; SSoT for internals is the code itself.
-
-### 2. Semantic Markup Is Load-Bearing Structure
-
-**Rule:** Markers like `# START_BLOCK_<NAME>` and `# END_BLOCK_<NAME>` are navigation anchors, not documentation. They MUST be:
-- uniquely named
-- paired
-- proportionally sized so one block fits inside an LLM working window
-
-### 3. Knowledge Graph Is Always Current
-
-**Rule:** `docs/knowledge-graph.xml` is the project map. When you add a module, move a module, rename exports, or add dependencies, run `grace-refresh` so future agents can navigate deterministically.
-
-### 4. Verification Is a First-Class Artifact
-
-**Rule:** Testing, traces, and log anchors are designed before large execution waves. `docs/verification-plan.xml` is part of the architecture, not an afterthought. Logs are evidence. Tests are executable contracts.
-
-### 5. Top-Down Synthesis
-
-**Rule:** Code generation follows:
-`Discovery → RequirementsAnalysis → Brainstorming → TechnologyStack → DevelopmentPlan → VerificationPlan → Code + Tests`
-
-Never jump straight to code when requirements, architecture, or verification intent are still unclear.
-
-## Workflow Hierarchy (dev-projects only)
-
-**Rule:** For any new feature, bugfix, or significant change in a `dev` project — invoke `do-feature` skill as the **single entry point**. It orchestrates Discovery → Brainstorming → GRACE Plan → Writing Plans → Execution → Review → Finish.
-
-**Flow:** `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`.
-
-## USER APPROVAL Gates (dev-projects only)
-
-**Meta:** Agents have freedom in **HOW** to implement, but not in **WHAT** to build. Contracts, plans, graph references, verification requirements, and USER APPROVAL gates define the allowed space.
-
-**Rule:** Three mandatory gates in `do-feature`:
-- After Discovery (step 3) — approve FR/NFR/scope
-- After Brainstorming (step 5) — approve design
-- After Writing Plans (step 10) — approve implementation plan
-
-**Rule:** One advisory gate during Execution (step 11): if any step deviates from the approved plan, prompt "deviation detected, approve?" before continuing.
-
-**Rule:** Gates MUST NOT be skipped by the agent's own initiative.
-
-**Rule (auto-approval exception):** Gates MAY be auto-approved ONLY when BOTH hold:
-1. Explicit user opt-in: a `--auto-approve` flag, an auto-approving orchestrator the user invoked (`do-autopilot`, `do-multiagent`), or a standing `feedback` memory.
-2. The gate artifact passes the risk × evidence matrix defined in `do-feature` (`## Flags`).
-
-`high`-risk gates always remain interactive regardless of opt-in. Auto-approval never bypasses hard quality gates, pre-commit hooks, or destructive-operation confirmations.
-
-## Plan Sizing — Context-Window Budget (dev-projects only)
-
-**Rule:** При создании любого плана реализации (`do-feature` Writing Plans, GRACE phases, roadmap) фаза/под-этап ДОЛЖНА укладываться в **одно контекстное окно активной модели** со всеми файлами, документами, тестами и логами, которые потребуются для её выполнения и верификации.
-
-**Rule:** Если оценка scope (файлы × средний размер + контракты + тесты + логи + plan.md) превышает ~60% эффективного окна модели — фаза дробится на под-этапы (`Phase-N.a`, `Phase-N.b`, …) до выполнения требования.
-
-**Rule:** Граница раскола проводится по смене *стека / директории / правил / SSoT-артефакта*, а не по числу файлов. Один под-этап = один связный набор файлов с общими импортами, общим тест-фикстурным окружением и общим набором правил.
-
-**Rule:** Если под-этапы получаются мельче ~20% окна и между ними сильная логическая связь — объединить обратно (KISS, anti-fragmentation). Цель — **fit, не fragment**.
-
-**Rule:** Бюджет окна оценивать по *эффективному* размеру (с учётом system prompt, skills, MCP tools, истории) — не по номинальному размеру окна активной модели: номинал никогда не бывает свободен целиком.
-
-**Rule (какое именно окно считать):** окна ярусов различаются в разы, и фазу планирует одна модель, а исполняет другая. Считать по **наименьшему** окну среди тех моделей, которые будут фазу исполнять и верифицировать, а не по окну модели, пишущей план. Номиналы — в `claude-home/model-registry.json` (`context_tokens`): 1M у большинства ярусов, 200K у `cheap`=haiku, 122 880 у локального `qwen38`. Практический пересчёт для оценки объёма: **~4,45 знака на токен** на связном английском тексте (замер 2026-09-22, `docs/research/model-passports-2026-09.md`).
+**Rule:** The full rule text for GRACE principles, Plan Sizing (context-window budget), the Documentation SSoT table and drift resolution, semantic markup, the logging convention and the rules for modifications lives in `~/.claude/CLAUDE-APPENDIX.md` → "Dev-project rules". Read that section before planning a phase, writing or changing a MODULE_CONTRACT, or editing GRACE artifacts.
 
 ## Skill Hierarchy
 
@@ -119,59 +50,6 @@ Never jump straight to code when requirements, architecture, or verification int
 - `utility` — single-purpose helpers (git-commit, git-branch, grace-refresh, grace-ask, best-recommend)
 
 **Rule:** Workers and utilities MUST NOT auto-transition to other skills. Transitions made only by an orchestrator or by the user.
-
-## Documentation SSoT (dev-projects only)
-
-Each artifact is SSoT for exactly one zone:
-
-| Zone | SSoT | Artifact | Produced by |
-|------|------|----------|-------------|
-| Business requirements | `discovery.md` frontmatter + `requirements.xml` | Markdown prose + auto-generated XML | do-feature step 2 |
-| Technology/stack decisions | `design.md` frontmatter + `technology.xml` | Markdown prose + auto-generated XML | do-feature step 4 |
-| Module boundaries (public API) | `MODULE_CONTRACT` headers | In Python source files | grace-plan (step 7) |
-| Module internals | Code | Source files themselves | Execution (step 11) |
-| Module graph | `knowledge-graph.xml` | Derived from MODULE_CONTRACT | `grace-refresh` |
-| Tests + log anchors | `verification-plan.xml` | Derived from tests + code | `grace-refresh --verify` |
-| Task decomposition | `development-plan.xml` | Aggregated from plan.md + knowledge-graph + Beads | grace-plan + grace-refresh |
-| Execution playbook | `plan.md` | Human-written via `writing-plans` | do-feature step 9 |
-| Workflow state (status/queue) | Beads | `bd_id` referenced from XML and plan.md | `bd create/update/close` |
-
-**Drift resolution:**
-- Status drift (Beads vs XML) → **Beads wins**
-- Structural drift on module boundary → **Contract/XML wins**; code MUST be updated
-- Internal code drift → **Code wins**; XML regenerates via `grace-refresh`
-- Execution drift (plan.md vs commit) → **Code/commit wins**; plan.md marked "deviated, see commit XYZ"
-
-**Cross-referencing:** `bd_id` is the universal key across `plan.md`, `development-plan.xml`, and Beads.
-
-**Auto-generation:** `discovery.md` frontmatter → `requirements.xml`; `design.md` frontmatter → `technology.xml`. Triggers: pre-commit hook (primary) + AI PostToolUse hook (convenience) + CI check (safety net).
-
-## Semantic Markup Reference
-
-> Полный справочник шаблонов разметки (MODULE_CONTRACT, MODULE_MAP, CONTRACT, BLOCK, CHANGE_SUMMARY) вынесен в `CLAUDE-APPENDIX.md` — читать перед написанием контрактов.
-
-## Logging and Trace Convention
-
-**Rule:** All important logs must point back to semantic blocks:
-```python
-logger.info(
-    f"[ModuleName][functionName][BLOCK_NAME] message",
-    extra={
-        "correlation_id": correlation_id,
-        "stable_field": value,
-    },
-)
-```
-
-**Rules:**
-- prefer structured fields over prose-heavy log lines
-- redact secrets and high-risk payloads
-- treat missing log anchors on critical branches as a verification defect
-- update tests when log markers change intentionally
-
-## File Structure (dev-projects)
-
-> Дерево каталогов `docs/` для dev-проектов — в `CLAUDE-APPENDIX.md`; SSoT-таблица зон — выше в «Documentation SSoT».
 
 ## Commit Convention (dev-projects only)
 
@@ -249,10 +127,7 @@ logger.info(
 
 **Rule:** Hook-уровень: `~/.claude/hooks/explanation-terms.sh` (Stop hook) сканирует последний assistant message на латинские составные токены (`index-time`, `foo_bar`) и одиночные латинские слова в обратных кавычках, блокируя завершение turn'а, если токен не встречается ни в одном tool result / user message сессии. Ловит сконструированные термины, но НЕ ловит русский жаргон («прогон») — тот остаётся на дисциплине.
 
-**Разобранные примеры** (образец применения принципа, НЕ список запрещённых слов — в открытой предметной области такой список составить невозможно):
-- «во время индексирования», не `index-time` — дефисной формы нет в документации Elasticsearch, она достроена по аналогии с существующим `search-time`
-- «тестирование», «запуск тестов», не «прогон» — обычное русское слово существует
-- «сколько текста снимает эта полоса», не «урожайность полосы» — образ из сельского хозяйства, к разбору текста отношения не имеющий; в источниках предметной области в этом значении не встречается
+**Разобранные примеры** применения принципа — `~/.claude/CLAUDE-APPENDIX.md` → "Explanation Protocol — разобранные примеры".
 
 ## First-Contact Protocol для незнакомых инструментов и форматов
 
@@ -280,15 +155,11 @@ logger.info(
 
 **Rule:** Do NOT bypass hooks (`git commit --no-verify`, `--no-gpg-sign`, environment overrides like `SKIP=...`, `PRE_COMMIT_ALLOW_NO_CONFIG=1`) unless the user explicitly requests it for this commit. Hook failure → fix the underlying issue, do not skip.
 
-**Rule:** The `~/.git-template` bootstrap hook delegates to the `pre-commit` framework when `.pre-commit-config.yaml` exists, otherwise falls back to a staged `gitleaks` scan. Project-relevant fast checks (ruff check + format-check on staged source files) are added per project — via `.pre-commit-config.yaml` or by extending `.git/hooks/pre-commit`. SSoT of the template hook: `python-ai-skills/claude-home/git-template/pre-commit`.
-
 **Rule:** Slow checks (full pytest, integration, e2e) belong in CI/Makefile targets, not in commit-time hooks.
 
-**Rule:** New dev repos inherit a pre-commit baseline via `~/.git-template` (configured globally). When `git init` or `git clone`, hooks are auto-installed unless the project explicitly overrides.
-
-**Rule:** The template only ever applies to NEW repos, so repos predating it commit unprotected — `python-ai-skills` itself did, for months. When adopting a repo, install the bootstrap hook explicitly (`install-claude-symlinks.sh` does this for its own checkout) and verify with a realistic staged secret. `gitleaks` deliberately ignores well-known documentation placeholders such as the AWS example key, so probing with one makes a working gate look dead.
-
 **Rule (verification):** Never use `diff` to confirm a gate, a render, or file parity — the RTK hook rewrites it and `rtk diff` may report differing files as identical while always exiting 0. Use `cmp` or `rtk proxy diff` (see `RTK.md`).
+
+**Rule:** How new and adopted repos get the bootstrap hook: `~/.claude/CLAUDE-APPENDIX.md` → "Pre-commit — template mechanics".
 
 ## Git Push Policy
 
@@ -325,7 +196,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Enforcement:** `~/.claude/settings.json` (deny+sandbox) + `~/.codex/config.toml` (deny+sandbox_mode=workspace-write) for read-side; `gitleaks`/`detect-secrets` pre-commit + CI for write-side.
 
-**Scope of the read-side gate (honest limits, 2026-08-31):** `deny` binds the `Read` tool only, so any allowed command that prints a file walks around it. `cat`, `head`, `tail` and `sudo cat` were removed from the allow list for that reason; `grep`/`rg`/`find`, `ssh * cat` and arbitrary interpreters (`python3 -c "open('.env').read()"`) remain capable and are NOT blocked. Deny patterns must carry a `**/` prefix or an absolute path — a bare `Read(.env)` matches only the cwd root. The `*secret*`/`*_token*` masks from the Rule above are deliberately NOT in the deny list (they false-positive on legit code like `secrets.py`) — they bind agent discipline only. Treat the filename deny-list as a navigation contract for agents; the real gates are file modes (600/700) and the content scanner at commit time. Since 2026-09-24 the Bash sandbox is live on the laptop and `sandbox.credentials` (template) denies sandboxed commands the SSH/GPG dirs, the gh/codex/Claude auth files, the GLM/qwen/secrets env files and `CONTEXT7_API_KEY` — an OS-level read gate for Bash only; commands in `sandbox.excludedCommands` (`git *`, `gh *`, `docker *`, `model-run.sh *`) run outside it — only as a standalone call: a pipe or chain with any other command, a `cd` or `git -C <dir>`, a redirect, `$(...)` or `/usr/bin/git` keeps the whole call sandboxed. The trailing ` *` is load-bearing: a bare `git` matches only `git` with no arguments (sandboxing docs), which kept every git call sandboxed until 2026-10-13; `git` is also excluded from RTK rewriting for the same reason (`RTK.md`).
+**Rule:** Honest limits of the read-side gate (what `deny` and the Bash sandbox do and do not block): `~/.claude/CLAUDE-APPENDIX.md` → "Security — scope of the read-side gate".
 
 ## Tooling Preferences
 
@@ -337,39 +208,13 @@ Real secrets in any of these files = policy violation regardless of name.
 
 ## Model Routing — Four Token Pools (cost discipline)
 
-**Meta:** The Anthropic quota is the scarce pool and must be spent on judgement, not on bulk reading. Savings come from **where intermediate reading happens**: a delegate that reads 40 files and returns a 2-page digest costs the Anthropic pool only the digest.
+**Rule:** The Anthropic quota is the scarce pool: spend it on judgement — architecture, `/best-*` analysis, instruction design, subtle debugging, and verification of every other pool's output. Bulk reading, inventories, web research, mechanical edits and drafts from a finished spec go to other pools: Z.ai GLM, the local gateway (queued work nobody waits on — it is slow), Codex (second independent voice).
 
-**Rule:** Route work to the cheapest pool that can do it correctly:
-1. **Anthropic** (scarce) — architecture decisions, `/best-*` analysis, instruction/schema design, subtle debugging, and **verification of every other pool's output**.
-2. **Z.ai GLM** via the `claude-glm` shell function (`~/.bashrc`, added 2026-08-17) — reconnaissance, inventories, grep/log sweeps, web research, bulk mechanical edits, draft docs/tests from a finished spec, independent corpus annotation.
-3. **Local gateway** (DGX Spark `spark-1`: `qwen38-27b`, `gemma-4-26b`, `bge-m3`) — **costs no tokens at all**, only machine time, and is the only channel where code never leaves own infrastructure. But it is the slowest and narrowest channel: measured 80 s on a trivial prompt, 190 s at ~65k context, and it refuses anything past its 122,880-token window (2026-09-22, `docs/research/model-passports-2026-09.md`). Use it for **queued background work nobody waits on** — corpus annotation, batch scoring, overnight sweeps. Never put it inside a loop or on a step a human is waiting for: ten in-loop calls cost 13-32 minutes of pure latency.
-4. **Codex** (`codex exec -m ...`) — second independent voice where annotator agreement is measured.
+**Rule:** Delegate to another pool by role, not by a hand-built command: `~/.claude/scripts/model-run.sh --role <planner|executor|researcher|reviewer|batch> --task <file> --out <file>`, called by path as its own Bash command (only that form matches `sandbox.excludedCommands`). The Agent tool reaches Anthropic models only.
 
-**Rule (structural constraint):** Subagents spawned via the Agent tool ALWAYS run on Anthropic models — the model parameter accepts Anthropic tiers only. To delegate to GLM, shell out instead:
-```bash
-bash -ic "claude-glm -p --model opus --allowedTools Read Grep Glob Bash < task.txt" > out.md
-```
-Working precedent: `Sensedar-Spark/scripts/run_markup_queue.sh`. That hand-written form is the fallback for one-off experiments; for ordinary delegation prefer `model-run.sh` (rule below), which builds the same command from the registry and records the attempt.
+**Rule:** Model names, efforts, timeouts, fallback order, tier and work-type mappings live only in `~/.claude/model-registry.json` (`roles`, `tiers`, `agent_work_types`) — never restate them. Journal: `~/.claude/scripts/model-stats.py`; spend per skill: `~/.claude/scripts/skill-stats.py`.
 
-**Rule (tier mapping is NOT identity):** `claude-glm` remaps tiers — `--model fable` → `glm-5.3[1m]`, `--model opus` → **`glm-5.3-flash`**, `--model sonnet`/`--model haiku` → `glm-4.7`. Asking for "opus" under `claude-glm` gets Flash. Pick deliberately. Three consequences worth knowing before writing a delegate: `glm-5.3` has only `low`/`high`/`max` efforts (no `medium`, no `xhigh`) and **cannot disable reasoning**; `glm-4.7`'s window is ~205k, not 1M; and under `claude-glm` the four **claude.ai connectors** (Claude Docs, Gmail, Google Calendar, Google Drive) are disabled because the Z.ai key outranks the claude.ai login — all seven local MCP servers, including `context7`, keep working (verified via `claude mcp list`, 2026-09-22).
-
-**Rule (choosing WHICH model, not which pool):** the pool rules above say where work belongs; the concrete model, its launch flags, its timeout and its fallback order live in **`~/.claude/model-registry.json`** (repo: `claude-home/model-registry.json`) under six roles — `planner`, `executor`, `researcher` (web research with sources), `reviewer` (do-feature Step 12 code review, ADR-003), `batch`, and the reference-only `orchestrator`. Do not restate model names, efforts or timeouts in a skill, a prompt or this file: the registry is their single home, and a copy will drift from it.
-
-**Rule (delegating by role):** to hand work to another pool, call the runner instead of assembling a command by hand:
-```bash
-~/.claude/scripts/model-run.sh --role executor --task task.txt --out result.md
-```
-It picks the first usable model of that role, applies the registry timeout, skips models under an active penalty, distinguishes *unavailable* (quota/5xx/auth → 1-hour penalty on the whole model) from *context overflow* (no penalty — jump to a wider window) and from *slow* (no penalty — slowness is a passport property, not a fault), and appends one facts-only line per attempt to `~/.claude/model-journal.jsonl`. For web research with sources use `--role researcher` (its own 900 s timeout, `roles.<role>.timeout_seconds`, replaces each model's own timeout for that role, longer or shorter). Pass `--expect REGEX` to reject an empty or off-target answer as `check_failed` (never penalised, next model tried); every non-`ok` attempt that actually ran keeps its output under `~/.claude/model-outputs/` (age-pruned), path and size on the journal line. The journal and `~/.claude/model-penalties.json` are machine-local runtime state and are never committed. Call the runner exactly as shown — by path, as its own Bash command, not via `bash …`, not in a pipe or `;`/`&&` chain: only that form matches `sandbox.excludedCommands`, and the runner must write under `~/.claude`, which the Bash sandbox protects with no `allowWrite` exemption (verified 2026-09-24).
-
-**Rule (reading the journal):** `~/.claude/scripts/model-stats.py` is the way to look at it — `--since 24` for the last day, `--json` for machine output. It reports per-model calls, outcome breakdown, median and p90 seconds, active penalties, and **the share of attempts kept off the Anthropic pool** — the one number that says whether delegation is paying for itself. Counted from journal lines only; nothing is scored or estimated.
-
-**Rule (orchestrator is a human choice):** the orchestrator is the main session and is selected by the user at session start via `/model`. A session cannot re-pick its own model from inside itself, so `model-run.sh` never dispatches the `orchestrator` role — that entry is a reference list only.
-
-**Rule:** Prefer a read-only `--allowedTools` set for reconnaissance over `--dangerously-skip-permissions`; when a delegate must write, bound it to an isolated worktree.
-
-**Rule:** Delegation does NOT relax the Trust = 0% rule (see Preferences → subagent artifacts). Run the validator/tests yourself on whatever a cheaper model produced.
-
-**Rule:** Z.ai and Codex pools are finite too (observed: `glm` hitting the Z.ai subscription limit, reset on Beijing time). Spread heavy background work across pools rather than draining one.
+**Rule:** Delegation does NOT relax Trust = 0 %: run the validator/tests yourself on whatever another pool produced. Full text (`claude-glm` tier remapping, pool limits, orchestrator choice): `~/.claude/CLAUDE-APPENDIX.md` → "Model Routing — full text".
 
 ## Preferences
 
@@ -416,14 +261,6 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Rule:** Prefer user's preferred language (from profile or Language section) over auto-detection.
 
-## Rules for Modifications
-
-1. Before editing any file: read its MODULE_CONTRACT.
-2. After editing source or test files: update MODULE_MAP in-header.
-3. After adding or removing modules: run `grace-refresh` to update `docs/knowledge-graph.xml`.
-4. After changing test files, commands, or log markers: run `grace-refresh --verify` to update `docs/verification-plan.xml`.
-5. After editing `discovery.md` or `design.md` frontmatter: pre-commit hook regenerates parent XML (`requirements.xml` / `technology.xml`).
-
 ## Memory System Update
 
 **Rule:** Keep instruction files (`CLAUDE.md` / `AGENTS.md`) in sync with project reality. Update at appropriate hierarchy level (global → user → project).
@@ -433,21 +270,5 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 **Rule:** Use ephemeral memories (Codex: `codex memory add`, Claude: auto-memory system) for short-lived facts. Use instruction files for durable rules.
 
 **Triggers to update:** new skill/plugin added, workflow changed, new project type, team/tooling change.
-
-## Multi-machine consistency
-
-**Rule:** The SSoT instruction file is `python-ai-skills/claude-home/CLAUDE.md` (in git). `~/.claude/CLAUDE.md` is a symlink to it; `~/.claude/AGENTS.md` and `~/.codex/AGENTS.md` are symlinks in turn. Cross-machine identity is provided by git + `make install-symlinks`.
-
-**Rule:** Shared config (`settings.json`, `config.toml`) MUST be identical across machines.
-
-**Rule:** Machine-specific settings live in `~/.claude/settings.local.json` and `~/.codex/config.toml` profiles (not synced).
-
-**Exception (verified 2026-08-31):** `enabledPlugins` does NOT work from `settings.local.json` — `claude plugin enable` writes it into `~/.claude/settings.json`, and only that copy is honoured. Three plugins marked enabled in the local file loaded as disabled for months. Enable plugins with `claude plugin enable <name> --scope user`, never by hand-editing the local file; `install-claude-symlinks.sh` carries the key over on every render (see also `model`, written by `/model`).
-
-**Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
-
-**Rule:** All repo skills (47 as of 2026-09-23; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
-
-**Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
 
 @RTK.md

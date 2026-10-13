@@ -246,7 +246,7 @@ Present implementation plan. Ask: "Approve plan and start coding? (yes / changes
 
 **Ownership:** the orchestrator **is the controller** per `grace-execute`: it parses the plan + XML artifacts once, builds the execution queue and an ExecutionPacket per step, and applies graph/verification deltas returned by workers. Workers never own the queue. For independent task groups → `grace-multiagent-execute` (parallel waves, same controller model).
 
-**Dispatch:** per Model Routing Matrix — one mid-tier worker per **phase batch** (a GRACE phase, or a sub-stage split per the global Plan Sizing rule: one coherent file set within 40–60% of the model's effective window). The worker receives the ExecutionPackets of all steps in the batch and executes them sequentially. Escalation and cheap-tier downgrade — per `### Escalation rule` in `SKILL.md`.
+**Dispatch:** per Model Routing Matrix — one mid-tier worker per **phase batch** (a GRACE phase, or a sub-stage split per the Plan Sizing rule (`~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules): one coherent file set within 40–60% of the model's effective window). The worker receives the ExecutionPackets of all steps in the batch and executes them sequentially. Escalation and cheap-tier downgrade — per `### Escalation rule` in `SKILL.md`.
 
 **CRITICAL:** the markdown plan is the SSoT for execution; XML artifacts serve structural integrity checks.
 
