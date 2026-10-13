@@ -40,7 +40,7 @@
 
 **Rule:** USER APPROVAL gates are never skipped on the agent's own initiative. Auto-approval only with explicit user opt-in (`--auto-approve`, an auto-approving orchestrator the user invoked, or a standing `feedback` memory) AND a passing risk × evidence matrix (`do-feature` → Flags); `high`-risk gates stay interactive. Auto-approval never bypasses quality gates, hooks or destructive-operation confirmations.
 
-**Rule:** The full rule text for GRACE principles, Plan Sizing (context-window budget), the Documentation SSoT table and drift resolution, semantic markup, the logging convention and the rules for modifications lives in `~/.claude/CLAUDE-APPENDIX.md` → "Dev-project rules". Read that section before planning a phase, writing or changing a MODULE_CONTRACT, or editing GRACE artifacts.
+**Rule:** The full rule text for GRACE principles, Plan Sizing (context-window budget), the Documentation SSoT table and drift resolution, semantic markup, the logging convention and the rules for modifications lives in `~/.claude/CLAUDE-APPENDIX.md` → "Dev-project rules". Read that section before any change to source or test files in a dev project, before planning a phase, and before writing or editing a MODULE_CONTRACT or other GRACE artifacts.
 
 ## Skill Hierarchy
 

@@ -445,8 +445,6 @@
       "docker-compose *",
       "{{CLAUDE_HOME}}/scripts/model-run.sh *",
       "~/.claude/scripts/model-run.sh *",
-      "{{CLAUDE_HOME}}/scripts/git-finish-state.sh *",
-      "~/.claude/scripts/git-finish-state.sh *",
       "gh *"
     ],
     "credentials": {

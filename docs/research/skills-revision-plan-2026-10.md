@@ -523,6 +523,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To research online:** nothing specific.
 - **Acceptance:** median tokens per run down; regression tests of the skill pass.
 - **Done (2026-10-13), change part:** measured 74 runs — median 12 requests per run, median 399k context per request (341k at the call), ~4.8M tokens per run. New `claude-home/scripts/git-finish-state.sh` answers Phase 1.1 and Phase 2 in one call (sandbox-excluded by path). Re-measure 2026-10-20 with `skill-stats.py --since 7`.
+- **Revised after external review (2026-10-13):** no sandbox exclusion — the probe runs sandboxed without network, `git status` is a second plain call; two calls instead of five to seven.
 - **Decision (2026-10-13):** Do it after the pilot: shorten the skill and move deterministic steps into a script.
 - **Still open:** Which steps are deterministic enough to script.
 

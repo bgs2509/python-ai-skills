@@ -1,5 +1,7 @@
 # Agent Instructions
 
+> **Repository rules live in `CLAUDE.md`** (skill distribution, multi-machine consistency, commit authority, task-tracking scope). Read it before changing `claude-home/`, the installer, or any skill — Codex does not load it on its own.
+
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 > **Architecture in one line:** Issues live in a local Dolt database

@@ -57,21 +57,27 @@ The session is the source, git is the cross-check. Collect from the conversation
 3. bd issues created, claimed, worked on or discovered.
 4. The harness task list, if one was used (`TaskList`).
 
-Cross-check against the repository with **one** call — it also answers all of Phase 2:
+Cross-check against the repository with **two** calls — together they also answer all of
+Phase 2:
 
 ```bash
 ~/.claude/scripts/git-finish-state.sh .            # add --base <branch> when given
 ```
+```bash
+git status --porcelain
+```
 
-It prints `mode`, `branch`, `base`, `main_root`, `worktree` (empty unless the branch lives
-in a linked worktree other than the main clone), `remote`, `branch_on_remote`,
-`ahead_of_origin`, then `git status --porcelain`, `git log --oneline -20` and
-`bd list --status=in_progress`. Call it exactly as shown — by path, with the `.`
-argument, as its own Bash command: only that form is excluded from the Bash sandbox, and
-inside the sandbox `git status` lists the sandbox's mount points as untracked files. Every
-separate call at the end of a long session re-reads the whole context (measured
-2026-10-13: 12 requests per run at ~400k tokens each), so do not re-run the commands it
-already ran.
+The script prints `mode` (`no-git` / `detached` / `unknown-base` / `base` / `branch`),
+`branch`, `base`, `main_root`, `worktree` (empty unless the branch lives in a linked
+worktree), `remote`, `branch_on_remote`, `ahead_of_origin`, any `error=` lines, then
+`git log --oneline -20` and `bd list --status=in_progress`. It runs inside the Bash
+sandbox and never touches the network, so the remote fields reflect the last fetch, and
+it leaves out `git status`, which inside the sandbox lists the sandbox's mount points as
+untracked files — hence the second, plain `git status` call (git runs outside the sandbox
+as its own command). `ahead_of_origin` is a preview only: Phase 1.4 may add commits, and
+Phase 5 recounts before pushing. Every separate call at the end of a long session
+re-reads the whole context (measured 2026-10-13: 12 requests per run at ~400k tokens
+each), so do not repeat what these two calls already returned.
 
 Uncommitted changes split in two. **Changes this session made** are part of closing it:
 commit them in Phase 1.4, in logical conventional commits, after the check that proves

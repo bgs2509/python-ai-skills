@@ -4,17 +4,17 @@ bd_id: python-ai-skills-8of.6
 date: 2026-10-13
 status: approved
 risk: medium
-risk_justification: New read-only script, one sandbox exclusion in settings.json.template, git-finish SKILL.md text; git-finish runs at the end of most sessions, but the probe never writes.
+risk_justification: New read-only script and git-finish SKILL.md text; git-finish runs at the end of most sessions, but the probe never writes. Revised after external review - no sandbox exclusion.
 evidence: strong
 evidence_justification: 74 git-finish runs measured from transcripts - median 12 requests per run, median 399k context per request (341k at call); Phase 1.1 and Phase 2 issue 5-7 separate read-only git/bd calls; precedent of a sandbox-excluded runner (model-run.sh in settings.json.template).
 open_questions: []
 functional_requirements:
   - id: FR-1
-    text: One call prints mode, branch, base, main_root, worktree, remote, branch_on_remote, ahead_of_origin, git status --porcelain, git log --oneline -20 and bd in_progress.
+    text: One call prints mode, branch, base, main_root, worktree, remote, branch_on_remote, ahead_of_origin, error lines, git log --oneline -20 and bd in_progress; git status --porcelain is a second, plain git call.
   - id: FR-2
     text: Base detection follows git-finish Phase 2 (explicit --base, origin/HEAD, main/master); a branch checked out in the main clone reports no removable worktree.
   - id: FR-3
-    text: The script runs outside the Bash sandbox when called by path with an argument, so git status shows no sandbox mount points.
+    text: The script runs inside the Bash sandbox and never touches the network (remote fields from local tracking refs); it is not excluded from the sandbox, because the excluded file would be editable and git runs commands from a repository's own config (external review 2026-10-13).
 non_functional_requirements:
   - id: NFR-1
     text: Read-only (git --no-optional-locks), exit 0 always, works without bd on PATH and outside git.

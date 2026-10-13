@@ -9,6 +9,10 @@
 
 **Dispatch:** inline (no subagent)
 
+Invoked with an existing bd id (`/do-feature <bd-id>`, e.g. after the fresh-session offer) →
+`bd show <bd-id>` and `bd update <bd-id> --claim` instead of creating a new epic; continue
+from the first step whose artifact (spec, plan, commit) is missing. Otherwise:
+
 ```bash
 bd create --title="Feature: {name}" --type=epic --priority=2 \
   --description="Epic for feature development workflow"
