@@ -25,7 +25,8 @@ DEFINITION = re.compile(
     # Numbered table row "| 2 | **KISS** | ..."; the number column keeps NFR category
     # tables ("| **Security** | Authentication, ...") from matching.
     rf"|^\|\s*\d+\s*\|\s*\*\*({NAMES})\*\*\s*\|"
-    rf"|\b(KISS|SRP)\s*\(\s*(≤|<=|<|>)",  # "KISS (≤50 lines ..."
+    rf"|\b(KISS|SRP)\s*\(\s*(≤|<=|<|>)"  # "KISS (≤50 lines ..."
+    rf"|\|\s*(≤|<=|<|>)[^|\n]*\|\s*({NAMES})\s*\|",  # "| Function length | ≤ 50 lines | KISS |"
     re.M,
 )
 # Historical records and research are not maintained instructions.
@@ -73,6 +74,7 @@ def maintained_markdown():
         "| 2 | **YAGNI** | only what is needed |",
         "| 17 | **Testability** | injected |",
         "KISS (≤50 lines)",
+        "| Function length | ≤ 50 lines | KISS |",
     ],
 )
 def test_definition_pattern_catches_restatements(line):

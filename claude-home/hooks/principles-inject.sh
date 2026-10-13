@@ -30,7 +30,8 @@ SKILLS=(
   superpowers:systematic-debugging
 )
 
-FILE="${PRINCIPLES_FILE:-${HOME:-}/.claude/skills/_code-quality/principles.md}"
+[ -n "${PRINCIPLES_FILE:-}${HOME:-}" ] || exit 0   # no override and no home: nothing to resolve
+FILE="${PRINCIPLES_FILE:-$HOME/.claude/skills/_code-quality/principles.md}"
 SKILL=$(jq -r '.tool_input.skill // empty' 2>/dev/null) || exit 0
 [ -n "$SKILL" ] && [ -r "$FILE" ] || exit 0
 

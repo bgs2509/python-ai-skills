@@ -11,7 +11,8 @@ install-symlinks:
 install-symlinks-force:
 	@bash scripts/install-claude-symlinks.sh --force
 
-# Every test suite in the repo — the full sweep. The commit-time gate runs only
+# The claude-home sweep (audit-loop, full-audit and project-sync keep their own
+# tests/ dirs, not run here). The commit-time gate runs only
 # scoped suites (see .pre-commit-config.yaml): hooks on claude-home/hooks/,
 # scripts on claude-home/scripts/, the principles guard on any *.md.
 test:

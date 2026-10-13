@@ -29,17 +29,6 @@
 
 ---
 
-## Code Metrics
-
-| Metric | Threshold | Principle |
-|--------|-----------|-----------|
-| Function length | ≤ 50 lines | KISS |
-| Cyclomatic complexity | < 10 | KISS |
-| Nesting depth | ≤ 4 levels | KISS |
-| File length | < 500 lines | SRP |
-
----
-
 ## Async-First
 
 - All I/O operations use async/await
