@@ -1,44 +1,122 @@
 ---
 name: git-finish
 description: >
-  Finish the CURRENT branch in a fixed order: update the documentation the work
-  invalidated, merge into the base branch locally (resolving conflicts), delete the
-  branch and its worktree, and only then push. The order is the contract — pushing
-  first would publish a state that still has to be cleaned up afterwards.
-  TRIGGER when: user calls /git-finish, the work on this branch is done and the user
-  says "слей ветку", "заверши ветку", "merge and push", "finish this branch", or asks
-  for the merge-then-delete-then-push sequence in any wording.
+  Close the work of the CURRENT SESSION. First, unconditionally and in any repository
+  state, update the documentation the session invalidated and bring the session's plans
+  up to date (plan files, bd issues, the harness task list). Then, depending on where
+  HEAD is: on a work branch — merge into the base branch locally (resolving conflicts),
+  delete the branch and its worktree, and push last; on the base branch — push; outside
+  git — nothing. Always end with an uppercase verdict line stating whether the session's
+  work is finished. TRIGGER when: user calls /git-finish, says "закрой сессию",
+  "заверши работу в сессии", "слей ветку", "заверши ветку", "merge and push",
+  "finish this branch", "wrap up the session", or asks for this sequence in any wording.
   SKIP when: only committing uncommitted files (use /git-commit), triaging ALL branches
-  in the repo rather than finishing this one (use /git-branch), syncing a repo across
+  in the repo rather than closing this session (use /git-branch), syncing a repo across
   machines (use /project-sync), syncing bd issues (use /beads-sync).
 argument-hint: "[--base <branch> to override detection] [--no-push to stop after cleanup] [--keep-branch to merge without deleting]"
 ---
 
-# /git-finish — Finish the current branch
+# /git-finish — Close the work of the current session
 
-> **Docs → merge → delete → push.** One branch, one fixed order, push last.
+> **Docs and plans → merge → delete → push → verdict.** Docs and plans always run, and
+> always first. The verdict is always the last line.
 > Worker/utility skill: it does NOT auto-transition to other skills.
+
+## The two guarantees
+
+1. **Phase 1 runs under any conditions.** Base branch, detached HEAD, dirty tree, not a
+   git repository at all, any flag — the documentation and the plans are brought up to
+   date before anything else is looked at. No precondition, flag or later stop condition
+   skips it. A session that ends with stale plans leaves the next session to act on a
+   description of work that no longer matches the code.
+2. **The run ends with an uppercase verdict** (Phase 6) — on success AND on every stop.
+   A run that stops without a verdict looks the same as a run that was cut off.
 
 ## Why the order is the contract
 
-Push last, so the remote only ever receives a state that is already merged, already
-verified and already cleaned up. Pushing the feature branch first inverts this: the
-remote gains a branch that must be deleted later, and a half-finished branch on the
-remote is what other machines will pull.
+Docs first, so the documentation change is part of the history that gets merged and
+pushed, not an orphan commit made afterwards. Push last, so the remote only ever receives
+a state that is already merged, already verified and already cleaned up. Pushing the
+work branch first inverts this: the remote gains a branch that must be deleted later, and
+a half-finished branch on the remote is what other machines will pull.
 
 **Calling this skill IS the explicit push authorization** the global Git Push Policy
-requires. Nothing else in this skill grants it: `--no-push` stops before Phase 5, and
-a failure in any earlier phase stops the run with nothing pushed.
+requires. Nothing else in this skill grants it: `--no-push` stops before Phase 5, and a
+failure in any earlier phase stops the run with nothing pushed.
 
-## Phase 1: Preconditions (read-only)
+## Phase 1: Documentation and plans (ALWAYS, FIRST)
 
-1. `git rev-parse --is-inside-work-tree` — not a repo → stop.
-2. `git branch --show-current` — this is the branch being finished.
-   - Empty (detached HEAD) → stop: there is no branch to finish.
-   - Equal to the base branch → stop: "already on <base>, nothing to finish".
-3. **Detect the base branch.** Do NOT trust `origin/HEAD` alone — in a repo where it
-   was never configured, `git rev-parse --abbrev-ref origin/HEAD` exits non-zero and
-   prints the literal string `origin/HEAD`, and `git symbolic-ref --short
+### 1.1 Inventory what the session did
+
+The session is the source, git is the cross-check. Collect from the conversation:
+
+1. Files created, edited or deleted, and the commits made.
+2. Plans written or followed — plan files (`docs/superpowers/plans/*.md`, `plan.md`,
+   `docs/development-plan.xml`, specs), with the step the session reached in each.
+3. bd issues created, claimed, worked on or discovered.
+4. The harness task list, if one was used (`TaskList`).
+
+Cross-check against the repository (skip the git lines outside a repo):
+
+```bash
+git status --porcelain
+git log --oneline -20
+bd list --status=in_progress
+```
+
+Uncommitted changes split in two. **Changes this session made** are part of closing it:
+commit them in Phase 1.4, in logical conventional commits, after the check that proves
+them (tests, linter). **Changes this session did not make** (another session sharing the
+checkout) are never committed here — list them in the report and leave them alone.
+
+### 1.2 Update the documentation the session invalidated
+
+In this repo that is at minimum:
+
+- `CHANGELOG.md` — an entry under `## [Unreleased]`, in the right subsection
+  (Added / Changed / Fixed / Removed), per Keep a Changelog.
+- `CLAUDE.md` — skill catalog rows, grouped lists and **counters**.
+- `claude-home/CLAUDE.md` — the global counters, when the skill set changed.
+- `README.md` and any doc that describes behavior the session changed.
+
+In another project, apply the same test: which document now states something the code
+no longer does. In a GRACE project whose module boundaries changed, say in the report
+that `grace-refresh` is due — this skill does not run it (no auto-transition).
+
+**Verify every counter against the filesystem, never against the old number:**
+
+```bash
+find . -maxdepth 2 -name SKILL.md -not -path './.git/*' | wc -l
+```
+
+### 1.3 Bring the session's plans up to date
+
+1. **Plan files** — mark the steps the session completed as done; for a step done
+   differently than planned, write "deviated, see commit `<hash>`" (global SSoT drift
+   rule: execution drift → the commit wins); leave unfinished steps open and visible.
+2. **bd** — `bd close <id> --reason="..."` for finished issues; `bd update <id>
+   --notes="..."` for issues still in progress, with where the work stopped;
+   `bd create` for every leftover the session found but did not do.
+3. **Harness task list** — it is a within-session scratchpad and records nothing; any
+   task still open in it that must outlive the session goes into bd.
+
+### 1.4 Commit and report
+
+Commit on the current branch with a conventional message (`docs(<scope>): ...`), hooks
+NOT bypassed. Outside a git repo nothing is committed.
+
+Then report, as a numbered list, every document and plan **updated**, and every one
+**checked and found current**. Silence is indistinguishable from having skipped the
+phase.
+
+## Phase 2: Mode (read-only)
+
+1. `git rev-parse --is-inside-work-tree` fails → **mode `no-git`**: go to Phase 6.
+2. `git branch --show-current` empty → **mode `detached`**: report it, go to Phase 6
+   (there is no branch to merge or push).
+3. **Detect the base branch.** Do NOT trust `origin/HEAD` alone — in a repo where it was
+   never configured, `git rev-parse --abbrev-ref origin/HEAD` exits non-zero and prints
+   the literal string `origin/HEAD`, and `git symbolic-ref --short
    refs/remotes/origin/HEAD` fails with "is not a symbolic ref". Both were observed in
    this very repository. Detection order:
    ```bash
@@ -49,33 +127,12 @@ a failure in any earlier phase stops the run with nothing pushed.
    ```
    Still empty, or `--base` was passed → use the argument; otherwise ask. Never hardcode
    `master`: the user may say "master" while the repo's base branch is `main`.
-4. `git status --porcelain` — uncommitted changes. Documentation edits are expected in
-   Phase 2; unrelated changes → report them and ask before proceeding.
-5. **Report the plan** — base branch, branch being finished, whether a worktree will be
-   removed, whether the branch also exists on the remote. Then proceed.
+4. Current branch equal to `$BASE` → **mode `base`**: go to Phase 5.
+   Otherwise → **mode `branch`**: continue with Phase 3.
+5. **Report the plan** — mode, base branch, branch being finished, whether a worktree
+   will be removed, whether the branch also exists on the remote. Then proceed.
 
-## Phase 2: Update the documentation
-
-Run BEFORE the merge, so the documentation change is part of the branch's own history
-rather than an orphan commit on the base branch.
-
-1. **See what the branch actually changed:** `git diff --stat $BASE...HEAD`.
-2. **Update what that invalidates.** In this repo that is at minimum:
-   - `CHANGELOG.md` — an entry under `## [Unreleased]`, in the right subsection
-     (Added / Changed / Fixed / Removed), per Keep a Changelog.
-   - `CLAUDE.md` — skill catalog rows, grouped lists and **counters**.
-   - `claude-home/CLAUDE.md` — the global counters, when the skill set changed.
-3. **Verify every counter against the filesystem, never against the old number:**
-   ```bash
-   find . -maxdepth 2 -name SKILL.md -not -path './.git/*' | wc -l
-   ```
-   A counter is a claim about the repo; check it the way a reader would.
-4. Commit on the branch, conventional commit message, hooks NOT bypassed.
-
-**If nothing is stale, say so explicitly** and move on. Silence is indistinguishable
-from having skipped the phase.
-
-## Phase 3: Merge into the base locally
+## Phase 3: Merge into the base locally (mode `branch`)
 
 ```bash
 git checkout "$BASE"
@@ -90,8 +147,8 @@ anything is recorded.
 
 1. `git diff --name-only --diff-filter=U` — the conflicting files.
 2. **Append-only files (`CHANGELOG.md` is the usual one): keep BOTH sides.** Two
-   branches adding entries to the same `### Added` section is not a disagreement —
-   each entry describes work that genuinely happened. Deleting either loses history.
+   branches adding entries to the same `### Added` section is not a disagreement — each
+   entry describes work that genuinely happened. Deleting either loses history.
 3. Real semantic conflicts: resolve on the merits, and say in the report which side won
    and why.
 4. Verify no markers survive: `grep -n '^<<<<<<<\|^=======$\|^>>>>>>>' <file>`.
@@ -105,13 +162,14 @@ ever run on:
 grep -q '^test:' Makefile && make test    # or pytest / npm test / cargo test
 ```
 
-**Red tests → STOP.** Leave the branch and the worktree in place and investigate.
-Nothing has been pushed, so the whole state is local and recoverable.
+**Red tests → STOP** (go to Phase 6 with the stop reason). Leave the branch and the
+worktree in place. Nothing has been pushed, so the whole state is local and recoverable.
 
-## Phase 4: Delete the branch and its worktree
+## Phase 4: Delete the branch and its worktree (mode `branch`)
 
-Order matters: the worktree goes first — a branch checked out in a worktree cannot be
-deleted — and worktree removal must run from outside that worktree.
+Skipped with `--keep-branch`. Order matters: the worktree goes first — a branch checked
+out in a worktree cannot be deleted — and worktree removal must run from outside that
+worktree.
 
 ```bash
 WT=$(rtk proxy git worktree list --porcelain | awk -v b="refs/heads/<branch>" \
@@ -141,7 +199,10 @@ MAIN_ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
 3. Branch also on the remote → deleting it there is a push. Ask first, then
    `git push origin --delete <branch>`.
 
-## Phase 5: Push, last
+## Phase 5: Push, last (modes `branch` and `base`)
+
+Skipped with `--no-push`, and when the repo has no remote. In mode `base`, nothing to
+push (`git rev-list --count "origin/$BASE..$BASE"` is `0`) → skip and say so.
 
 ```bash
 git push origin "$BASE"
@@ -156,24 +217,53 @@ git rev-parse "$BASE"; git rev-parse "origin/$BASE"; git ls-remote origin "refs/
 
 All three must be the same hash. `git ls-remote` is the only one that asks the server.
 
-**Rejected push → investigate.** A rejection means the remote moved; force-pushing is
-never this skill's decision.
+**Rejected push → STOP** (go to Phase 6 with the stop reason). A rejection means the
+remote moved; force-pushing is never this skill's decision.
+
+## Phase 6: Verdict (ALWAYS, LAST)
+
+Close the final message with a short summary (numbered: docs and plans updated, merge,
+deletion, push with the verified hash, what remains in bd), and then the verdict as the
+very last line, in uppercase, in the user's language (Russian for this user):
+
+- All phases that apply to the mode completed:
+  ```
+  **РАБОТА В СЕССИИ ЗАВЕРШЕНА**
+  ```
+  When a phase was skipped by a flag or by the mode (`--no-push`, `--keep-branch`, no
+  remote, `no-git`, `detached`), the work is still finished — name the skipped phase in
+  the summary line right above the verdict, not inside it.
+- Any stop condition fired:
+  ```
+  **РАБОТА В СЕССИИ НЕ ЗАВЕРШЕНА: <ПРИЧИНА В ВЕРХНЕМ РЕГИСТРЕ>**
+  ```
+  e.g. `**РАБОТА В СЕССИИ НЕ ЗАВЕРШЕНА: ТЕСТЫ ПОСЛЕ СЛИЯНИЯ КРАСНЫЕ**`.
+
+Never print the "finished" verdict over a stop: an uppercase "finished" that is false is
+worse than no verdict.
 
 ## Quick reference
 
-1. **Phase 1** — preconditions, base-branch detection, plan reported.
-2. **Phase 2** — documentation updated on the branch, counters verified against files.
-3. **Phase 3** — `--no-ff` merge into base, conflicts resolved, tests green.
-4. **Phase 4** — worktree removed, branch deleted with `-d`.
-5. **Phase 5** — push, then three-source hash verification.
+1. **Phase 1** — ALWAYS: session inventory, docs updated, plans (files, bd, task list)
+   brought up to date, committed, reported item by item.
+2. **Phase 2** — mode: `no-git` / `detached` / `base` / `branch`; base-branch detection.
+3. **Phase 3** — `branch`: `--no-ff` merge into base, conflicts resolved, tests green.
+4. **Phase 4** — `branch`: worktree removed, branch deleted with `-d`.
+5. **Phase 5** — `branch` / `base`: push, then three-source hash verification.
+6. **Phase 6** — ALWAYS: summary, then the uppercase verdict as the last line.
 
-Stop conditions, at any phase: red tests, a `-d` refusal, a rejected push, a worktree
-that refuses to go, unrelated uncommitted changes.
+Stop conditions, at Phases 2–5: red tests, a `-d` refusal, a rejected push, a worktree
+that refuses to go. Each one ends in the "НЕ ЗАВЕРШЕНА" verdict with its reason.
 
 ## Common mistakes
 
 | Mistake | Why it bites |
 |---|---|
+| Skipping Phase 1 because HEAD is on the base branch, or "nothing changed" | The guarantee is unconditional. "Nothing changed" is a finding Phase 1 reports item by item, not a reason to skip it. |
+| Marking a plan step done because it was planned, not because it was done | Plan status follows the commits. A step done differently is "deviated, see commit X"; a step not done stays open. |
+| Leaving leftover work only in the harness task list | It records nothing after the session. Anything that must survive goes into bd. |
+| Committing another session's uncommitted changes | Only this session's work is closed here. Foreign changes are reported, never committed. |
+| Ending without the verdict, or with "ЗАВЕРШЕНА" after a stop | Missing verdict looks like a cut-off run; a false one is worse. Stops end in "НЕ ЗАВЕРШЕНА: <ПРИЧИНА>". |
 | Pushing the branch first "to be safe" | The remote gains a branch that must be cleaned up later, and other machines pull the half-finished state. Push last. |
 | Trusting `origin/HEAD` to name the base branch | Unconfigured in this repo: one form exits non-zero printing `origin/HEAD`, the other fails with "is not a symbolic ref". Always keep the `show-ref` fallback. |
 | Taking the user's word "master" literally | This repo's base branch is `main`. Detect it; do not transcribe it from the request. |

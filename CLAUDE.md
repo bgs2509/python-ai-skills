@@ -36,7 +36,7 @@ project_type: dev
 - **Orchestrators:** `do-feature` (single entry point for features), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
 - **best-\* family:** `best-research` (analysis engine, SSoT), `best-recommend` (recommendation format atom), `best-approach` / `best-rank` / `best-questions` (thin wrappers)
 - **grace-\* (14):** `grace-init`, `grace-plan`, `grace-execute`, `grace-multiagent-execute`, `grace-refresh`, `grace-reviewer`, `grace-refactor`, `grace-fix`, `grace-ask`, `grace-status`, `grace-verification`, `grace-explainer`, `grace-cli`, `grace-setup-subagents`
-- **git & sync:** `git-commit`, `git-branch`, `git-finish` (docs → merge → delete → push, in that order), `project-sync`, `projects-sync`, `beads-sync`
+- **git & sync:** `git-commit`, `git-branch`, `git-finish` (closes the session: docs and plans always first → merge → delete → push → uppercase verdict), `project-sync`, `projects-sync`, `beads-sync`
 - **audit:** `full-audit` (deterministic code+docs audit), `audit-loop` (5-round codex cross-review)
 - **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only)
 - **misc:** `customer-tz` (customer-facing TZ from raw input)
