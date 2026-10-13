@@ -115,7 +115,7 @@
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x",
       "capabilities": {"web_search": true},
-      "notes": "Alias resolves to claude-haiku-5-5 (verified 2026-10-13): 1M window, 128K output; prompts over 100k tokens are billed at 5x the base rate. A/B 2026-10-13 on four read-only repo tasks: 4/4 correct like sonnet, 15-23x cheaper (docs/research/skills-revision-plan-2026-10.md section 1.8). measured_seconds predate the switch to 5.5."
+      "notes": "Alias resolves to claude-haiku-5-5 (verified 2026-10-13): 1M window, 128K output; prompts over 100k tokens are billed at 5x the base rate. A/B 2026-10-13 on four read-only repo tasks: 4/4 correct like sonnet, 15-23x cheaper (docs/research/skills-revision-plan-2026-10.md section 1.8). Code-writing A/B the same day (3 small specified tasks graded by hidden tests): 26/26 like sonnet, 13-17x cheaper, more turns; large-repo multi-step work not yet tested (bd python-ai-skills-4f4). measured_seconds predate the switch to 5.5."
     },
     "glm-5.3-high": {
       "pool": "zai",

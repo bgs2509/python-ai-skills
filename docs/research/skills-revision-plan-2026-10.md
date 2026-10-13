@@ -466,6 +466,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
   doc rated Haiku 4.5.
 - **To research online:** independent Haiku 5.5 benchmarks on coding agents; tokenizer change details.
 - **Acceptance:** passport entry with measured quality and speed.
+- **Done (2026-10-13), code writing:** three tasks in temp dirs graded by hidden tests the models never saw — implement `parse_duration` from a spec (17 tests), fix `chunk`/`median` (5), extend a CLI with `--json` and error handling (4). Haiku 5.5: 26/26, $0.015-0.016 per task, 23-30 s, 7-10 turns; Sonnet 5.5: 26/26, $0.20-0.25, 21-33 s, 4-8 turns. Haiku 5.5 is adequate for small specified code tasks at 13-17× lower cost. Not tested: large-repo, multi-step work — do-feature Step 11 worker default stays `mid` until `python-ai-skills-4f4` revalidates it.
 - **Decision (2026-10-13):** Adopt Haiku 5.5 for read-only subagent work: 4 of 4 tasks answered correctly, same as Sonnet 5.5, at 15–23× lower cost and slightly faster (§1.8). Not adopted for writing code — not tested yet. Update the registry `haiku` entry (it still describes Haiku 4.5: 200 k window).
 - **Still open:** Test code writing and long multi-step agentic tasks; repeat each task 3× for variance; keep subagent prompts under 100 k tokens (Haiku 5.5 price ×5 above that).
 
@@ -483,8 +484,9 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To research online:** official `code.claude.com/docs/en/advisor` (re-read by the parent);
   billing of advisor tokens on subscription.
 - **Acceptance:** advisor $ per 35 days known; decision recorded.
-- **Decision (2026-10-13):** Pending measurement: no decision until advisor spend is visible.
-- **Still open:** Where advisor usage is recorded: the A/B `claude -p` JSON listed only the main model in `modelUsage` — either the advisor was not consulted or it is reported elsewhere.
+- **Done (2026-10-13):** no advisor consultation in any of 2,266 transcripts, although server-side tool calls are recorded there (`webReader` 41 times); `advisorModel` is not set in `settings.json`; `modelUsage` of 14 `claude -p` runs lists only the main model. The `advisorModel` field on transcript records reflects configuration, not use — advisor spend in the period was zero.
+- **Decision (2026-10-13):** nothing to change; revisit only if `advisorModel` is ever set.
+- **Still open:** none.
 
 #### 4c. Main-session model: Sonnet 5.5 + Opus advisor + Haiku subagents
 
