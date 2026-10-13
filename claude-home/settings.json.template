@@ -2,6 +2,7 @@
   "respectGitignore": true,
   "cleanupPeriodDays": 180,
   "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
     "PYTHON_ENV": "development",
     "LOG_LEVEL": "DEBUG",
     "ENVIRONMENT": "development",

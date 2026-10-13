@@ -39,7 +39,8 @@ def nudged(result):
         return False
     payload = json.loads(result.stdout)
     assert payload["hookSpecificOutput"]["hookEventName"] == "PreToolUse"
-    return "model-run.sh" in payload["hookSpecificOutput"]["additionalContext"]
+    # The bulk-work nudge, not the model hint that any model-less launch gets.
+    return "looks bulk/mechanical" in payload["hookSpecificOutput"]["additionalContext"]
 
 
 @pytest.mark.parametrize(
@@ -112,3 +113,86 @@ def test_nudge_names_the_runner_and_the_registry():
     assert "model-run.sh" in text
     assert "model-registry.json" in text
     assert "--role executor" in text
+
+
+# --- model hint (bd python-ai-skills-8of.4) -------------------------------------------
+
+REGISTRY = {
+    "tiers": {"top": "big-one", "mid": "middle-one", "cheap": "small-one"},
+    "models": {
+        "big-one": {"model_arg": "alias-top"},
+        "middle-one": {"model_arg": "alias-mid"},
+        "small-one": {"model_arg": "alias-cheap"},
+    },
+    "roles": {"reviewer": {"models": []}, "researcher": {"models": []}},
+    "agent_work_types": {"entries": [
+        {"work": "architecture", "tier": "top"},
+        {"work": "writing code", "tier": "mid"},
+        {"work": "read-only exploration", "tier": "cheap"},
+        {"work": "code review", "role": "reviewer"},
+    ]},
+}
+
+
+def launch(description="ask a question", subagent_type="general-purpose", model=None):
+    ti = {"description": description, "prompt": "x", "subagent_type": subagent_type}
+    if model:
+        ti["model"] = model
+    return {"tool_name": "Agent", "tool_input": ti}
+
+
+def context(result):
+    assert result.returncode == 0
+    if not result.stdout.strip():
+        return ""
+    return json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+
+
+@pytest.fixture
+def registry(tmp_path):
+    path = tmp_path / "registry.json"
+    path.write_text(json.dumps(REGISTRY))
+    return {"MODEL_REGISTRY": str(path)}
+
+
+def test_launch_without_model_gets_mapping_from_registry(registry):
+    text = context(run(launch(), env_extra=registry))
+    assert "architecture" in text and "`alias-top`" in text
+    assert "read-only exploration" in text and "`alias-cheap`" in text
+    assert "code review" in text and "--role reviewer" in text
+    assert "looks bulk/mechanical" not in text
+
+
+def test_launch_with_model_gets_no_model_hint(registry):
+    assert context(run(launch(model="alias-mid"), env_extra=registry)) == ""
+
+
+def test_fork_is_left_alone(registry):
+    assert context(run(launch(subagent_type="fork"), env_extra=registry)) == ""
+
+
+def test_explore_is_told_it_inherits_the_session_model(registry):
+    text = context(run(launch(subagent_type="Explore"), env_extra=registry))
+    assert "Explore" in text and "session model" in text
+
+
+def test_broken_registry_still_gives_generic_hint(tmp_path):
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not json")
+    text = context(run(launch(), env_extra={"MODEL_REGISTRY": str(bad)}))
+    assert "`model`" in text
+    assert "alias-top" not in text
+
+
+def test_bulk_and_model_hints_combine(registry):
+    text = context(run(launch(description="inventory all modules"), env_extra=registry))
+    assert "looks bulk/mechanical" in text
+    assert "`alias-cheap`" in text
+
+
+def test_shipped_registry_renders_real_aliases():
+    shipped = Path(__file__).resolve().parent.parent / "model-registry.json"
+    text = context(run(launch(), env_extra={"MODEL_REGISTRY": str(shipped)}))
+    data = json.loads(shipped.read_text())
+    cheap_alias = data["models"][data["tiers"]["cheap"]]["model_arg"]
+    assert f"`{cheap_alias}`" in text

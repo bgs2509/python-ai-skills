@@ -251,3 +251,9 @@ def test_cli_text_report_runs(tmp_path):
 def test_template_keeps_transcripts_180_days():
     template = json.loads((HERE.parent / "settings.json.template").read_text())
     assert template["cleanupPeriodDays"] == 180
+
+
+def test_template_routes_unspecified_subagents_to_sonnet():
+    template = json.loads((HERE.parent / "settings.json.template").read_text())
+    assert template["env"]["CLAUDE_CODE_SUBAGENT_MODEL"] == "sonnet"
+    assert "CLAUDE_CODE_SUBAGENT_MODEL_FORCE" not in template["env"]

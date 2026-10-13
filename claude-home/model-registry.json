@@ -9,8 +9,8 @@
     "Consumed by claude-home/scripts/model-run.sh. Edit here, never in a skill.",
     "measured_seconds = ~2k-token single prompt incl. CLI startup (passport). Multi-turn tool/web tasks take far longer: read model-stats.py, not this field."
   ],
-  "version": 1,
-  "updated": "2026-09-24",
+  "version": 2,
+  "updated": "2026-10-13",
   "source": "docs/research/model-passports-2026-09.md",
   "capabilities_source": "bd python-ai-skills-2fu comment 2026-09-24: real runs of all ten models, web search checked by a live PyPI query.",
 
@@ -57,6 +57,16 @@
     "mid": "sonnet-low",
     "cheap": "haiku"
   },
+  "agent_work_types": {
+    "_comment": "Which tier or runner role an Agent-tool launch should use, by work type. Read by claude-home/hooks/delegation-pool-nudge.sh when a launch has no `model`. Tiers resolve through `tiers` -> `models.*.model_arg`; roles go through model-run.sh, not the Agent tool. User decisions 2026-10-13 (docs/research/skills-revision-plan-2026-10.md, 3b and 3d).",
+    "entries": [
+      {"work": "discovery, architecture, module contracts, plan audits", "tier": "top"},
+      {"work": "writing code, tests and docs; recording decisions", "tier": "mid"},
+      {"work": "read-only exploration, search, inventories, log or transcript digests, mechanical reformatting", "tier": "cheap"},
+      {"work": "code review", "role": "reviewer"},
+      {"work": "web research with sources", "role": "researcher"}
+    ]
+  },
 
   "models": {
     "opus-xhigh": {
@@ -100,12 +110,12 @@
       "runner": "claude",
       "model_arg": "haiku",
       "effort": null,
-      "context_tokens": 200000,
+      "context_tokens": 1000000,
       "measured_seconds": {"small": 8.8, "medium": 8.7, "large": null},
       "timeout_seconds": 300,
       "quota": "Anthropic Max 5x",
       "capabilities": {"web_search": true},
-      "notes": "Smallest Anthropic window. Fails with 'Prompt is too long' above ~170k tokens of usable context."
+      "notes": "Alias resolves to claude-haiku-5-5 (verified 2026-10-13): 1M window, 128K output; prompts over 100k tokens are billed at 5x the base rate. A/B 2026-10-13 on four read-only repo tasks: 4/4 correct like sonnet, 15-23x cheaper (docs/research/skills-revision-plan-2026-10.md section 1.8). measured_seconds predate the switch to 5.5."
     },
     "glm-5.3-high": {
       "pool": "zai",

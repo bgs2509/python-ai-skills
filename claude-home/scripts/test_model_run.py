@@ -977,3 +977,24 @@ def test_failed_move_of_an_answer_file_leaves_only_the_answer(env, tmp_path):
     kept = list(outputs_dir(env).iterdir())
     assert len(kept) == 1 and kept[0].read_text() == "FINAL ANSWER\nVERDICT-OK\n"
     assert str(kept[0]) in result.stderr
+
+
+def test_shipped_agent_work_types_point_at_known_tiers_and_roles():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    entries = shipped["agent_work_types"]["entries"]
+    assert entries, "the work-type mapping must not be empty"
+    for e in entries:
+        assert e["work"].strip()
+        assert ("tier" in e) != ("role" in e), e
+        if "tier" in e:
+            assert e["tier"] in shipped["tiers"], e
+        else:
+            assert e["role"] in shipped["roles"], e
+    tiers = {e.get("tier") for e in entries}
+    assert {"top", "mid", "cheap"} <= tiers
+    assert {"reviewer", "researcher"} <= {e.get("role") for e in entries}
+
+
+def test_shipped_haiku_entry_describes_haiku_5_5_window():
+    shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
+    assert shipped["models"]["haiku"]["context_tokens"] == 1000000

@@ -379,6 +379,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To research online:** exact resolution order in the official sub-agents doc; whether
   `CLAUDE_CODE_SUBAGENT_MODEL` applies to Explore and built-in agents.
 - **Acceptance:** 7-day share of subagent $ on senior models falls; no quality regressions in step-1/7 task set.
+- **Done (2026-10-13):** template `env.CLAUDE_CODE_SUBAGENT_MODEL=sonnet`, bd `python-ai-skills-8of.4`. Measured: `general-purpose` obeys the variable, built-in `Explore` ignores it and runs on the session model.
 - **Decision (2026-10-13):** Set `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` (Sonnet 5.5) now, without `_FORCE`: a safe default for launches of unknown purpose, 2× cheaper than Opus 5.5 and 5× cheaper than Fable 5.1. Read-only work gets `haiku` explicitly via 3b. Switch the default to `haiku` only if 3d shows most unspecified launches are read-only.
 - **Still open:** Is `env` in `settings.json` rendered from the template (edit the template, re-run the installer)?
 
@@ -397,6 +398,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
   `grace-execute` / `grace-multiagent-execute` also spawn; the registry schema.
 - **To research online:** Anthropic guidance on Haiku 5.5 as a subagent for coding.
 - **Acceptance:** each spawning skill names a model per role; journal shows the mix.
+- **Done (2026-10-13):** mapping lives in `model-registry.json` → `agent_work_types`; `delegation-pool-nudge.sh` renders it on every launch without `model` (91 of 126 launches happen outside skills, so a hook reaches them and skill text does not). Inside `do-feature` the tier matrix already matched the user's mapping.
 - **Decision (2026-10-13):** Mapping by work type: Discovery, Brainstorming, architecture and contracts → **Fable 5.1** (user decision); code exploration, search, log/transcript reading, digests → **Haiku 5.5** (§1.8 A/B); writing code and tests → **Sonnet 5.5**; code review → a GPT model through `codex` via the existing `reviewer` role (`gpt-sol-xhigh` = `gpt-5.6-sol`, effort `xhigh`). To protect Fable's scarce quota, Fable directs and Haiku explorers do the reading.
 - **Still open:** (1) ~~GPT-6 for review~~ — resolved 2026-10-13: user chose `gpt-5.6-sol` with effort `xhigh` (registry `gpt-sol-xhigh`, already first in the `reviewer` role). (2) Review through Codex takes ~12–13 min per run (journal: 739 s, 793 s) — acceptable inside `do-feature` Step 12? (3) Fable effort level (registry: `fable-medium`) and fallback when the Fable quota runs out (Opus `xhigh`?). (4) Where the Agent-tool mapping lives — a new registry section, so model names stay in one place.
 
@@ -413,6 +415,7 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
   `subagent_type`; overlap with existing hooks.
 - **To research online:** hook input schema for `SubagentStart` and `agent_id`/agent type fields.
 - **Acceptance:** guard test suite: writer agents unaffected, explorers blocked on writes.
+- **Done (2026-10-13):** decided not to build a custom guard — read-only work goes to `Explore`, which has no Edit/Write tools; the hook reminds that `Explore` needs an explicit `model`.
 - **Decision (2026-10-13):** Do it with our own hook (not the third-party script), scoped to read-only agent types only (Explore and named explorer agents); writer agents (`do-multiagent`, `do-feature-clean`) keep write access.
 - **Still open:** Which hook input field carries the agent type (`agent_id` is confirmed in the binary; the type field is not yet checked).
 
@@ -426,8 +429,9 @@ inherited); Haiku nearly unused; GLM unreachable via `Agent` by design.
 - **To clarify in the project:** which skill/session launched them (step-0 tool).
 - **To research online:** nothing.
 - **Acceptance:** written classification + rule added to 3b mapping.
-- **Decision (2026-10-13):** Do it; transcript reading delegated to GLM (`model-run.sh --role executor`), classification checked by the parent.
-- **Still open:** None.
+- **Done (2026-10-13):** 126 launches from main sessions classified by description (`Agent` calls with `model` omitted or `fable`; the earlier "100 inherited" also counted launches made inside subagents and 32 `fork` launches, which must inherit to reuse the parent cache). **Fable, 76:** 29 from `do-feature` (top tier: Discovery / GRACE Plan); of the other 47 — ~15 GRACE plans and contracts, ~15 plan audits and plan updates, 9 blind-judge evaluations, 3 design comparisons: consistent with the user's rule. Exceptions: 2 decision-recording write tasks (→ Sonnet) and 1 whole-branch review (→ `reviewer` role). **Inherited, 50:** ~15 read-only (`Explore`, recon, inventories, checks → Haiku), ~20 research and dossier writing (→ Sonnet or the GLM `researcher` role), 5 mechanical reformatting (→ Haiku or GLM), the rest code changes and service agents.
+- **Decision (2026-10-13):** confirms 3a (default Sonnet) and the 3b mapping; adds two rules to 3b — decision-recording writes go to Sonnet, branch reviews go to the `reviewer` role.
+- **Still open:** none.
 
 #### 3e. Subagent prompt-cache TTL
 

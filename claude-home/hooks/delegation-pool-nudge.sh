@@ -1,24 +1,32 @@
 #!/bin/bash
-# PreToolUse hook (matcher: Task): soft nudge to consider a cheaper pool.
+# PreToolUse hook (matcher: Task, an alias of the Agent tool): two soft hints at
+# the moment a subagent is launched. The launch STILL runs; this never blocks.
 #
-# The Agent tool can ONLY dispatch Anthropic models, so every subagent spends
-# the scarce pool. When the task being delegated looks bulk/mechanical — the
-# kind of work an external pool does acceptably — remind the model that
-# ~/.claude/scripts/model-run.sh exists and costs a different quota. The Task
-# STILL runs; this never blocks.
+# 1. Pool hint. The Agent tool can ONLY dispatch Anthropic models, so every
+#    subagent spends the scarce pool. When the task being delegated looks
+#    bulk/mechanical — the kind of work an external pool does acceptably —
+#    remind the model that ~/.claude/scripts/model-run.sh exists and costs a
+#    different quota.
+# 2. Model hint (bd python-ai-skills-8of.4). A launch without `model` runs on
+#    CLAUDE_CODE_SUBAGENT_MODEL or, for Explore, on the session model (measured
+#    2026-10-13: Explore ignores the env var). List the work-type → model
+#    mapping from the registry's `agent_work_types`, so the choice is explicit.
+#    Model names are read from the registry at run time, never written here.
 #
 # Why a hook and not a rule in CLAUDE.md: CLAUDE.md is read at session start,
 # so long-lived sessions never learn a newly added rule. Journals on 2026-09-22
 # showed 14 of 17 active sessions predating the registry rule and zero subagent
 # dispatches — the rule had no moment at which it could fire. A PreToolUse hook
-# fires in already-running sessions, at the exact moment of delegation.
+# fires in already-running sessions, at the exact moment of delegation; 91 of
+# 126 launches audited on 2026-10-13 happened outside any skill.
 # Precedent and delivery mechanism: big-read-nudge.sh (bd python-ai-skills-bqi).
 #
 # Contract:
 #   - stdin: JSON with tool_input.{description?, prompt?, subagent_type?, model?}
+#   - env: MODEL_REGISTRY (default ~/.claude/model-registry.json)
 #   - exit 0 always (advisory only)
-#   - stdout: additionalContext JSON only when nudging; empty otherwise
-#   - PreToolUse stdout is NOT shown to the model, so the nudge MUST be
+#   - stdout: additionalContext JSON only when hinting; empty otherwise
+#   - PreToolUse stdout is NOT shown to the model, so the hint MUST be
 #     delivered as additionalContext JSON, not plain echo.
 
 set -euo pipefail
@@ -28,8 +36,8 @@ set -euo pipefail
 
 INPUT=$(cat)
 
-VERDICT=$(echo "$INPUT" | python3 -c "
-import json, re, sys
+echo "$INPUT" | REGISTRY="${MODEL_REGISTRY:-$HOME/.claude/model-registry.json}" python3 -c "
+import json, os, re, sys
 
 # Work that an external pool handles acceptably: bulk reading, inventory,
 # mechanical edits, drafting from a finished spec. Deliberately narrow — a
@@ -50,6 +58,50 @@ JUDGEMENT = re.compile(
     r'security|debug|root\s+cause|refactor\s+the\s+architecture'
     r')', re.I)
 
+POOL_HINT = (
+    'This Task will run on an Anthropic model — the Agent tool cannot reach any other pool, '
+    'so it spends the scarce quota. The work you are delegating looks bulk/mechanical, which the '
+    'executor or batch role handles acceptably at another pool\'s expense: '
+    '\`~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>\` '
+    '(web research with sources: \`--role researcher\`; roles, fallback order and timeouts live in '
+    '~/.claude/model-registry.json; every attempt is journalled). Dispatching the subagent anyway is '
+    'fine when the work needs Anthropic-level judgement, when the result must come back into this '
+    'conversation directly, or when the delegate needs tools the runner\'s one-shot call cannot give it.'
+)
+
+
+def mapping_lines(path):
+    '''Work type -> model alias or runner role, from the registry; [] if unusable.'''
+    try:
+        reg = json.load(open(path))
+        lines = []
+        for e in reg['agent_work_types']['entries']:
+            if 'tier' in e:
+                alias = reg['models'][reg['tiers'][e['tier']]]['model_arg']
+                lines.append(f'- {e[\"work\"]} → model \`{alias}\`')
+            else:
+                lines.append(f'- {e[\"work\"]} → \`~/.claude/scripts/model-run.sh --role {e[\"role\"]}\` (not the Agent tool)')
+        return lines
+    except Exception:
+        return []
+
+
+def model_hint(ti):
+    kind = ti.get('subagent_type') or 'general-purpose'
+    if ti.get('model') or kind == 'fork':
+        return ''                    # explicit choice, or a fork that must share the parent cache
+    if kind == 'Explore':
+        head = ('This Explore subagent has no \`model\`: Explore runs on the session model, '
+                'whatever CLAUDE_CODE_SUBAGENT_MODEL says.')
+    else:
+        head = ('This subagent has no \`model\`: it runs on CLAUDE_CODE_SUBAGENT_MODEL, '
+                'or on the session model when that is unset.')
+    lines = mapping_lines(os.environ['REGISTRY'])
+    if not lines:
+        return head + ' Pass \`model\` to match the work type (mapping: agent_work_types in ~/.claude/model-registry.json).'
+    return head + ' Pass \`model\` to match the work type (registry agent_work_types):\n' + '\n'.join(lines)
+
+
 try:
     d = json.load(sys.stdin)
 except Exception:
@@ -60,25 +112,16 @@ text = ' '.join(str(ti.get(k, '') or '') for k in ('description', 'prompt'))
 if not text.strip():
     sys.exit(0)
 
-if JUDGEMENT.search(text):
-    sys.exit(0)                      # judgement work: stay on Anthropic, say nothing
-if not BULK.search(text):
-    sys.exit(0)                      # not obviously bulk: say nothing
-
-print('nudge')
-" 2>/dev/null || echo "")
-
-[ "${VERDICT:-}" = "nudge" ] || exit 0
-
-REASON="This Task will run on an Anthropic model — the Agent tool cannot reach any other pool, so it spends the scarce quota. The work you are delegating looks bulk/mechanical, which the executor or batch role handles acceptably at another pool's expense: \`~/.claude/scripts/model-run.sh --role executor --task <file> --out <file>\` (web research with sources: \`--role researcher\`; roles, fallback order and timeouts live in ~/.claude/model-registry.json; every attempt is journalled). Dispatching the subagent anyway is fine when the work needs Anthropic-level judgement, when the result must come back into this conversation directly, or when the delegate needs tools the runner's one-shot call cannot give it."
-
-REASON="$REASON" python3 -c "
-import json, os
-print(json.dumps({
-    'hookSpecificOutput': {
+hints = []
+if BULK.search(text) and not JUDGEMENT.search(text):
+    hints.append(POOL_HINT)          # judgement wording wins over bulk wording
+hint = model_hint(ti)
+if hint:
+    hints.append(hint)
+if hints:
+    print(json.dumps({'hookSpecificOutput': {
         'hookEventName': 'PreToolUse',
-        'additionalContext': os.environ['REASON'],
-    }
-}))
-"
+        'additionalContext': '\n\n'.join(hints),
+    }}))
+" 2>/dev/null || true
 exit 0
