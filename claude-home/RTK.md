@@ -62,3 +62,13 @@ conclusion (bd `python-ai-skills-abh`).
 Checked and **not** affected on the same fixture: `rtk grep` (lists gitignored and
 `.venv` matches), `rtk ls`, `rtk read` (`cat`), `rtk wc`. `rtk tree` hides dot-dirs
 such as `.venv` exactly like native `tree` without `-a`.
+
+## Linked worktrees — git is not rewritten
+
+A background session isolated in a worktree has its git commands vetted by the harness,
+which refuses `rtk git ...` ("runs rtk with a git command among its operands") — on
+2026-10-13 every rewritten git call in such a session was refused. Both RTK hooks are
+therefore wired through `claude-home/hooks/rtk-isolation-gate.sh`: a command that runs
+`git` from a linked worktree passes through unchanged (and unannounced); everything else
+reaches `rtk-rewrite.sh` / `rtk-announce.sh` as before. `rtk-rewrite.sh` itself stays
+byte-identical to what `rtk` ships, so `rtk init --show` keeps verifying its hash.

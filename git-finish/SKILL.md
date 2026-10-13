@@ -9,8 +9,9 @@ description: >
   git — nothing. Always end with an uppercase verdict line stating whether the session's
   work is finished. TRIGGER when: user calls /git-finish, says "закрой сессию",
   "заверши работу в сессии", "слей ветку", "заверши ветку", "merge and push",
-  "finish this branch", "wrap up the session", or asks for this sequence in any wording.
-  SKIP when: only committing uncommitted files (use /git-commit), triaging ALL branches
+  "finish this branch", "wrap up the session", "git finish", "гит финиш", or asks for
+  this sequence in any wording. Supersedes superpowers:finishing-a-development-branch in
+  every repository — never invoke that skill for these requests. SKIP when: only committing uncommitted files (use /git-commit), triaging ALL branches
   in the repo rather than closing this session (use /git-branch), syncing a repo across
   machines (use /project-sync), syncing bd issues (use /beads-sync).
 argument-hint: "[--base <branch> to override detection] [--no-push to stop after cleanup] [--keep-branch to merge without deleting]"
@@ -134,6 +135,14 @@ phase.
 
 ## Phase 3: Merge into the base locally (mode `branch`)
 
+**Standing in a linked worktree → leave it first.** The base branch is checked out in
+the main clone, so `git checkout "$BASE"` fails inside the worktree. A session that
+entered the worktree with `EnterWorktree` is also fenced into it: the harness refuses
+`cd <main clone> && git …` until the session leaves. Call `ExitWorktree` with
+`action: "keep"` (load its schema via ToolSearch first if it is deferred) — `keep`, never
+`remove`: the branch is not merged yet. The session returns to the main clone; run
+Phases 3–5 from there. Without `EnterWorktree`, plain `cd "$MAIN_ROOT"` is enough.
+
 ```bash
 git checkout "$BASE"
 git pull --ff-only          # skip when there is no remote
@@ -142,6 +151,12 @@ git merge --no-ff --no-commit <branch>
 
 `--no-commit` leaves the merge open so conflicts are resolved and inspected before
 anything is recorded.
+
+**Run these one per Bash call and read each exit code before the next.** A failed
+`git pull --ff-only` (no credentials in the sandbox, diverged base) → STOP and report;
+merging onto a base that was never synced is how a later push gets rejected. Observed
+2026-10-13: the pull died on `could not read Username`, results arrived out of order,
+and the merge went ahead as if the pull had succeeded.
 
 **On conflict — resolve, never abandon:**
 
@@ -190,13 +205,29 @@ MAIN_ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
 >    `rtk proxy`. Machine-parsing git output goes through `rtk proxy`, exactly as
 >    `RTK.md` requires for `diff`.
 
-1. `$WT` empty or equal to `$MAIN_ROOT` → no worktree to remove, go to step 2.
-   Otherwise `cd "$MAIN_ROOT"`, then `git worktree remove "$WT"` and `git worktree prune`.
+**Strictly sequential: one command per Bash call, never two in the same message.**
+`git branch -d` depends on the worktree being gone, and both commands lock
+`.git/config`. Observed 2026-10-13: `worktree remove --force` and `branch -d` issued in
+parallel — the branch was deleted, the removal failed with "Device or resource busy",
+and a full checkout plus a `.git/worktrees/<name>` stub without `gitdir` were left
+behind while the run reported success.
+
+1. `$WT` empty or equal to `$MAIN_ROOT` → no worktree to remove, go to step 3.
+   Otherwise `cd "$MAIN_ROOT"`, then `git worktree remove "$WT"`.
    Refuses because of local changes → STOP and report; never `--force` on your own.
-2. `git branch -d <branch>` — lowercase `-d` only. It refuses anything unmerged, which
+2. **Verify the worktree is gone before touching the branch** — both checks, each its
+   own call:
+   ```bash
+   rtk proxy git worktree list --porcelain | grep -Fx "worktree $WT"   # expect: no output
+   ls -d "$WT" .git/worktrees/"$(basename "$WT")" 2>&1                 # expect: No such file
+   ```
+   Then `git worktree prune`. Any leftover → STOP: "worktree that refuses to go".
+   Bash-sandbox mount points inside the worktree make removal fail with "Device or
+   resource busy"; that is a stop too, reported with the path, not a footnote.
+3. `git branch -d <branch>` — lowercase `-d` only. It refuses anything unmerged, which
    is the safety check. A refusal means the merge did not land — investigate, never
    reach for `-D`.
-3. Branch also on the remote → deleting it there is a push. Ask first, then
+4. Branch also on the remote → deleting it there is a push. Ask first, then
    `git push origin --delete <branch>`.
 
 ## Phase 5: Push, last (modes `branch` and `base`)
@@ -269,6 +300,8 @@ that refuses to go. Each one ends in the "НЕ ЗАВЕРШЕНА" verdict with 
 | Taking the user's word "master" literally | This repo's base branch is `main`. Detect it; do not transcribe it from the request. |
 | Resolving a `CHANGELOG.md` conflict by picking one side | Both entries describe work that happened. Append-only files keep both. |
 | Skipping tests because they were green on the branch | The merged tree is a tree nothing has tested yet. |
+| Invoking `superpowers:finishing-a-development-branch` for "git finish" | It has no docs-and-plans phase, offers a Pull Request (against the Git Push Policy), never pushes on local merge and ends without a verdict. This skill supersedes it. |
+| Removing the worktree and deleting the branch in parallel calls | The branch goes, the worktree stays half-removed, the report says success. One call at a time, verify, then `-d`. |
 | `git branch -D` when `-d` refuses | `-d` refusing IS the safety check reporting an unmerged branch. |
 | Parsing `git worktree list --porcelain` under the RTK hook | The hook reshapes the output and the parse returns nothing. Use `rtk proxy`. |
 | Treating the path the worktree lookup returns as a removable worktree | For a branch checked out in the main clone the lookup returns the repository root itself — acting on it means deleting the workspace you are standing in. Compare against `MAIN_ROOT` first. |

@@ -299,11 +299,11 @@
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-rewrite.sh"
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-isolation-gate.sh rtk-rewrite.sh"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-announce.sh"
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-isolation-gate.sh rtk-announce.sh"
           }
         ]
       },
@@ -379,6 +379,11 @@
           {
             "type": "command",
             "command": "input=$(cat); transcript=$(echo \"$input\" | jq -r '.transcript_path // empty'); if [ -n \"$transcript\" ] && [ -f \"$transcript\" ]; then turns=$(wc -l < \"$transcript\"); echo \"{\\\"systemMessage\\\": \\\"⚡ Сообщений в сессии: ${turns}\\\"}\"; fi",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/git-finish-router.sh",
             "timeout": 3
           }
         ]
