@@ -21,4 +21,5 @@ test:
 	                   claude-home/housekeeping/test_housekeeping.py \
 	                   claude-home/scripts/test_model_run.py \
 	                   claude-home/scripts/test_model_stats.py \
-	                   claude-home/scripts/test_skill_stats.py -q
+	                   claude-home/scripts/test_skill_stats.py \
+	                   claude-home/scripts/test_git_finish_state.py -q

@@ -57,13 +57,21 @@ The session is the source, git is the cross-check. Collect from the conversation
 3. bd issues created, claimed, worked on or discovered.
 4. The harness task list, if one was used (`TaskList`).
 
-Cross-check against the repository (skip the git lines outside a repo):
+Cross-check against the repository with **one** call — it also answers all of Phase 2:
 
 ```bash
-git status --porcelain
-git log --oneline -20
-bd list --status=in_progress
+~/.claude/scripts/git-finish-state.sh .            # add --base <branch> when given
 ```
+
+It prints `mode`, `branch`, `base`, `main_root`, `worktree` (empty unless the branch lives
+in a linked worktree other than the main clone), `remote`, `branch_on_remote`,
+`ahead_of_origin`, then `git status --porcelain`, `git log --oneline -20` and
+`bd list --status=in_progress`. Call it exactly as shown — by path, with the `.`
+argument, as its own Bash command: only that form is excluded from the Bash sandbox, and
+inside the sandbox `git status` lists the sandbox's mount points as untracked files. Every
+separate call at the end of a long session re-reads the whole context (measured
+2026-10-13: 12 requests per run at ~400k tokens each), so do not re-run the commands it
+already ran.
 
 Uncommitted changes split in two. **Changes this session made** are part of closing it:
 commit them in Phase 1.4, in logical conventional commits, after the check that proves
@@ -111,6 +119,10 @@ Then report, as a numbered list, every document and plan **updated**, and every 
 phase.
 
 ## Phase 2: Mode (read-only)
+
+Take every value below from the `git-finish-state.sh` output of Phase 1.1 — it applies
+exactly these rules. The steps are the specification of that script and the fallback
+when it is unavailable.
 
 1. `git rev-parse --is-inside-work-tree` fails → **mode `no-git`**: go to Phase 6.
 2. `git branch --show-current` empty → **mode `detached`**: report it, go to Phase 6
