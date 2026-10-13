@@ -199,11 +199,11 @@ MAIN_ROOT=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
 >    it means trying to delete the workspace you are standing in. Always compare:
 >    `[ "$WT" = "$MAIN_ROOT" ]` means there is no worktree to remove. Only a path
 >    *different* from `MAIN_ROOT` is a removable worktree.
-> 2. **Under the RTK hook the parse silently returns nothing** — the hook rewrites
->    `git worktree list` and reshapes its output, so `--porcelain` is no longer
->    porcelain. Verified in this repo: the pipeline yields the path only through
->    `rtk proxy`. Machine-parsing git output goes through `rtk proxy`, exactly as
->    `RTK.md` requires for `diff`.
+> 2. **Under the RTK hook the parse used to return nothing** — the hook rewrote
+>    `git worktree list` and reshaped its output. Since 2026-10-13 `git` is excluded
+>    from RTK rewriting (`RTK.md`), so plain git is porcelain again; `rtk proxy` stays
+>    in the snippet because it is correct either way and survives a machine whose RTK
+>    config predates the exclusion.
 
 **Strictly sequential: one command per Bash call, never two in the same message.**
 `git branch -d` depends on the worktree being gone, and both commands lock
@@ -303,7 +303,7 @@ that refuses to go. Each one ends in the "НЕ ЗАВЕРШЕНА" verdict with 
 | Invoking `superpowers:finishing-a-development-branch` for "git finish" | It has no docs-and-plans phase, offers a Pull Request (against the Git Push Policy), never pushes on local merge and ends without a verdict. This skill supersedes it. |
 | Removing the worktree and deleting the branch in parallel calls | The branch goes, the worktree stays half-removed, the report says success. One call at a time, verify, then `-d`. |
 | `git branch -D` when `-d` refuses | `-d` refusing IS the safety check reporting an unmerged branch. |
-| Parsing `git worktree list --porcelain` under the RTK hook | The hook reshapes the output and the parse returns nothing. Use `rtk proxy`. |
+| Parsing `git worktree list --porcelain` under the RTK hook | On a machine whose RTK config still rewrites `git`, the output is reshaped and the parse returns nothing. `rtk proxy` is safe everywhere. |
 | Treating the path the worktree lookup returns as a removable worktree | For a branch checked out in the main clone the lookup returns the repository root itself — acting on it means deleting the workspace you are standing in. Compare against `MAIN_ROOT` first. |
 | Leaving a branch unmerged because "it is just a skill" | A skill directory that exists only on a branch leaves the symlink installer pointing at a path that is not there — exactly how `progress-watch` produced two dangling links. |
 | Reporting "done" from the push command's output | It is condensed by the hook. Compare hashes, including `git ls-remote`. |

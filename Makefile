@@ -17,7 +17,7 @@ test:
 	@python3 -m pytest claude-home/hooks/test_block_no_verify.py \
 	                   claude-home/hooks/test_delegation_pool_nudge.py \
 	                   claude-home/hooks/test_git_finish_router.py \
-	                   claude-home/hooks/test_rtk_isolation_gate.py \
+	                   claude-home/hooks/test_skill_finish_guard.py \
 	                   claude-home/housekeeping/test_housekeeping.py \
 	                   claude-home/scripts/test_model_run.py \
 	                   claude-home/scripts/test_model_stats.py -q

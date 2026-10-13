@@ -63,12 +63,19 @@ Checked and **not** affected on the same fixture: `rtk grep` (lists gitignored a
 `.venv` matches), `rtk ls`, `rtk read` (`cat`), `rtk wc`. `rtk tree` hides dot-dirs
 such as `.venv` exactly like native `tree` without `-a`.
 
-## Linked worktrees — git is not rewritten
+## `git` — excluded from rewriting (sandbox exclusion)
 
-A background session isolated in a worktree has its git commands vetted by the harness,
-which refuses `rtk git ...` ("runs rtk with a git command among its operands") — on
-2026-10-13 every rewritten git call in such a session was refused. Both RTK hooks are
-therefore wired through `claude-home/hooks/rtk-isolation-gate.sh`: a command that runs
-`git` from a linked worktree passes through unchanged (and unannounced); everything else
-reaches `rtk-rewrite.sh` / `rtk-announce.sh` as before. `rtk-rewrite.sh` itself stays
-byte-identical to what `rtk` ships, so `rtk init --show` keeps verifying its hash.
+`sandbox.excludedCommands` lists `git *`, so a plain `git ...` call runs outside the
+Bash sandbox — where it can read GitHub credentials and does not see sandbox mount
+points (`.bashrc`, `.mcp.json`, `.claude/skills`, ...) as untracked files. The harness
+matches that list against the command text it runs, so a rewritten `rtk git ...` would
+stay inside the sandbox. `git` is therefore in `[hooks] exclude_commands` of
+`claude-home/rtk/config.toml`. Verified 2026-10-13: rewritten `git status` listed 20
+phantom paths; after the exclusion it listed none, and `git fetch` reached GitHub
+(bd `python-ai-skills-6wj`). This also removes the earlier conflict in worktree-isolated
+sessions, where the harness refused `rtk git ...` outright.
+
+Calls that still run sandboxed even with the exclusion (sandboxing docs, `excludedCommands`):
+a pipe or chain with any non-git command (`git log | head`, `git add x && git commit`),
+a `cd`, a redirect to a file, `$(...)`, and an absolute path such as `/usr/bin/git`.
+Run git as a standalone call; never stage untracked paths that only such a call shows.

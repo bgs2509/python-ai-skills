@@ -8,4 +8,11 @@
 # can be false. Verified 2026-09-24: in a repo with `a/` in .gitignore,
 # `rtk find . -name '*syn*'` listed 1 of 2 files; `.venv/pyvenv.cfg` -> "0 for".
 # Excluded from rewriting so plain `find` stays native (bd python-ai-skills-abh).
-exclude_commands = ["find"]
+#
+# `git` is excluded because the Bash sandbox matches `sandbox.excludedCommands`
+# against the command text Claude Code runs: `git *` takes `git status` out of the
+# sandbox, but the rewritten `rtk git status` stays inside it, where git sees
+# sandbox mount points as untracked files and cannot read GitHub credentials.
+# Verified 2026-10-13: `git ls-files --others` (not rewritten) listed nothing,
+# `git status` (rewritten) listed 20 phantom paths (bd python-ai-skills-6wj).
+exclude_commands = ["find", "git"]

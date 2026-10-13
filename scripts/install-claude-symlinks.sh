@@ -97,12 +97,17 @@ link "$REPO/claude-home/rtk/config.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/rtk/
 # `extraKnownMarketplaces` lives in settings.local.json, which Claude deep-merges
 # on top — this script never touches it.
 #
-# RUNTIME-OWNED KEYS. Two keys are written into the live file by Claude itself:
+# RUNTIME-OWNED KEYS. These keys are written into the live file by Claude itself:
 #   model           — by `/model`
 #   enabledPlugins  — by `claude plugin enable` (verified 2026-08-31: it writes
 #                     to settings.json; the copy in settings.local.json is NOT
 #                     honoured, which is why 3 enabled plugins loaded as disabled)
-# Both are carried over from the live file into each render and masked in the
+#   autoMode        — by `/auto-mode-setup` and the Auto mode tab of `/permissions`;
+#                     the classifier reads it ONLY from ~/.claude/settings.json,
+#                     never from settings.local.json (auto-mode-config docs)
+#   modelSettings   — per-model effort, written by the effort control
+#   voiceEnabled    — by the voice toggle
+# All are carried over from the live file into each render and masked in the
 # drift guard, so a UI-side change is neither flagged as a hand edit nor reverted.
 echo "[settings.json] (rendered from template; machine-specific paths)"
 tmpl="$REPO/claude-home/settings.json.template"
@@ -117,8 +122,8 @@ if [ -f "$tmpl" ]; then
   sed -e "s|{{CLAUDE_HOME}}|$CLAUDE_HOME|g" -e "s|{{MODEL}}|$model|g" "$tmpl" > "$new"
   python3 -m json.tool "$new" >/dev/null \
     || { echo "  ERROR: template renders invalid JSON — nothing overwritten" >&2; rm -f "$new"; exit 1; }
-  # Carry `enabledPlugins` over: which plugins are installed is machine-specific,
-  # so the template does not declare it, but the runtime keeps it here.
+  # Carry the runtime-owned keys over (see RUNTIME-OWNED KEYS above): the template
+  # does not declare them, but the runtime keeps them here.
   if [ -f "$live" ]; then
     python3 - "$new" "$live" <<'PY' || true
 import json, sys
@@ -127,10 +132,12 @@ try:
     live = json.load(open(live_p, encoding="utf-8"))
 except Exception:
     sys.exit(0)
-if "enabledPlugins" not in live:
+RUNTIME_KEYS = ("enabledPlugins", "autoMode", "modelSettings", "voiceEnabled")
+carried = {k: live[k] for k in RUNTIME_KEYS if k in live}
+if not carried:
     sys.exit(0)
 new = json.load(open(new_p, encoding="utf-8"))
-new["enabledPlugins"] = live["enabledPlugins"]
+new.update(carried)
 with open(new_p, "w", encoding="utf-8") as f:
     json.dump(new, f, indent=2, ensure_ascii=False)
     f.write("\n")
@@ -143,7 +150,7 @@ PY
   strip_runtime() {  # canonical JSON without the keys Claude itself writes
     python3 -c 'import json,sys
 d = json.load(open(sys.argv[1], encoding="utf-8"))
-for k in ("model", "enabledPlugins"):
+for k in ("model", "enabledPlugins", "autoMode", "modelSettings", "voiceEnabled"):
     d.pop(k, None)
 print(json.dumps(d, indent=2, sort_keys=True, ensure_ascii=False))' "$1" 2>/dev/null
   }

@@ -15,8 +15,6 @@
   "permissions": {
     "allow": [
       "Bash(git:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
       "Bash(.venv/bin/*:*)",
       "Bash(uv:*)",
       "Bash(pytest:*)",
@@ -53,17 +51,14 @@
       "Bash(cp:*)",
       "Bash(mv:*)",
       "Bash(touch:*)",
-      "Bash(chmod:*)",
       "Bash(echo:*)",
       "Bash(tee:*)",
-      "Bash(xargs:*)",
       "Bash(unzip:*)",
       "Bash(tar:*)",
       "Bash(ruff:*)",
       "Bash(uvx:*)",
       "Bash(make:*)",
       "Bash(npm:*)",
-      "Bash(npx:*)",
       "Bash(ping:*)",
       "Bash(nc:*)",
       "Bash(ip:*)",
@@ -128,7 +123,6 @@
       "Bash(ssh * wc:*)",
       "Bash(ssh * stat:*)",
       "Bash(bd:*)",
-      "Bash(bash:*)",
       "Bash(for:*)",
       "Bash(while:*)",
       "Bash(if:*)",
@@ -257,7 +251,7 @@
       "Edit(**/.env.development)",
       "Edit(**/secrets/**)"
     ],
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "auto"
   },
   "model": "{{MODEL}}",
   "enableAllProjectMcpServers": false,
@@ -299,11 +293,11 @@
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-isolation-gate.sh rtk-rewrite.sh"
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-rewrite.sh"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-isolation-gate.sh rtk-announce.sh"
+            "command": "{{CLAUDE_HOME}}/hooks/rtk-announce.sh"
           }
         ]
       },
@@ -340,6 +334,15 @@
           {
             "type": "command",
             "command": "{{CLAUDE_HOME}}/hooks/delegation-pool-nudge.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/skill-finish-guard.sh"
           }
         ]
       }
@@ -405,9 +408,9 @@
       "allowLocalBinding": true
     },
     "excludedCommands": [
-      "git",
-      "docker",
-      "docker-compose",
+      "git *",
+      "docker *",
+      "docker-compose *",
       "{{CLAUDE_HOME}}/scripts/model-run.sh *",
       "~/.claude/scripts/model-run.sh *",
       "gh *"
