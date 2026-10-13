@@ -8,7 +8,7 @@ Cleans five things:
   2. git worktrees          orphaned working copies, via git itself
   3. docker build cache     records older than 30 days
   4. docker images          unused images older than 100 days
-  5. claude state           session transcripts older than 30 days,
+  5. claude state           session transcripts older than cleanupPeriodDays,
                             history.jsonl tail-trim, .claude.json backup
                             rotation, daemon.log rotation, dead project
                             entries in ~/.claude.json
@@ -52,7 +52,12 @@ LOG_PATH = Path.home() / ".claude" / "housekeeping.log"
 JOBS_DIR = Path.home() / ".claude" / "jobs"
 
 # part 5: claude state (transcripts, history, backups, daemon log, .claude.json)
-TRANSCRIPT_MAX_AGE_DAYS = 30  # matches the cleanupPeriodDays intent
+# Transcript retention follows cleanupPeriodDays in ~/.claude/settings.json, the
+# one place it is set (rendered from settings.json.template). A separate constant
+# here silently overrode it: the template moved to 180 days on 2026-10-13 while
+# this file kept deleting at 30 (bd python-ai-skills-8of.1 review).
+TRANSCRIPT_FALLBACK_DAYS = 30  # used only when settings.json has no usable value
+SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 PROJECTS_DIR = Path.home() / ".claude" / "projects"
 HISTORY_PATH = Path.home() / ".claude" / "history.jsonl"
 HISTORY_MAX_LINES = 5000
@@ -766,8 +771,20 @@ def parse_docker_time(text: str) -> float | None:
 # --- part 5: claude state ---------------------------------------------------
 
 
+def transcript_max_age_days(settings_path: Path = SETTINGS_PATH) -> int:
+    """cleanupPeriodDays from Claude Code settings; the fallback when the file
+    is missing, unreadable, or holds anything but a positive integer."""
+    try:
+        value = json.loads(settings_path.read_text()).get("cleanupPeriodDays")
+    except (OSError, ValueError, AttributeError):
+        return TRANSCRIPT_FALLBACK_DAYS
+    if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+        return value
+    return TRANSCRIPT_FALLBACK_DAYS
+
+
 def select_old_transcripts(
-    projects_dir: Path, now: float, max_age_days: float = TRANSCRIPT_MAX_AGE_DAYS
+    projects_dir: Path, now: float, max_age_days: float
 ) -> list[Path]:
     """Session transcript files past the retention age. Only *.jsonl — the
     memory/*.md files living in the same tree are never candidates."""
@@ -846,14 +863,15 @@ def clean_claude_state(journal: Journal, apply: bool, now: float) -> int:
     """Returns bytes freed (or that would be freed in dry-run mode)."""
     freed = 0
 
-    old = select_old_transcripts(PROJECTS_DIR, now)
+    max_age_days = transcript_max_age_days()
+    old = select_old_transcripts(PROJECTS_DIR, now, max_age_days)
     size = sum(p.stat().st_size for p in old if p.exists())
     if old:
         journal.write(
             part="state", target="transcripts",
             action="delete" if apply else "would-delete",
             count=len(old), size=human(size),
-            reason=f"older than {TRANSCRIPT_MAX_AGE_DAYS}d",
+            reason=f"older than {max_age_days}d (cleanupPeriodDays)",
         )
         if apply:
             for p in old:

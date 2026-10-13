@@ -13,7 +13,7 @@ context7_verified: []
 No third-party libraries (stdlib only) — `context7_verified` is empty on purpose.
 
 - D-1 File `claude-home/scripts/skill-stats.py`, sibling of `model-stats.py`, same shape: module
-  docstring with usage, `summarize()` pure function over parsed events, `render_text()` /
+  docstring with usage, `summarize()` pure function over parsed events, `render()` /
   `--json`, `main()`. Rejected: extending `model-stats.py` (different input — model-run journal vs
   transcripts; one tool per question).
 - D-2 Parsing: `scan(path)` yields events `skill`, `human`, `usage` (with model, four token

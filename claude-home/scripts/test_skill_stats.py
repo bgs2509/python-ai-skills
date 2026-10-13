@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -257,3 +258,141 @@ def test_template_routes_unspecified_subagents_to_sonnet():
     template = json.loads((HERE.parent / "settings.json.template").read_text())
     assert template["env"]["CLAUDE_CODE_SUBAGENT_MODEL"] == "sonnet"
     assert "CLAUDE_CODE_SUBAGENT_MODEL_FORCE" not in template["env"]
+
+
+# --- review findings (gpt-sol-xhigh, 2026-10-13) --------------------------------------
+
+
+def test_duplicated_tool_call_record_counts_one_invocation(tmp_path):
+    a = assistant(T.format(1), "m1", tool="git-commit", cr=100, inp=0, out=0)
+    a["message"]["content"][1]["id"] = "toolu_1"
+    write(tmp_path / "p" / "s1.jsonl", [a, a, a])
+    r = row(run(tmp_path), "git-commit")
+    assert r["calls"] == 1
+    assert r["per_call_median"] == 100
+
+
+def test_builtin_command_closes_low_window_but_not_high(tmp_path):
+    write(tmp_path / "p" / "s1.jsonl", [
+        assistant(T.format(1), "m1", tool="git-finish", cr=100, inp=0, out=0),
+        slash(T.format(2), "model"),
+        assistant(T.format(3), "m2", cr=900, inp=0, out=0),
+    ])
+    r = row(run(tmp_path), "git-finish")
+    assert r["tokens_low"] == 100
+    assert r["tokens_high"] == 1000
+
+
+def test_next_skill_also_takes_over_high_window(tmp_path):
+    write(tmp_path / "p" / "s1.jsonl", [
+        assistant(T.format(1), "m1", tool="a-skill", cr=100, inp=0, out=0),
+        human(T.format(2)),
+        assistant(T.format(3), "m2", tool="b-skill", cr=10, inp=0, out=0),
+    ])
+    stats = run(tmp_path)
+    assert row(stats, "a-skill")["tokens_high"] == 100
+    assert row(stats, "b-skill")["tokens_high"] == 10
+
+
+def test_subagent_owner_is_decided_by_first_record_not_first_response(tmp_path):
+    write(tmp_path / "p" / "sess1.jsonl", [
+        assistant(T.format(1), "m1", tool="skill-a", cr=1, inp=0, out=0),
+        assistant(T.format(6), "m2", tool="skill-b", cr=1, inp=0, out=0),
+    ])
+    write(tmp_path / "p" / "sess1" / "subagents" / "agent-x.jsonl", [
+        human(T.format(5), "subagent task text"),
+        assistant(T.format(7), "s1", model="claude-haiku-5-5", cr=50, inp=0, out=0),
+    ])
+    stats = run(tmp_path)
+    assert row(stats, "skill-a")["subagent_tokens"] == 50
+    assert row(stats, "skill-b")["subagent_tokens"] == 0
+
+
+def test_subagent_tokens_feed_output_and_per_call_stats(tmp_path):
+    write(tmp_path / "p" / "sess1.jsonl", [
+        assistant(T.format(1), "m1", tool="do-feature", inp=0, cr=10, out=0),
+    ])
+    write(tmp_path / "p" / "sess1" / "subagents" / "agent-a.jsonl", [
+        assistant(T.format(5), "s1", model="claude-haiku-5-5", inp=2, cw=5, cr=40, out=10),
+    ])
+    stats = run(tmp_path)
+    r = row(stats, "do-feature")
+    assert r["tokens_low"] == 67
+    assert r["output_low"] == 10
+    assert r["non_cache_read_low"] == 17
+    assert r["per_call_median"] == 67
+    assert stats["first_request_context"]["subagent"] == {"count": 1, "median": 47, "p90": 47}
+    assert stats["by_model"]["subagent"]["claude-haiku-5-5"]["calls"] == 1
+
+
+@pytest.mark.parametrize("bad", ["null", "[1, 2]", '"text"',
+                                 '{"type": "assistant", "message": "x"}',
+                                 '{"type": "assistant", "message": {"usage": "x", "content": 5}}',
+                                 '{"type": "user", "message": {"content": [1, null]}}'])
+def test_structurally_invalid_lines_are_skipped(tmp_path, bad):
+    f = tmp_path / "p" / "s1.jsonl"
+    write(f, [assistant(T.format(1), "m1", tool="git-commit", cr=5, inp=0, out=0)])
+    with f.open("a") as fh:
+        fh.write(bad + "\n")
+    assert row(run(tmp_path), "git-commit")["tokens_low"] == 5
+
+
+def test_since_keeps_window_state_and_true_first_request(tmp_path):
+    old = "2020-01-01T00:00:0{}.000Z"
+    write(tmp_path / "p" / "s1.jsonl", [
+        assistant(old.format(1), "m1", tool="git-finish", inp=0, cr=60_000, out=0),
+        assistant(T.format(2), "m2", inp=0, cr=90_000, out=0),
+    ])
+    stats = run(tmp_path, since_days=10_000)  # T (2026) is inside, 2020 is not
+    stats_recent = run(tmp_path, since_days=365 * 3)
+    r = row(stats_recent, "git-finish")
+    assert r["calls"] == 0                      # the call itself is outside the period
+    assert r["tokens_low"] == 90_000            # but its window still owns later usage
+    assert stats_recent["first_request_context"]["main"]["count"] == 0
+    assert stats["first_request_context"]["main"]["median"] == 60_000
+
+
+def test_vanished_file_is_skipped(tmp_path):
+    assert list(skill_stats.scan(tmp_path / "missing.jsonl")) == []
+
+
+def test_subagents_segment_in_root_path_does_not_misclassify(tmp_path):
+    root = tmp_path / "subagents" / "data"
+    write(root / "p" / "s1.jsonl", [assistant(T.format(1), "m1", tool="git-commit", cr=5)])
+    stats = skill_stats.summarize(skill_stats.collect(root))
+    assert stats["files"] == {"main": 1, "subagent": 0}
+
+
+def test_render_strips_terminal_control_sequences():
+    stats = {"files": {"main": 1, "subagent": 0},
+             "totals": {"tokens": 1, "cache_read_share": 0.0, "cost_usd": 0, "unpriced_tokens": 0},
+             "first_request_context": {},
+             "skills": [{"skill": "evil\x1b]52;c;AAAA\x07name", "calls": 1, "sessions": 1,
+                         "tokens_low": 1, "tokens_high": 1, "per_call_median": 1, "per_call_p90": 1,
+                         "subagent_tokens": 0, "cost_usd": 0, "subagent_models": {}}]}
+    text = skill_stats.render(stats, 5)
+    assert "\x1b" not in text and "\x07" not in text
+
+
+def test_top_limits_text_rows(tmp_path):
+    write(tmp_path / "p" / "s1.jsonl", [
+        assistant(T.format(1), "m1", tool="alpha-skill", cr=5),
+        assistant(T.format(2), "m2", tool="beta-skill", cr=50),
+    ])
+    out = subprocess.run([sys.executable, str(HERE / "skill-stats.py"), "--projects",
+                          str(tmp_path), "--top", "1"], capture_output=True, text=True, check=True)
+    assert "beta-skill" in out.stdout and "alpha-skill" not in out.stdout
+
+
+@pytest.mark.parametrize("args", [["--since", "nan"], ["--since", "-1"], ["--top", "-1"],
+                                  ["--projects", "/definitely/missing/dir"]])
+def test_cli_rejects_bad_arguments(args, tmp_path):
+    cmd = [sys.executable, str(HERE / "skill-stats.py")]
+    if "--projects" not in args:
+        cmd += ["--projects", str(tmp_path)]
+    out = subprocess.run(cmd + args, capture_output=True, text=True)
+    assert out.returncode == 2
+
+
+def test_script_is_executable():
+    assert os.access(HERE / "skill-stats.py", os.X_OK)

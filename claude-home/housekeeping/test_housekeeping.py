@@ -14,6 +14,7 @@ A test that stays green while the rule is broken is not a test.
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -418,6 +419,19 @@ class ClaudeStateRules(unittest.TestCase):
         self._touch("proj/memory/MEMORY.md", 400)  # never a candidate
         got = hk.select_old_transcripts(self.root, now, max_age_days=30)
         self.assertEqual(got, [old])
+
+    def test_transcript_age_follows_cleanup_period_days(self):
+        settings = self.root / "settings.json"
+        settings.write_text(json.dumps({"cleanupPeriodDays": 180}))
+        self.assertEqual(hk.transcript_max_age_days(settings), 180)
+
+    def test_transcript_age_falls_back_when_setting_unusable(self):
+        settings = self.root / "settings.json"
+        self.assertEqual(hk.transcript_max_age_days(settings), hk.TRANSCRIPT_FALLBACK_DAYS)
+        for bad in ('{"cleanupPeriodDays": 0}', '{"cleanupPeriodDays": "180"}',
+                    '{"cleanupPeriodDays": true}', "[1]", "{not json"):
+            settings.write_text(bad)
+            self.assertEqual(hk.transcript_max_age_days(settings), hk.TRANSCRIPT_FALLBACK_DAYS, bad)
 
     def test_trim_tail_keeps_last_lines_and_reports_freed(self):
         p = self.root / "history.jsonl"
