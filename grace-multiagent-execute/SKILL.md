@@ -65,6 +65,7 @@ Read `docs/development-plan.xml`, `docs/knowledge-graph.xml`, and `docs/verifica
 4. Choose the execution profile: `safe`, `balanced`, or `fast`
 5. For each wave, prepare a compact **execution packet** for every module containing:
     - module ID and purpose
+    - the path `~/.claude/skills/_code-quality/principles.md` — the worker reads it before coding (code principles, KISS and YAGNI first)
     - target file paths and exact write scope
     - module contract excerpt from `docs/development-plan.xml`
     - module graph entry excerpt from `docs/knowledge-graph.xml`

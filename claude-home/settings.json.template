@@ -375,6 +375,10 @@
           {
             "type": "command",
             "command": "{{CLAUDE_HOME}}/hooks/skill-finish-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/principles-inject.sh"
           }
         ]
       }

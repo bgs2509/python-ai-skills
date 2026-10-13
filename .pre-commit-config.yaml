@@ -36,6 +36,16 @@ repos:
         files: ^claude-home/hooks/
         pass_filenames: false
 
+      # _code-quality/principles.md is the only place a code principle is
+      # defined; the guard fails when a copy reappears in any markdown file or
+      # a consumer stops pointing to it (bd python-ai-skills-5io).
+      - id: principles-ssot
+        name: pytest (code principles single source of truth)
+        entry: python3 -m pytest claude-home/hooks/test_principles_ssot.py -q
+        language: system
+        files: (\.md$|^claude-home/hooks/principles-inject\.sh$)
+        pass_filenames: false
+
       # model-run.sh / model-stats.py drive real delegation and the journal;
       # they were shipped with tests that no gate collected until 2026-09-22.
       - id: scripts-regression-tests

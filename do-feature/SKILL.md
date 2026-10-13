@@ -47,7 +47,7 @@ Criteria:
 1. `strong` — ALL of:
    - ≥1 best-practice source cited (Context7 query result, official docs URL, existing project pattern with `file:line`, or industry ADR/standard)
    - `open_questions: []` (empty) in frontmatter
-   - Brainstorming/discovery converged to one dominant option (others have red flags from `_code-quality` or are explicitly rejected with reason)
+   - Brainstorming/discovery converged to one dominant option (others violate the code principles in `~/.claude/skills/_code-quality/principles.md` or are explicitly rejected with reason)
    - No new ADR-candidate detected on this step (no architectural fork)
 2. `weak` — any of the above missing
 
@@ -168,7 +168,7 @@ Step 3:  [USER APPROVAL] — FR/NFR/Scope
 Step 4:  BRAINSTORMING (brainstorming + ST + Context7 + Q&A if needed)
 Step 5:  [USER APPROVAL] — design
 Step 6:  GRACE ASK (grace-refresh + grace-ask)
-Step 7:  GRACE PLAN (grace-plan + Context7 + _code-quality + _logging)
+Step 7:  GRACE PLAN (grace-plan + Context7 + principles.md + _logging)
 Step 8:  Q&A CONTRACTS (analysis subagent + inline Q&A + _adr if significant)
 Step 9:  WRITING PLANS (writing-plans + self-review vs FR/NFR/verification)
 Step 10: [USER APPROVAL] — implementation plan

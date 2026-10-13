@@ -120,6 +120,14 @@
     <open_questions/>
     <context7_verified/>
   </Feature>
+  <Feature source="20261013-principles-ssot-design.md" bd_id="python-ai-skills-5io">
+    <feature>principles-ssot</feature>
+    <date>2026-10-13</date>
+    <status>approved</status>
+    <risk>medium</risk>
+    <open_questions/>
+    <context7_verified/>
+  </Feature>
   <Feature source="20261013-progress-watch-cost-design.md" bd_id="python-ai-skills-8of.2">
     <feature>progress-watch-cost</feature>
     <date>2026-10-13</date>

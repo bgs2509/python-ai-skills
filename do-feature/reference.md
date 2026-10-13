@@ -107,7 +107,9 @@ only their depth scales, per global rule "lightweight content per step"):
 
 3. **Phase 3 — Requirements Extraction** (sequential-thinking):
    - FR — what system MUST do
-   - NFR — performance, security, scalability, observability
+   - NFR — performance, security, scalability, observability. Every FR and NFR names its source
+     (the user's request, a measured risk, an existing contract); one without a source goes to LATER —
+     a best practice found by research is not a source on its own (YAGNI)
    - Constraints — what CANNOT change
    - Dependencies — what it affects, what it breaks
    - Risks — what could go wrong + mitigations
@@ -139,7 +141,7 @@ Present Discovery Report to user. Ask: "Approve FR/NFR and scope? (yes / changes
 
 **Process:**
 1. Subagent reviews Discovery Report and compiles remaining Open Questions → orchestrator resolves them with the user (one at a time, light Q&A)
-2. Subagent designs the solution with ST (2–3 architecture approaches, trade-offs) and returns options with a recommendation
+2. Subagent reads `~/.claude/skills/_code-quality/principles.md` and designs the solution with ST (2–3 architecture approaches, trade-offs) and returns options with a recommendation. KISS and YAGNI first: at least one approach is the smallest change that meets the approved FR/NFR, and every layer, option or abstraction beyond it names the requirement that needs it
 3. Orchestrator presents options to user inline, user chooses
 4. Re-dispatch: subagent details the chosen approach — data model sketch, API sketch, UX flow, module map
 5. Context7 — verify library APIs if involved (inside the subagent). Append each confirmed
@@ -182,13 +184,13 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
 
 **Dispatch:** per Model Routing Matrix.
 
-**Tools:** `grace-plan` + `Context7` + `_code-quality` + `_logging`
+**Tools:** `grace-plan` + `Context7` + `~/.claude/skills/_code-quality/principles.md` + `_logging`
 
 **Process:**
 1. `grace-plan` — creates/updates MODULE_CONTRACTs, knowledge-graph.xml, development-plan.xml, verification-plan.xml
 2. `Context7` — verify library APIs for contract INPUTS/OUTPUTS. Append each confirmed
    `library==version` to `design.md`'s `context7_verified:` frontmatter list (same key Step 4 writes).
-3. `_code-quality` — validate contracts against 17 principles
+3. Validate contracts against `~/.claude/skills/_code-quality/principles.md` — read the file; do not invoke the `_code-quality` skill (it forks into a subagent). A contract field, parameter or dependency no FR needs is removed
 4. `_logging` — plan log anchors in each contract (events, correlation IDs, decision points)
 
 **Output:**
@@ -234,6 +236,8 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
    - [ ] ADR decisions → implemented in plan
    - [ ] Task order respects DEPENDS
    - [ ] No placeholders (scan)
+   - [ ] Reverse traceability: every task, function, parameter and config key traces to a named FR, NFR or contract item — no trace, no task
+   - [ ] Excess-code check of `~/.claude/skills/_code-quality/principles.md` passes on the plan's GREEN code: the minimal implementation that makes each RED test pass, no speculative options, single-implementation abstractions or guards against states internal callers cannot produce
 
 **Output:**
 - `docs/superpowers/plans/YYYYMMDD-{feature}-plan.md` (SSoT for execution)
@@ -268,19 +272,19 @@ Present implementation plan. Ask: "Approve plan and start coding? (yes / changes
 When following an approved plan with pre-verified APIs — Context7 not required.
 
 **Advisory gate — deviation detection:**
-If any step diverges from the approved plan (new module not in plan, different approach than designed, unexpected dependency), the worker MUST NOT proceed silently and MUST NOT ask the user directly (it can't) — it pauses that step and returns the deviation to the controller. The controller classifies it via the risk × evidence matrix:
+If any step diverges from the approved plan (new module not in plan, different approach than designed, unexpected dependency, code beyond the plan's GREEN — an extra function, parameter, option or layer), the worker MUST NOT proceed silently and MUST NOT ask the user directly (it can't) — it pauses that step and returns the deviation to the controller. The controller classifies it via the risk × evidence matrix:
 - `low + strong` (e.g. rename within one module, add log anchor matching `_logging` rules) → auto-approve, one-line flag in commit body: `Deviation auto-approved: <reason>`.
 - `low + weak` → auto-approve + log open question.
 - `medium / high` → **always ask the user**, regardless of flag. Destructive deviations (delete module not in plan, change DB schema, drop API) are `high` by definition.
 
 **Process:**
-1. Controller reads plan, builds execution queue + ExecutionPackets, presents the queue (per grace-execute)
+1. Controller reads plan, builds execution queue + ExecutionPackets (each carries the path `~/.claude/skills/_code-quality/principles.md`), presents the queue (per grace-execute)
 2. Worker, for each step in its batch:
    - TDD cycle from the plan: RED → verify fail → GREEN → verify pass → REFACTOR
    - Context7 check on any of the 4 library triggers (see above)
    - Deviation check vs plan — return to controller if diverged
    - Implement log anchors per contract
-   - **Self-check against the packet (no extra dispatch):** matches contract? within write scope? log anchors present? tests pass?
+   - **Self-check against the packet (no extra dispatch):** matches contract? within write scope? log anchors present? tests pass? nothing beyond the plan's GREEN code (excess-code check of `~/.claude/skills/_code-quality/principles.md`)?
    - Commit: `<type>(<MODULE_ID>): <description>`
    - Return graph/verification delta proposals to the controller
 3. Controller, at each phase boundary: apply accumulated graph/verification deltas + dispatch a scoped `grace-reviewer` review of the phase
@@ -298,7 +302,7 @@ If any step diverges from the approved plan (new module not in plan, different a
 
 **Code review procedure (orchestrator, inline):**
 1. Create a throwaway tree at the reviewed commit: `git worktree add --detach <tmp>/review-wt HEAD` — the reviewer's Bash may write in its working directory, so only a separate tree guarantees the real one stays untouched.
-2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary).
+2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary), `{PRINCIPLES}` (the content of `~/.claude/skills/_code-quality/principles.md`, inlined — the external reviewer does not read `~/.claude`).
 3. From inside the worktree run `~/.claude/scripts/model-run.sh --role reviewer --task <task> --out <review.md> --expect '^(READY|READY WITH FIXES|NOT READY)$'` (runs up to 30 min; run it in the background and WAIT for it to finish before step 4 — removing the worktree under a running reviewer breaks the review). Exit 0 = a review was delivered to `<review.md>`; exit 1 = every reviewer failed (stop and tell the user); exit 2 = usage error. A codex reviewer's answer is its final message only (the runner's answer file), not its log.
 4. After the runner has exited: `git worktree remove --force <tmp>/review-wt` (always, whatever the exit code).
 5. If the journal line of the answering attempt names an Anthropic model, log it as a routing exception (`bd update <epic> --notes`).

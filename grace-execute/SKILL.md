@@ -34,6 +34,7 @@ When the optional `grace` CLI is available, `grace module show M-XXX --path <pro
 2. Within each phase, collect `step-N` elements in order
 3. Build a controller-owned execution packet for each step containing:
    - module ID and purpose
+   - the path `~/.claude/skills/_code-quality/principles.md` — the worker reads it before coding (code principles, KISS and YAGNI first)
    - target file paths and exact write scope
    - module contract excerpt from `docs/development-plan.xml`
    - module graph entry excerpt from `docs/knowledge-graph.xml`
@@ -62,6 +63,7 @@ Follow this protocol for the assigned module:
 - generate or update module-local tests inside the approved write scope
 - preserve or add stable log markers for the required critical branches
 - keep changes inside the approved write scope
+- write no code beyond what the contract and packet require; anything that fails the excess-code check of the principles file is removed before the step is reported
 - run module-local verification commands from the packet only
 - produce graph sync output or a graph delta proposal for the controller to apply, limited to public module interface changes
 - produce a verification delta proposal for test files, commands, markers, and phase follow-up notes

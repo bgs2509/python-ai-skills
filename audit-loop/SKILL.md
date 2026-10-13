@@ -234,7 +234,7 @@ If hooks fail — these are the **first issues** for the round, surfaced before 
 
 ### Step 2. Run codex
 
-Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Pass via heredoc to `codex exec -s read-only --cd "$PWD"`. Save exit code, stderr, log path to `state.json.rounds[N]`.
+Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Set `PRINCIPLES="$(cat ~/.claude/skills/_code-quality/principles.md)"` first — codex does not read `~/.claude`, so the file content goes into the prompt — then pass it via heredoc to `codex exec -s read-only --cd "$PWD"`. Save exit code, stderr, log path to `state.json.rounds[N]`.
 
 ### Step 3. Codex output validation + parse
 
@@ -366,15 +366,10 @@ Write `docs/reports/YYYYMMDD_audit-loop.md` per template in `reference/final-rep
 
 ## Principles (gate, not aspiration)
 
-Blocking for any decision in the cycle:
-
-1. **DRY** — repetition in N places → single solution, not N local fixes
-2. **KISS** — function >50 lines / nesting >4 → critical
-3. **SSoT** — two places of one truth → critical, unify
-4. **SRP** — class >500 lines / mixed concerns → critical
-5. **SOTA** — every library/pattern → Context7 evidence or confidence ≤60%
-
-See `_code-quality` skill (17 principles) — invoked explicitly when evaluating findings.
+Blocking for any decision in the cycle: the principles in `~/.claude/skills/_code-quality/principles.md`
+(the single source of truth — read it, do not restate it). KISS and YAGNI first; any violation of that
+file, including its excess-code check, is `critical`. A fix that adds code where deleting code would do
+violates it too.
 
 ## Constraints
 

@@ -141,11 +141,7 @@ Task description: `$ARGUMENTS`
    - For error handling: read `_error-handling/SKILL.md` — AppException hierarchy
    - For logging: read `_logging/SKILL.md` — structlog, Log-Driven Design
 2. Follow the plan from Phase 3
-3. Apply _code-quality principles throughout:
-   - Functions <=50 lines, nesting <=4
-   - Type hints on all public interfaces
-   - snake_case naming, descriptive names
-   - No duplicated logic (DRY)
+3. Apply the code principles in `~/.claude/skills/_code-quality/principles.md` throughout — KISS and YAGNI first; run its excess-code check before reporting
 4. Output: summary of created/modified files
 
 ---

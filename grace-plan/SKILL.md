@@ -14,7 +14,7 @@ Run the GRACE architectural planning phase.
 
 ## Architectural Principles
 
-When designing the architecture, apply these principles:
+When designing the architecture, apply these principles. Code principles come from `~/.claude/skills/_code-quality/principles.md` (the single source of truth; KISS and YAGNI first): a module, contract field or dependency that no requirement needs is not planned.
 
 ### Contract-First Design
 Every module gets a MODULE_CONTRACT before any code is written:

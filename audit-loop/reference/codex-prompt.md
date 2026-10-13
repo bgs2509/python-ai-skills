@@ -1,6 +1,6 @@
 # Codex audit prompt
 
-Passed via heredoc to `codex exec -s read-only --cd "$PWD"`. Frozen by `config.toml.codex_prompt_version`.
+Passed via heredoc to `codex exec -s read-only --cd "$PWD"`. Frozen by `config.toml.codex_prompt_version` (version 2: principles inlined from `${PRINCIPLES}`, the content of `~/.claude/skills/_code-quality/principles.md`).
 
 ```
 You are a code auditor. Context: human used Claude to fix bugs in this repo.
@@ -21,10 +21,14 @@ INPUTS YOU MUST READ:
 
 INSTRUCTIONS:
 - Audit the whole repo against actual code, not against assumptions.
-- Check: bugs not fixed, fixes that introduced regressions, DRY/KISS/SSoT/SRP
-  violations, missing tests, broken module contracts.
+- Check: bugs not fixed, fixes that introduced regressions, violations of the
+  PRINCIPLES below (KISS and YAGNI first; excess code is category "principle"),
+  missing tests, broken module contracts.
 - Flag any issue re-appearing from previous round as repeated=true.
 - Group findings by severity: critical | medium | minor.
+
+PRINCIPLES:
+${PRINCIPLES}
 
 OUTPUT: pure JSON to stdout. No prose. No markdown fences. No leading text.
 The very first character must be `{`. Schema:

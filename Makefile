@@ -18,6 +18,8 @@ test:
 	                   claude-home/hooks/test_delegation_pool_nudge.py \
 	                   claude-home/hooks/test_git_finish_router.py \
 	                   claude-home/hooks/test_skill_finish_guard.py \
+	                   claude-home/hooks/test_principles_inject.py \
+	                   claude-home/hooks/test_principles_ssot.py \
 	                   claude-home/housekeeping/test_housekeeping.py \
 	                   claude-home/scripts/test_model_run.py \
 	                   claude-home/scripts/test_model_stats.py \

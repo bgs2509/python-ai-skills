@@ -10,12 +10,14 @@ You are an expert Python code reviewer. Your task is to review code for quality,
 
 ## Critical Rules (ALWAYS apply)
 
-### Top-5 Checks
-1. **DRY + SSoT** — no copy-paste. Config in one place, exceptions in one place, logging in one place
-2. **KISS** — functions <=50 lines, nesting <=4, cyclomatic complexity <10. Simplicity > brevity
-3. **Fail Fast** — validate at entry (guard clauses, Pydantic). `except: pass` and `except Exception` without logging = BLOCKER
-4. **AppException hierarchy** — inherit from AppException, not bare Exception. Single exception handler (middleware)
-5. **No print()** — only structlog/logging. Secrets (password, token, api_key) must be masked in logs
+### Principles
+Read `~/.claude/skills/_code-quality/principles.md` first — the single source of truth for the
+principles. KISS and YAGNI first: run its excess-code check (deletion, trace, boundary tests) on
+every file; excess code is a BLOCKER.
+
+### Project-standard checks
+1. **AppException hierarchy** — inherit from AppException, not bare Exception. Single exception handler (middleware)
+2. **No print()** — only structlog/logging. Secrets (password, token, api_key) must be masked in logs
 
 ### Severity Levels
 - **BLOCKER**: Must fix (bare except, security issue, DRY violation, no type hints on public API)
@@ -31,7 +33,7 @@ You are an expert Python code reviewer. Your task is to review code for quality,
 5. Check linter compliance (Ruff, Mypy, naming conventions — snake_case, descriptive names)
 6. Assign confidence score (0-100) to each finding — only report findings with confidence >=80
 
-> **Principle details (read as needed):** `_code-quality/SKILL.md`, `_error-handling/SKILL.md`, `_linters/SKILL.md`, `_logging/SKILL.md`
+> **Topic details (read as needed):** `_error-handling/SKILL.md`, `_linters/SKILL.md`, `_logging/SKILL.md`
 
 ## Mandatory Output File
 
@@ -53,7 +55,7 @@ Create file `docs/reports/QUALITY-NNN-{name}.md` (NNN = TASK number).
 | Rule | Status | Rationale |
 |------|--------|-----------|
 | DRY / SSoT | [PASS]/[FAIL] | {1 sentence} |
-| KISS (<=50 lines, nesting <=4) | [PASS]/[FAIL] | {1 sentence} |
+| KISS | [PASS]/[FAIL] | {1 sentence} |
 | YAGNI | [PASS]/[FAIL] | {1 sentence} |
 | SOLID (SRP, OCP, DIP) | [PASS]/[FAIL] | {1 sentence} |
 | Fail Fast | [PASS]/[FAIL] | {1 sentence} |

@@ -218,21 +218,19 @@ Real secrets in any of these files = policy violation regardless of name.
 
 ## Preferences
 
-**Rule:** Prefer simple over complex. Three similar lines > premature abstraction.
+**Rule:** Code principles (KISS, YAGNI, SSoT/DRY, SOTA first, then the rest of the 17) are defined only in `~/.claude/skills/_code-quality/principles.md`. Read it before planning, writing or reviewing code and run its excess-code check on every plan and diff; never restate a principle in another file. `~/.claude/hooks/principles-inject.sh` injects it into code-related skills.
 
 **Rule:** SSoT (Single Source of Truth): every fact has exactly one authoritative location. Duplication creates drift.
 
 **Rule:** Do NOT create unnecessary files, folders, or structures outside of what `do-feature` explicitly requires for dev-projects.
 
-**Rule:** Don't design for hypothetical future requirements. No half-finished implementations.
+**Rule:** No half-finished implementations.
 
 **Rule:** Prefer editing existing files over creating new ones.
 
 **Rule:** Match scope to request — don't bundle refactor with bug fix, don't add features not explicitly requested.
 
 **Rule:** Evidence before assertions — verify before claiming work complete (run tests, check output, don't assume).
-
-**Rule:** Fail-Fast — validate at boundaries (user input, external APIs). Trust internal code; don't over-guard.
 
 **Rule:** When delegating to subagents that produce artifacts (files, commits, configs) — subagent's textual summary is **never** sufficient evidence of correctness. Before reporting work as done, the parent agent MUST run at least one **objective check** that does not depend on the subagent's claims:
 - Code changes → `git diff` + run actual validator (linter, tests, schema check)
@@ -243,7 +241,7 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Rule:** After **bulk auto-edits** (scripts that touch many files in one shot — codemods, header inserters, sed/regex passes, generated migrations) run the **full project quality gate** before declaring done, not only the check you were fixing. Minimum: `make lint` (or equivalent: ruff/format/mypy/eslint), the project's domain validator (`grace lint`, schema check, etc.) AND tests.
 
-**Rule:** No backwards-compat hacks for internal code — delete unused vars/functions/imports, don't add "removed" comments.
+**Rule:** Don't add "removed" comments for deleted code.
 
 **Rule:** Prefer declarative (Pydantic schema, SQLAlchemy ORM, type hints) over imperative checks where language allows.
 

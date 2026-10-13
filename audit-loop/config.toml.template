@@ -14,4 +14,4 @@ round_hard_pause_seconds = 10800  # 180min — auto-pause round
 codex_heartbeat_seconds = 15
 
 [prompt]
-codex_prompt_version = 1          # frozen on R1, must match on subsequent rounds
+codex_prompt_version = 2          # frozen on R1, must match on subsequent rounds
