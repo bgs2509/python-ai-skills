@@ -63,6 +63,17 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
 
 - Claude Code CLI installed (`claude --version`)
 - Git installed (`git --version`)
+- **A non-root user.** The rendered `settings.json` sets
+  `permissions.defaultMode: bypassPermissions`, and Claude Code refuses to start
+  in that mode as `root` ("--dangerously-skip-permissions cannot be used with
+  root/sudo privileges"). On a fresh VPS create a regular user first and install
+  everything under it.
+- Tools the hooks, the sandbox and the skills call, on `PATH` for that user:
+  `make`, `python3`, `jq`, `bubblewrap` + `socat` (Linux sandbox), `gitleaks`,
+  `rtk` (`rtk-ai/rtk`), `bd` (`@beads/bd`), `dolt`, `node`/`npx` (MCP servers),
+  `uv` + `pre-commit`, `bun` + `grace` (`@osovv/grace-cli`).
+- An SSH key the user can reach GitHub with — `bd` syncs issues through
+  `git+ssh` remotes, and a clone without it shows empty issue databases.
 
 ### Steps
 
@@ -92,7 +103,28 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
    hand edits — change them through `/model` and `claude plugin enable`, not by
    editing files.
 
-3. **Restart Claude Code**
+   On a machine where Claude Code already wrote its own `settings.json` (no
+   previous render to compare against), the drift guard stops the first run.
+   Back the file up and use `make install-symlinks-force` once.
+
+3. **Set up what the installer does not carry** — all machine-local:
+
+   - Plugins: `claude plugin marketplace add anthropics/claude-plugins-official`,
+     then `claude plugin install superpowers@claude-plugins-official --scope user`.
+   - MCP servers: `claude mcp add -s user ...` for each server listed by
+     `claude mcp list` on an existing machine.
+   - Project memory: copy `~/.claude/projects/<key>/memory/` per project; the
+     key is the project's absolute path with every non-alphanumeric character
+     replaced by `-`, so it changes when the path does.
+   - Issue databases: `bd bootstrap` in every clone that has `.beads/`. Run
+     `bd dolt push` on the source machine first. If bootstrap reports pending
+     schema migrations on a remote-backed database, migrate on exactly one
+     machine (`BD_ALLOW_REMOTE_MIGRATE=1 bd migrate`, then `bd dolt push`) and
+     bootstrap everywhere else.
+   - Secrets (`~/.config/zai/glm.env`, `~/.codex/auth.json`, ...): only where
+     that pool is used; never through git.
+
+4. **Restart Claude Code**
 
    ```bash
    exit

@@ -87,7 +87,7 @@ project_type: dev
 This repo is the **SSoT** for the global Claude config. `~/.claude` links back via symlinks — there is no plugin install step.
 
 - Bootstrap / after structural changes: `make install-symlinks` (idempotent, safe to re-run).
-- New machine: clone the repo, then `make install-symlinks`.
+- New machine: clone the repo, then `make install-symlinks` — as a **non-root** user (`bypassPermissions` refuses root). Prerequisites and what the installer does not carry (plugins, MCP servers, project memory, `bd bootstrap`): `README.md` → Installation.
 - Cross-machine sync: `/project-sync` (code via GitHub) + re-run the installer on each machine to regenerate links.
 - `settings.json` is **rendered** from `claude-home/settings.json.template` (it needs absolute per-machine hook paths, so it is generated, not symlinked). `extraKnownMarketplaces` lives in `~/.claude/settings.local.json` — never committed, deep-merged by Claude on top. `hooks/` and `scripts/` are symlinked like everything else.
 - **Runtime-owned keys.** `model` (written by `/model`) and `enabledPlugins` (written by `claude plugin enable` — it targets `settings.json`, and the copy in `settings.local.json` is ignored) are carried over from the live file on every render and masked in the drift guard. Do not put them in the template; do not hand-edit them.
