@@ -325,6 +325,7 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
   real first request); which skills are invoked by the model vs only by slash.
 - **To research online:** `/skill-doctor` and `skillOverrides` docs (exact syntax, Codex effect).
 - **Acceptance:** routing tests (the repo's hook regression suite / TRIGGER checks) pass.
+- **Done (2026-10-13):** `skillOverrides` `name-only` for the 29 repo skills never invoked in 35 days (`_init` already hidden), bd `python-ai-skills-8of.3`. Measured with `/context`: Skills 10k → 9.6k tokens. The earlier estimate (21.8k chars ≈ 5k tokens) was wrong — Claude Code lists shortened descriptions, 20-380 tokens per repo skill, and about half the listing is built-in and plugin skills. Real saving ≈ 0.4k tokens per request (~1 % of the fresh-session baseline).
 - **Decision (2026-10-13):** Do it: `name-only` (via `skillOverrides`) for slash-only skills — `do-autopilot`, `do-multiagent`, `full-audit`, `audit-loop`, unused `_*`; shorten descriptions over ~600 chars.
 - **Still open:** Measure the real listing size including plugin and built-in skills (part of 2h).
 
@@ -356,6 +357,7 @@ changes behaviour on a fixed task set; instructions are followed, so every rule 
 - **To clarify in the project:** run `/context` in a fresh session; which MCP servers each project uses.
 - **To research online:** Claude Code docs on deferred tools and per-project MCP scoping.
 - **Acceptance:** baseline tokens of a fresh session measured before and after.
+- **Measured (2026-10-13, `claude -p "/context"` in this repo, after the `ai-steward/CLAUDE.md` removal):** ~43k tokens before the first message — memory files 24.8k (global `CLAUDE.md` 16.4k, `python-ai-skills/CLAUDE.md` 5.2k, `RTK.md` 1.6k), deferred system tools 14.5k, skills 9.6k, MCP 4.7k, system prompt 2.4k. Transcripts show a 70.6k median first request in interactive sessions; the gap is likely SessionStart hook output (superpowers, `bd prime`) — hypothesis, not yet measured. Conclusion: the global `CLAUDE.md` is the single largest controllable item (step 2a/2b).
 - **Decision (2026-10-13):** add as a step-2 item; measure first.
 - **Still open:** the breakdown itself.
 

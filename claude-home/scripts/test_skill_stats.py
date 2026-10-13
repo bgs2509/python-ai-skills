@@ -396,3 +396,15 @@ def test_cli_rejects_bad_arguments(args, tmp_path):
 
 def test_script_is_executable():
     assert os.access(HERE / "skill-stats.py", os.X_OK)
+
+
+def test_template_skill_overrides_name_existing_repo_skills():
+    template = json.loads((HERE.parent / "settings.json.template").read_text())
+    overrides = template["skillOverrides"]
+    repo = HERE.parent.parent
+    assert len(overrides) >= 20
+    for name, state in overrides.items():
+        assert (repo / name / "SKILL.md").is_file(), name
+        assert state == "name-only", name
+    for kept in ("do-feature", "best-questions", "git-finish", "progress-watch"):
+        assert kept not in overrides
