@@ -150,7 +150,13 @@ def main() -> int:
         print()
 
     print(f"{C['CYN']}{bar}{C['RESET']}")
-    if required_fail == 0:
+    # A skipped required check keeps exit 0 (user decision 2026-10-14) but is named here.
+    required_skip = [r["id"] for r in skip_ if r["id"] in SEVERITY]
+    if required_fail == 0 and required_skip:
+        print(f"  {C['YEL']}{C['BOLD']}Exit 0 — no required failures; "
+              f"{len(required_skip)} required check(s) SKIPPED:{C['RESET']}")
+        print(f"    {C['YEL']}{', '.join(required_skip)}{C['RESET']}")
+    elif required_fail == 0:
         print(f"  {C['GRN']}{C['BOLD']}Exit 0 — all required checks PASS{C['RESET']}")
     else:
         print(f"  {C['RED']}{C['BOLD']}Exit 1 — {required_fail} required failure(s){C['RESET']}")
