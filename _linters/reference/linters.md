@@ -102,9 +102,9 @@ ignore_decorators = ["@app.*", "@dp.*", "@pytest.fixture", "@pytest_asyncio.fixt
 # pytest and pydantic magic names; BaseHTTPRequestHandler overrides.
 ignore_names = ["pytestmark", "model_config", "do_*", "log_message"]
 
-# The whitelist is bare names by design; without this Ruff fails it (F821, B018).
+# The whitelist is bare names with long path comments; Ruff fails it otherwise (F821, B018, E501).
 [tool.ruff.lint.per-file-ignores]
-"vulture_whitelist.py" = ["F821", "B018"]
+"vulture_whitelist.py" = ["F821", "B018", "E501"]
 ```
 
 `tests` is in `paths` on purpose: code a test calls is not excess by the deletion test. Every
