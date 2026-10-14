@@ -19,6 +19,7 @@ description: >
 | Ruff | Linting + formatting | Required |
 | Mypy | Static typing | Required |
 | Bandit | Security analysis | Recommended |
+| Vulture | Dead code (`min_confidence = 60`) | Required |
 | Pre-commit | Local hooks | Required |
 | Gitleaks | Secret detection | Required |
 
@@ -30,6 +31,7 @@ ruff check --fix .        # Autofix
 ruff format .             # Format
 mypy src/                 # Types
 bandit -r src/ -ll        # Security
+vulture                   # Dead code (reads [tool.vulture])
 make ci                   # All checks
 ```
 
@@ -43,7 +45,7 @@ Fast checks first — saves time when errors occur.
 
 ## Pre-commit Hooks
 
-Security: gitleaks + detect-secrets. Python: ruff + mypy. General: check-yaml, check-json, no-commit-to-branch.
+Security: gitleaks + detect-secrets. Python: ruff + mypy + vulture (existing project: commit a reviewed `vulture_whitelist.py` baseline first). General: check-yaml, check-json, no-commit-to-branch.
 
 Full configuration: see [reference/linters.md](reference/linters.md)
 CI/CD pipeline: see [reference/ci-cd.md](reference/ci-cd.md)

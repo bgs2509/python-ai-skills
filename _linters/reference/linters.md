@@ -81,6 +81,52 @@ bandit -r src/ -ll        # Check (low + medium + high)
 
 ---
 
+## Vulture — Dead Code
+
+Makes the deletion test of `_code-quality/principles.md` mechanical: a commit that leaves an
+unused function, class, method, attribute or variable is refused.
+
+Vulture scores unused functions, classes, methods, attributes and variables at 60% confidence
+(imports 90%, arguments and unreachable code 100%), so `min_confidence` above 60 never reports
+an unused function. Vulture needs the whole codebase to decide what is unused, so the hook takes
+its targets from `paths`, not from the staged files.
+
+### Configuration (`pyproject.toml`)
+
+```toml
+[tool.vulture]
+paths = ["src", "tests", "vulture_whitelist.py"]
+min_confidence = 60
+# Code a framework calls by itself: route and bot handlers, fixtures, validators.
+ignore_decorators = ["@app.*", "@dp.*", "@pytest.fixture", "@pytest_asyncio.fixture", "@field_validator", "@model_validator"]
+# pytest and pydantic magic names; BaseHTTPRequestHandler overrides.
+ignore_names = ["pytestmark", "model_config", "do_*", "log_message"]
+```
+
+`tests` is in `paths` on purpose: code a test calls is not excess by the deletion test.
+
+### Adopting it in an existing project
+
+An existing project fails the first run: model fields, mock attributes and unused arguments
+remain after the ignores above (3, 25 and 50 findings in three dev projects, 2026-10-14). Record
+them once as a reviewed baseline, so only new dead code blocks a commit:
+
+```bash
+touch vulture_whitelist.py                      # listed in paths, must exist
+vulture --make-whitelist > vulture_whitelist.py # exits 3 while it lists findings; the file is written
+```
+
+Read the generated file before committing it: delete real dead code instead of whitelisting it.
+
+### Commands
+
+```bash
+vulture                   # Check (reads [tool.vulture])
+vulture --make-whitelist  # Print current findings as whitelist entries
+```
+
+---
+
 ## Pre-commit Hooks
 
 Automatic checks before every commit. Installation: `pip install pre-commit && pre-commit install`.
@@ -128,6 +174,12 @@ Automatic checks before every commit. Installation: `pip install pre-commit && p
       additional_dependencies: [pydantic, pydantic-settings, fastapi, structlog]
       args: ["--ignore-missing-imports"]
       files: ^src/.*\.py$
+
+# Vulture — dead code; targets come from [tool.vulture] paths (see "Vulture — Dead Code")
+- repo: https://github.com/jendrikseipp/vulture
+  rev: v2.16
+  hooks:
+    - id: vulture
 ```
 
 ### General Checks
@@ -202,8 +254,11 @@ format-check:   ## Check formatting
 type-check:     ## Type checking
 	mypy src/
 
+dead-code:      ## Find unused code
+	vulture
+
 ci:             ## Run all checks locally
-	ruff check . && ruff format . --check && mypy src/ && pytest --cov=src --cov-fail-under=90
+	ruff check . && ruff format . --check && mypy src/ && vulture && pytest --cov=src --cov-fail-under=90
 ```
 
 ---
@@ -215,6 +270,7 @@ ci:             ## Run all checks locally
 | Ruff | Linting + formatting | `[tool.ruff]` | Mandatory |
 | Mypy | Static typing | `[tool.mypy]` | Mandatory |
 | Bandit | Security analysis | — | Recommended |
+| Vulture | Dead code | `[tool.vulture]` | Mandatory |
 | Pre-commit | Local hooks | `.pre-commit-config.yaml` | Mandatory |
 | Gitleaks | Secret detection | In pre-commit | Mandatory |
 | Hadolint | Dockerfile linting | In pre-commit | Recommended |
