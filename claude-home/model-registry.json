@@ -10,7 +10,7 @@
     "measured_seconds = ~2k-token single prompt incl. CLI startup (passport). Multi-turn tool/web tasks take far longer: read model-stats.py, not this field."
   ],
   "version": 2,
-  "updated": "2026-10-13",
+  "updated": "2026-10-14",
   "source": "docs/research/model-passports-2026-09.md",
   "capabilities_source": "bd python-ai-skills-2fu comment 2026-09-24: real runs of all ten models, web search checked by a live PyPI query.",
 
@@ -47,6 +47,12 @@
       "purpose": "REFERENCE ONLY — not dispatched by model-run.sh. The orchestrator is the main session, chosen by a human via /model at session start; a session cannot re-pick its own model from inside itself.",
       "order_rationale": "Listed so the choice is informed, not automated. A whole session can run on an external pool — `claude-glm` (no /model switch needed, the wrapper remaps tiers) or the Codex CLI — which is why they are listed first: the cheapest orchestrator you are willing to accept should be the default choice at session start. Note a session on claude-glm loses the four claude.ai connectors (Docs, Gmail, Calendar, Drive); the seven local MCP servers keep working.",
       "models": ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]
+    },
+    "cross-auditor": {
+      "dispatch": false,
+      "purpose": "REFERENCE ONLY — not dispatched by model-run.sh. audit-loop runs its own long `codex exec` under Monitor and reads model_arg/effort of models[0] from here, so a change of the global ~/.codex/config.toml default cannot silently alter audit behaviour. models[0] must have runner codex.",
+      "order_rationale": "Measured 2026-09-22 (docs/research/model-passports-2026-09.md, P4): the inherited ~/.codex/config.toml default sol/high took 25.6 s, the slowest Codex position; terra/high 13.3 s on the same prompt. No fallback: audit-loop is a Codex-only cross-review by design.",
+      "models": ["gpt-terra-high"]
     }
   },
 

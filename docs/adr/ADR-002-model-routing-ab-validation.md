@@ -38,9 +38,10 @@ and escalation rule cite `ADR-002` instead of restating numbers.
 ## Consequences
 - Easier: SKILL.md is lighter and load-bearing only; evidence has one home.
 - Limitation: the A/B was run 2026-05-13 against the Opus/Sonnet/Haiku lineup and
-  predates the Claude 5 family (Fable). The matrix has NOT been revalidated against
-  Claude 5 models — this is a known follow-up (medium finding, audit round 2). Until
-  revalidation, the matrix remains the SSoT for routing.
+  predates the Claude 5 family (Fable). Latency and capacity were revalidated against
+  Claude 5 on 2026-09-22 and quality was not (see the amendment below); the
+  token/request re-measure of `python-ai-skills-8of.8` is due on or after 2026-10-20.
+  The matrix remains the SSoT for routing.
 
 ## Amendment 2026-09-22 — latency and capacity revalidated, quality not
 

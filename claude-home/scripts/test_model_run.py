@@ -809,12 +809,14 @@ def test_reference_only_role_is_refused(env):
     assert journal_lines(env) == []
 
 
-def test_shipped_orchestrator_role_is_reference_only():
+def test_shipped_reference_only_roles_are_exactly_the_declared_ones():
     shipped = json.loads((SCRIPT.resolve().parent.parent / "model-registry.json").read_text())
-    assert shipped["roles"]["orchestrator"]["dispatch"] is False
+    reference_only = {"orchestrator", "cross-auditor"}
     for name, role in shipped["roles"].items():
-        if name != "orchestrator":
-            assert role.get("dispatch", True) is True, name
+        assert role.get("dispatch", True) is (name not in reference_only), name
+    # audit-loop builds its own `codex exec` from this entry.
+    first = shipped["roles"]["cross-auditor"]["models"][0]
+    assert shipped["models"][first]["runner"] == "codex"
 
 
 @pytest.mark.parametrize("flag", ["--role", "--task", "--out", "--expect"])

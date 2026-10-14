@@ -135,9 +135,9 @@ On failure:       `✗ R{N}/5 · {step-name} · FAILED: {reason}`
 
 Codex may run 2–10 minutes. Run it via background + Monitor, NOT synchronously:
 
-1. Start with `Bash run_in_background=true`:
+1. Start with `Bash run_in_background=true` (`$CODEX_MODEL_ARGS` is set in Step 2 from the registry):
    ```bash
-   codex exec -s read-only --cd "$PWD" "$PROMPT" \
+   codex exec -s read-only --cd "$PWD" $CODEX_MODEL_ARGS "$PROMPT" \
      > docs/audit-loop/round-${N}.codex.log 2>&1
    ```
 2. Open `Monitor` on `docs/audit-loop/round-${N}.codex.log`.
@@ -234,7 +234,16 @@ If hooks fail — these are the **first issues** for the round, surfaced before 
 
 ### Step 2. Run codex
 
-Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Set `PRINCIPLES="$(cat ~/.claude/skills/_code-quality/principles.md)"` first — codex does not read `~/.claude`, so the file content goes into the prompt — then pass it via heredoc to `codex exec -s read-only --cd "$PWD"`. Save exit code, stderr, log path to `state.json.rounds[N]`.
+The skill pins its own Codex model so a change of the global `~/.codex/config.toml` default cannot silently alter audit behaviour. Model and effort come from the registry role `cross-auditor` (never restate them here):
+
+```bash
+REG=~/.claude/model-registry.json
+SPEC=$(jq -c '.models[.roles["cross-auditor"].models[0]]' "$REG")
+[ "$(jq -r '.runner' <<<"$SPEC")" = codex ] || { echo "ERROR: cross-auditor models[0] is not a codex model"; exit 1; }
+CODEX_MODEL_ARGS="-m $(jq -r '.model_arg' <<<"$SPEC") -c model_reasoning_effort=$(jq -r '.effort' <<<"$SPEC")"
+```
+
+Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Set `PRINCIPLES="$(cat ~/.claude/skills/_code-quality/principles.md)"` first — codex does not read `~/.claude`, so the file content goes into the prompt — then pass it via heredoc to `codex exec -s read-only --cd "$PWD" $CODEX_MODEL_ARGS`. Save exit code, stderr, log path to `state.json.rounds[N]`.
 
 ### Step 3. Codex output validation + parse
 
