@@ -165,7 +165,7 @@
 
 **Rule:** Slow checks (full pytest, integration, e2e) belong in CI/Makefile targets, not in commit-time hooks.
 
-**Rule (verification):** Never use `diff` to confirm a gate, a render, or file parity — the RTK hook rewrites it and `rtk diff` may report differing files as identical while always exiting 0. Use `cmp` or `rtk proxy diff` (see `RTK.md`).
+**Rule (verification):** Never use `diff` to confirm a gate, a render, or file parity — the RTK hook rewrites it and `rtk diff` may report differing files as identical while always exiting 0. Use `cmp` or `rtk proxy diff` (see "RTK — Rust Token Killer" below).
 
 **Rule:** How new and adopted repos get the bootstrap hook: `~/.claude/CLAUDE-APPENDIX.md` → "Pre-commit — template mechanics".
 
@@ -275,4 +275,71 @@ If the subagent claims "X passes" — run X yourself. Trust = 0%.
 
 **Triggers to update:** new skill/plugin added, workflow changed, new project type, team/tooling change.
 
-@RTK.md
+## Python Development (dev-projects)
+
+- Python 3.11+, `uv` (or `pip`), Linux (Ubuntu). 4-space indents, type hints, code comments in English.
+- Tests: `pytest`, TDD (RED → GREEN → REFACTOR) — no production code without a failing test.
+- Docs: no `README.md` unless asked; document only non-obvious logic.
+- Performance: no premature optimisation; profile before optimising.
+- Dependencies: production pins only with `==` (never `>=`, `~=`, `^`); after adding or bumping one, check `uv.lock` matches exactly; no needless dependencies; update regularly for security; keep Docker images small.
+
+## RTK — Rust Token Killer
+
+Token-optimized CLI proxy (60-90% savings on dev operations). A Claude Code hook rewrites commands transparently (`git status` → `rtk git status`); Codex has no such hook.
+
+```bash
+rtk gain              # Show token savings analytics
+rtk gain --history    # Show command usage history with savings
+rtk discover          # Analyze Claude Code history for missed opportunities
+rtk proxy <cmd>       # Execute raw command without filtering (for debugging)
+rtk --version         # Should show: rtk X.Y.Z; `which rtk` verifies the binary
+```
+
+⚠️ **Name collision**: if `rtk gain` fails, you may have reachingforthejack/rtk (Rust Type Kit) installed instead.
+
+### `rtk diff` — implementation trait (NOT a bug)
+
+`rtk diff` is a token-optimized condenser, not a verification tool — by design:
+- it MAY report "Files are identical" for files that do differ (observed on a 1-line JSON change)
+- it ALWAYS exits 0, even when differences are printed
+
+Since the hook rewrites `diff` → `rtk diff`, plain `diff` inherits both traits.
+**Never use `diff` as a verification gate.** For byte-exact comparison use `cmp file_a file_b` (exit 1 on difference, not rewritten) or `rtk proxy diff a b` (native diff, unfiltered).
+
+### `rtk find` — excluded from rewriting (false empty results)
+
+`rtk find` skips files that `.gitignore` hides and directories listed in rtk's
+`[filters].ignore_dirs` (`.venv`, `node_modules`, `target`, `vendor`, ...), and it
+still **exits 0** — so "nothing found" may be false. Verified 2026-09-24 (rtk 0.35.0):
+in a repo with `a/` in `.gitignore`, `rtk find . -name '*syn*'` listed 1 of 2 files;
+`rtk find . -name pyvenv.cfg` answered `0 for 'pyvenv.cfg'` next to an existing
+`.venv/pyvenv.cfg`. In Sinayara-Isuzu this produced a wrong "snapshot never downloaded"
+conclusion (bd `python-ai-skills-abh`).
+
+**Fix in place:** `find` is listed in `[hooks] exclude_commands` of
+`claude-home/rtk/config.toml` (linked to `~/.config/rtk/config.toml` by
+`make install-symlinks`), so the hook leaves `find` native. Rules:
+
+- An empty result from `rtk find` (typed explicitly) is **not** evidence of absence.
+- Plain `find` is native again; `rtk proxy find ...` is equivalent.
+
+Checked and **not** affected on the same fixture: `rtk grep` (lists gitignored and
+`.venv` matches), `rtk ls`, `rtk read` (`cat`), `rtk wc`. `rtk tree` hides dot-dirs
+such as `.venv` exactly like native `tree` without `-a`.
+
+### `git` — excluded from rewriting (sandbox exclusion)
+
+`sandbox.excludedCommands` lists `git *`, so a plain `git ...` call runs outside the
+Bash sandbox — where it can read GitHub credentials and does not see sandbox mount
+points (`.bashrc`, `.mcp.json`, `.claude/skills`, ...) as untracked files. The harness
+matches that list against the command text it runs, so a rewritten `rtk git ...` would
+stay inside the sandbox. `git` is therefore in `[hooks] exclude_commands` of
+`claude-home/rtk/config.toml`. Verified 2026-10-13: rewritten `git status` listed 20
+phantom paths; after the exclusion it listed none, and `git fetch` reached GitHub
+(bd `python-ai-skills-6wj`). This also removes the earlier conflict in worktree-isolated
+sessions, where the harness refused `rtk git ...` outright.
+
+Calls that still run sandboxed even with the exclusion (sandboxing docs, `excludedCommands`):
+a pipe or chain with any non-git command (`git log | head`, `git add x && git commit`),
+a `cd` or `git -C <dir>` (verified 2026-10-13), a redirect to a file, `$(...)`, and an absolute path such as `/usr/bin/git`.
+Run git as a standalone call; never stage untracked paths that only such a call shows.

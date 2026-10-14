@@ -61,7 +61,11 @@ done
 echo "[global instructions]"
 link "$REPO/claude-home/CLAUDE.md"          "$CLAUDE_HOME/CLAUDE.md"
 link "$REPO/claude-home/CLAUDE-APPENDIX.md" "$CLAUDE_HOME/CLAUDE-APPENDIX.md"
-link "$REPO/claude-home/RTK.md"             "$CLAUDE_HOME/RTK.md"
+# RTK.md and rules/ were folded into CLAUDE.md: Codex reads ~/.codex/AGENTS.md
+# as one file, without @-imports or rules/. Drop their now-dangling links.
+for l in "$CLAUDE_HOME/RTK.md" "$CLAUDE_HOME/rules"; do
+  if [ -L "$l" ] && [ ! -e "$l" ]; then rm -f "$l"; echo "  removed dangling $l"; fi
+done
 # AGENTS.md mirrors CLAUDE.md (Codex/cross-tool discovery)
 ln -sfn "CLAUDE.md" "$CLAUDE_HOME/AGENTS.md"; echo "  $CLAUDE_HOME/AGENTS.md -> CLAUDE.md"
 
@@ -79,10 +83,11 @@ if [ -d "$CODEX_HOME" ]; then
     [ -f "${d}SKILL.md" ] || continue
     link "${d%/}" "$CODEX_HOME/skills/$(basename "$d")"
   done
+  echo "[codex instructions]"
+  link "$REPO/claude-home/CLAUDE.md" "$CODEX_HOME/AGENTS.md"
 fi
 
 echo "[global config dirs]"
-link "$REPO/claude-home/rules"         "$CLAUDE_HOME/rules"
 link "$REPO/claude-home/output-styles" "$CLAUDE_HOME/output-styles"
 link "$REPO/claude-home/hooks"         "$CLAUDE_HOME/hooks"
 link "$REPO/claude-home/scripts"       "$CLAUDE_HOME/scripts"

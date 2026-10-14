@@ -103,7 +103,7 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 ## Multi-machine consistency (moved from the global CLAUDE.md, 2026-10-13)
 
-**Rule:** The SSoT instruction file is `python-ai-skills/claude-home/CLAUDE.md` (in git). `~/.claude/CLAUDE.md` is a symlink to it; `~/.claude/AGENTS.md` and `~/.codex/AGENTS.md` are symlinks in turn. Cross-machine identity is provided by git + `make install-symlinks`.
+**Rule:** The SSoT instruction file is `python-ai-skills/claude-home/CLAUDE.md` (in git). `~/.claude/CLAUDE.md` is a symlink to it; `~/.claude/AGENTS.md` links to that link, and `~/.codex/AGENTS.md` links straight to the repo file (both made by `make install-symlinks`). Keep the global rules in this one file: Codex reads `~/.codex/AGENTS.md` as a single file, expands no `@`-imports and ignores `~/.claude/rules/` (so `RTK.md` and `rules/python-dev.md` were folded in, bd `python-ai-skills-lvt.1`). Cross-machine identity is provided by git + `make install-symlinks`.
 
 **Rule:** Shared config (`settings.json`, `config.toml`) MUST be identical across machines.
 

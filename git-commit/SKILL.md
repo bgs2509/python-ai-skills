@@ -28,7 +28,7 @@ Run each git command as a **standalone call** — no pipe, chain, `cd`, `git -C 
 Only a standalone `git ...` matches `sandbox.excludedCommands`; any other call runs in
 the Bash sandbox, where its mount points (`.bashrc`, `.gitconfig`, `.mcp.json`,
 `.claude/skills`, ...) show up as `??` files that do not exist on disk. Never stage such
-paths (see `RTK.md` → "`git` — excluded from rewriting").
+paths (see `CLAUDE.md` → "RTK — Rust Token Killer" → "`git` — excluded from rewriting").
 
 Parse `git status --porcelain` output:
 - `??` = untracked

@@ -126,8 +126,8 @@ def instruction_corpus(cwd: str) -> str:
     without this the hook blocks the model for quoting the user's own rules.
     """
     home = pathlib.Path.home() / ".claude"
-    files = [home / "CLAUDE.md", home / "CLAUDE-APPENDIX.md", home / "RTK.md"]
-    for d in (home / "rules", home / "output-styles"):
+    files = [home / "CLAUDE.md", home / "CLAUDE-APPENDIX.md"]
+    for d in (home / "output-styles",):
         if d.is_dir():
             files.extend(sorted(d.glob("*.md")))
     if cwd:

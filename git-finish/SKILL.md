@@ -221,7 +221,7 @@ and for repositories created with `--separate-git-dir`; do not recompute them by
 >    *different* from `MAIN_ROOT` is a removable worktree.
 > 2. **Under the RTK hook the parse used to return nothing** — the hook rewrote
 >    `git worktree list` and reshaped its output. Since 2026-10-13 `git` is excluded
->    from RTK rewriting (`RTK.md`), so plain git is porcelain again; `rtk proxy` stays
+>    from RTK rewriting (`CLAUDE.md` → "RTK — Rust Token Killer"), so plain git is porcelain again; `rtk proxy` stays
 >    in the snippet because it is correct either way and survives a machine whose RTK
 >    config predates the exclusion.
 
