@@ -7,7 +7,7 @@
 ## Mandatory Pipeline
 
 ```
-lint (ruff check) → format (ruff format --check) → typecheck (mypy) → tests (pytest --cov) → coverage (≥90%) → security (bandit)
+lint (ruff check) → format (ruff format --check) → typecheck (mypy) → dead code (vulture) → tests (pytest --cov) → coverage (≥90%) → security (bandit)
 ```
 
 **Order is mandatory**: fast checks first — saving time on failures.
@@ -17,6 +17,7 @@ lint (ruff check) → format (ruff format --check) → typecheck (mypy) → test
 | Lint | ruff check | 0 errors | ~2s |
 | Format | ruff format --check | Compliant | ~2s |
 | Typecheck | mypy | 0 errors | ~10s |
+| Dead code | vulture | 0 findings outside `vulture_whitelist.py` | ~3s |
 | Tests | pytest | All pass | ~30s+ |
 | Coverage | pytest --cov | ≥90% | (together with tests) |
 | Security | bandit | 0 high/critical | ~5s |

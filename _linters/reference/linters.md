@@ -101,15 +101,21 @@ min_confidence = 60
 ignore_decorators = ["@app.*", "@dp.*", "@pytest.fixture", "@pytest_asyncio.fixture", "@field_validator", "@model_validator"]
 # pytest and pydantic magic names; BaseHTTPRequestHandler overrides.
 ignore_names = ["pytestmark", "model_config", "do_*", "log_message"]
+
+# The whitelist is bare names by design; without this Ruff fails it (F821, B018).
+[tool.ruff.lint.per-file-ignores]
+"vulture_whitelist.py" = ["F821", "B018"]
 ```
 
-`tests` is in `paths` on purpose: code a test calls is not excess by the deletion test.
+`tests` is in `paths` on purpose: code a test calls is not excess by the deletion test. Every
+entry of `paths` must exist — vulture exits 1 on a missing one; drop `tests` if there is none.
 
-### Adopting it in an existing project
+### Enabling it in a project
 
-An existing project fails the first run: model fields, mock attributes and unused arguments
-remain after the ignores above (3, 25 and 50 findings in three dev projects, 2026-10-14). Record
-them once as a reviewed baseline, so only new dead code blocks a commit:
+Run once in every project, new or existing. An existing project fails the first run: model
+fields, mock attributes and unused arguments remain after the ignores above (3, 25 and 50
+findings in three dev projects, 2026-10-14). The whitelist records them as a reviewed baseline,
+so only new dead code blocks a commit; in a new project it stays empty.
 
 ```bash
 touch vulture_whitelist.py                      # listed in paths, must exist
@@ -180,6 +186,7 @@ Automatic checks before every commit. Installation: `pip install pre-commit && p
   rev: v2.16
   hooks:
     - id: vulture
+      always_run: true  # a commit that only deletes a caller stages no .py file to trigger it
 ```
 
 ### General Checks

@@ -38,7 +38,7 @@ make ci                   # All checks
 ## CI Pipeline Order
 
 ```
-lint → format → typecheck → tests → coverage (≥90%) → security
+lint → format → typecheck → dead code → tests → coverage (≥90%) → security
 ```
 
 Fast checks first — saves time when errors occur.
