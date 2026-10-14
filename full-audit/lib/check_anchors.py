@@ -16,7 +16,6 @@ from _self_check_emit import emit_finding, open_sidecar
 
 START = re.compile(r"#\s*START_BLOCK_([A-Z0-9_]+)")
 END = re.compile(r"#\s*END_BLOCK_([A-Z0-9_]+)")
-ROOT = Path.cwd() / "src"
 
 
 def _extract_file(issue: str) -> str:
@@ -46,14 +45,15 @@ def _classify_anchor_issue(issue: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json-out", type=Path, default=None)
+    parser.add_argument("dirs", nargs="*", help="source dirs, relative to cwd (from run.sh)")
     args = parser.parse_args()
-    if not ROOT.exists():
-        print("src/ absent — skipping")
+    if not args.dirs:
+        print("no source dirs given — skipping")
         return 0
     starts: Counter[str] = Counter()
     ends: Counter[str] = Counter()
     locations: dict[str, list[str]] = {}
-    for p in ROOT.rglob("*.py"):
+    for p in (q for d in args.dirs for q in (Path.cwd() / d).rglob("*.py")):
         try:
             text = p.read_text(encoding="utf-8", errors="ignore")
         except OSError:

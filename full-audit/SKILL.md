@@ -88,9 +88,9 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 | 7 | tests-int    | `uv run pytest tests/integration -q` (если `--quick` — skip) | exit                                  |
 | 8 | grace        | `grace lint --format=json`                                    | exit + JSON                           |
 | 9 | grace        | `grace status`                                                | stdout                                |
-| 10| docs-ssot    | `python lib/check_ssot.py` — md/xml drift, knowledge-graph vs `git ls-files src/**/*.py` | self-test                              |
-| 11| docs-anchors | grep `START_BLOCK_*`/`END_BLOCK_*` пары, paired & unique      | self-test                              |
-| 12| docs-contracts| `python lib/check_contracts.py` — каждый `src/**/*.py` (кроме `__init__.py`, alembic/versions) имеет `START_MODULE_CONTRACT` | self-test                              |
+| 10| docs-ssot    | `python lib/check_ssot.py` — md/xml drift, knowledge-graph vs `*.py` in `<dirs>` (row 14; none — this part skipped) | self-test                              |
+| 11| docs-anchors | `python lib/check_anchors.py <dirs>` — `START_BLOCK_*`/`END_BLOCK_*` paired & unique (`<dirs>` — row 14; none — SKIPPED) | self-test                              |
+| 12| docs-contracts| `python lib/check_contracts.py` — каждый `*.py` в `<dirs>` (row 14; none — SKIPPED; кроме `__init__.py`, alembic/versions) имеет `START_MODULE_CONTRACT` | self-test                              |
 | 13| beads        | `bd doctor`, `bd preflight`, `bd stale`, `bd orphans`         | exit + stdout                         |
 | 14| complexity   | `uvx radon cc <dirs> -n C -a` (если доступен `uvx`; `<dirs>` as in row 3 without `tests`; none — SKIPPED) | stdout (CC > C = warn)                |
 | 15| complexity   | `uvx radon mi <dirs> -n B` (`<dirs>` — row 14)            | stdout                                |

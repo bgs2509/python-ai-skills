@@ -3,8 +3,8 @@
 
 Checks (best-effort; missing artefacts are skipped not failed):
 
-1. docs/knowledge-graph.xml mentions modules that no longer exist in src/.
-2. src/ python modules absent from knowledge-graph.xml (only RUNTIME-like dirs).
+1. docs/knowledge-graph.xml mentions modules that no longer exist in the given source dirs.
+2. Python modules of those dirs absent from knowledge-graph.xml (only RUNTIME-like dirs).
 3. requirements.xml older than discovery.md frontmatter mtime (regen needed).
 4. technology.xml older than design.md frontmatter mtime.
 """
@@ -29,18 +29,18 @@ def _mtime(p: Path) -> float:
         return 0.0
 
 
-def check_xml_vs_code() -> None:
+def check_xml_vs_code(dirs: list[str]) -> None:
     kg = ROOT / "docs" / "knowledge-graph.xml"
     if not kg.exists():
         return
     text = kg.read_text(encoding="utf-8", errors="ignore")
     # FILE attribute references in graph
     referenced = set(re.findall(r'(?:FILE|path)="([^"]+\.py)"', text))
-    src_dir = ROOT / "src"
-    if not src_dir.exists():
+    if not dirs:
+        print("INFO: no source dirs given — knowledge-graph vs code check skipped")
         return
     actual = set()
-    for p in src_dir.rglob("*.py"):
+    for p in (q for d in dirs for q in (ROOT / d).rglob("*.py")):
         rel = p.relative_to(ROOT).as_posix()
         if "alembic/versions" in rel or rel.endswith("__init__.py"):
             continue
@@ -53,7 +53,7 @@ def check_xml_vs_code() -> None:
     if missing_in_graph:
         sample = ", ".join(missing_in_graph[:5])
         more = f" (+{len(missing_in_graph) - 5} more)" if len(missing_in_graph) > 5 else ""
-        print(f"INFO: {len(missing_in_graph)} src/*.py not in knowledge-graph.xml: {sample}{more}")
+        print(f"INFO: {len(missing_in_graph)} source *.py not in knowledge-graph.xml: {sample}{more}")
 
 
 def check_xml_freshness() -> None:
@@ -90,11 +90,12 @@ def _extract_file(issue: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json-out", type=Path, default=None)
+    parser.add_argument("dirs", nargs="*", help="source dirs, relative to cwd (from run.sh)")
     args = parser.parse_args()
     if not (ROOT / "docs").exists():
         print("docs/ absent — skipping SSoT drift checks")
         return 0
-    check_xml_vs_code()
+    check_xml_vs_code(args.dirs)
     check_xml_freshness()
     if ISSUES:
         with open_sidecar(args.json_out) as sidecar:

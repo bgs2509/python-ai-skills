@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify every non-trivial src/**/*.py has START_MODULE_CONTRACT / END_MODULE_CONTRACT."""
+"""Verify every non-trivial *.py in the given source dirs has START_MODULE_CONTRACT / END_MODULE_CONTRACT."""
 from __future__ import annotations
 
 import argparse
@@ -8,7 +8,6 @@ from pathlib import Path
 
 from _self_check_emit import emit_finding, open_sidecar
 
-ROOT = Path.cwd() / "src"
 EXEMPT_SUFFIX = ("__init__.py",)
 EXEMPT_DIRS = ("alembic/versions",)
 
@@ -16,13 +15,14 @@ EXEMPT_DIRS = ("alembic/versions",)
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--json-out", type=Path, default=None)
+    parser.add_argument("dirs", nargs="*", help="source dirs, relative to cwd (from run.sh)")
     args = parser.parse_args()
-    if not ROOT.exists():
-        print("src/ absent — skipping")
+    if not args.dirs:
+        print("no source dirs given — skipping")
         return 0
     missing: list[str] = []
     total = 0
-    for p in ROOT.rglob("*.py"):
+    for p in (q for d in args.dirs for q in (Path.cwd() / d).rglob("*.py")):
         rel = p.relative_to(Path.cwd()).as_posix()
         if any(rel.endswith(s) for s in EXEMPT_SUFFIX):
             continue

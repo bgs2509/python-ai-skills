@@ -77,7 +77,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 } > "${EXCERPTS}/00-context.txt"
 emit "00-context" "git context" "PASS" 0 "captured"
 
-# ── source dirs: derived once, used by mypy (03), coverage (06) and checks 14-17
+# ── source dirs: derived once, used by mypy (03), coverage (06) and checks 10-12, 14-17
 # SRC_DIRS: src/ if present, else paths declared in pyproject.toml, else top-level packages.
 # METRIC_DIRS: SRC_DIRS without tests/ (a declared mypy list may include it).
 NO_SRC_REASON="no target dirs: no src/, no [tool.mypy|coverage.run|interrogate|vulture] paths, no top-level package"
@@ -152,14 +152,19 @@ else
 fi
 
 # ── 10-12. docs/SSoT/contracts/anchors
+# 10 also checks docs freshness, so it runs without source dirs; 11-12 need them.
 run "10-ssot-drift" "docs SSoT drift" 1 \
-  python3 "${LIB_DIR}/check_ssot.py" --json-out="${SIDECARS_DIR}/10-ssot-drift.jsonl"
+  python3 "${LIB_DIR}/check_ssot.py" --json-out="${SIDECARS_DIR}/10-ssot-drift.jsonl" "${METRIC_DIRS[@]}"
 
-run "11-block-anchors" "block anchors paired" 1 \
-  python3 "${LIB_DIR}/check_anchors.py" --json-out="${SIDECARS_DIR}/11-block-anchors.jsonl"
-
-run "12-contracts" "MODULE_CONTRACT presence" 1 \
-  python3 "${LIB_DIR}/check_contracts.py" --json-out="${SIDECARS_DIR}/12-contracts.jsonl"
+if ((${#METRIC_DIRS[@]})); then
+  run "11-block-anchors" "block anchors paired" 1 \
+    python3 "${LIB_DIR}/check_anchors.py" --json-out="${SIDECARS_DIR}/11-block-anchors.jsonl" "${METRIC_DIRS[@]}"
+  run "12-contracts" "MODULE_CONTRACT presence" 1 \
+    python3 "${LIB_DIR}/check_contracts.py" --json-out="${SIDECARS_DIR}/12-contracts.jsonl" "${METRIC_DIRS[@]}"
+else
+  skip "11-block-anchors" "block anchors paired" "$NO_SRC_REASON"
+  skip "12-contracts" "MODULE_CONTRACT presence" "$NO_SRC_REASON"
+fi
 
 # ── 13. beads
 if have bd && [[ -d .beads ]]; then

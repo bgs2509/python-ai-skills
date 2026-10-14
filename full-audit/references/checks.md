@@ -13,9 +13,9 @@ For each check: what it measures, source of truth, how to act on FAIL.
 | 07 | `pytest tests/integration` | no | Integration tests (DB, HTTP) | Bring up `make test-up` & rerun |
 | 08 | `grace lint` | yes | GRACE markup integrity (XML, contracts, anchors) | Fix per `grace lint` output |
 | 09 | `grace status` | no | Artefact health snapshot | Informational |
-| 10 | `check_ssot.py` | yes | docs/knowledge-graph.xml ↔ src/ drift; xml staleness | `grace-refresh` / `md_to_xml.py` |
-| 11 | `check_anchors.py` | yes | START_BLOCK_/END_BLOCK_ paired & unique | Fix anchors in source |
-| 12 | `check_contracts.py` | yes | MODULE_CONTRACT presence in src/**/*.py | Add contract block to module |
+| 10 | `check_ssot.py` | yes | docs/knowledge-graph.xml ↔ derived dirs drift; xml staleness | `grace-refresh` / `md_to_xml.py` |
+| 11 | `check_anchors.py` | yes | START_BLOCK_/END_BLOCK_ paired & unique in derived dirs (none — SKIPPED) | Fix anchors in source |
+| 12 | `check_contracts.py` | yes | MODULE_CONTRACT presence in derived dirs (none — SKIPPED) | Add contract block to module |
 | 13 | `bd doctor / stale / orphans` | no | Beads sync issues, stale issues, broken deps | `bd dolt push`, close/clean |
 | 14 | `radon cc -n C` | no | Cyclomatic complexity ≥ rank C | Refactor function |
 | 15 | `radon mi -n B` | no | Maintainability index ≤ B | Split module / reduce complexity |
