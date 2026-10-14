@@ -80,10 +80,15 @@ emit "00-context" "git context" "PASS" 0 "captured"
 # ── source dirs: derived once, used by mypy (03), coverage (06) and checks 14-17
 # SRC_DIRS: src/ if present, else paths declared in pyproject.toml, else top-level packages.
 # METRIC_DIRS: SRC_DIRS without tests/ (a declared mypy list may include it).
-mapfile -t SRC_DIRS < <(python3 "${LIB_DIR}/source_dirs.py")
-METRIC_DIRS=()
-for d in "${SRC_DIRS[@]}"; do [[ "$d" == tests ]] || METRIC_DIRS+=("$d"); done
 NO_SRC_REASON="no target dirs: no src/, no [tool.mypy|coverage.run|interrogate|vulture] paths, no top-level package"
+SRC_OUT="$(python3 "${LIB_DIR}/source_dirs.py")" || {
+  NO_SRC_REASON="lib/source_dirs.py failed (exit $?)"
+  SRC_OUT=""
+}
+SRC_DIRS=()
+[[ -n "$SRC_OUT" ]] && mapfile -t SRC_DIRS <<< "$SRC_OUT"
+METRIC_DIRS=()
+for d in "${SRC_DIRS[@]}"; do [[ "${d%%/*}" == tests ]] || METRIC_DIRS+=("$d"); done
 
 # ── 1-3. ruff + mypy
 run "01-ruff-check"  "ruff check"          1 uv run ruff check . --output-format=concise

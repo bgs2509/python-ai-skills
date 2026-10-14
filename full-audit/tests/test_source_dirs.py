@@ -59,6 +59,17 @@ def test_all_declared_missing_tries_next_key(tmp_path):
     assert derive(tmp_path) == ["app"]
 
 
+def test_declared_file_is_dropped(tmp_path):
+    make(tmp_path, ["pkg"], '[tool.mypy]\nfiles = ["pkg/mod.py", "pkg"]\n')
+    (tmp_path / "pkg" / "mod.py").write_text("")
+    assert derive(tmp_path) == ["pkg"]
+
+
+def test_mypy_files_comma_separated_string(tmp_path):
+    make(tmp_path, ["backend", "shared"], '[tool.mypy]\nfiles = "backend, shared"\n')
+    assert derive(tmp_path) == ["backend", "shared"]
+
+
 def test_probe_skips_excluded_dirs(tmp_path):
     make(tmp_path, ["docs", "data"], pkgs=["bot", "tests", ".venv", "scripts"])
     assert derive(tmp_path) == ["bot"]
@@ -101,3 +112,11 @@ def test_run_sh_has_no_hardcoded_src(literal):
 
 def test_run_sh_calls_helper():
     assert "source_dirs.py" in RUN_SH.read_text(encoding="utf-8")
+
+
+def test_run_sh_drops_nested_tests_paths():
+    assert '"${d%%/*}" == tests' in RUN_SH.read_text(encoding="utf-8")
+
+
+def test_run_sh_reports_helper_failure():
+    assert "source_dirs.py failed" in RUN_SH.read_text(encoding="utf-8")
