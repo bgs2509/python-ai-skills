@@ -31,7 +31,7 @@ ruff check --fix .        # Autofix
 ruff format .             # Format
 mypy src/                 # Types
 bandit -r src/ -ll        # Security
-vulture                   # Dead code (reads [tool.vulture])
+pre-commit run vulture --all-files  # Dead code (pinned hook)
 make ci                   # All checks
 ```
 

@@ -118,17 +118,18 @@ findings in three dev projects, 2026-10-14). The whitelist records them as a rev
 so only new dead code blocks a commit; in a new project it stays empty.
 
 ```bash
-touch vulture_whitelist.py                      # listed in paths, must exist
-vulture --make-whitelist > vulture_whitelist.py # exits 3 while it lists findings; the file is written
+vulture --make-whitelist > vulture_whitelist.py # the shell creates the file first, so paths resolves;
+                                                # exits 3 while it lists findings, the file is written
 ```
 
-Read the generated file before committing it: delete real dead code instead of whitelisting it.
+Use the vulture version pinned in the hook's `rev`. Read the generated file before committing it:
+delete real dead code instead of whitelisting it.
 
 ### Commands
 
 ```bash
-vulture                   # Check (reads [tool.vulture])
-vulture --make-whitelist  # Print current findings as whitelist entries
+pre-commit run vulture --all-files  # Check with the pinned hook (reads [tool.vulture])
+vulture --make-whitelist            # Print current findings as whitelist entries
 ```
 
 ---
@@ -261,11 +262,11 @@ format-check:   ## Check formatting
 type-check:     ## Type checking
 	mypy src/
 
-dead-code:      ## Find unused code
-	vulture
+dead-code:      ## Find unused code (pinned pre-commit hook)
+	pre-commit run vulture --all-files
 
 ci:             ## Run all checks locally
-	ruff check . && ruff format . --check && mypy src/ && vulture && pytest --cov=src --cov-fail-under=90
+	ruff check . && ruff format . --check && mypy src/ && pre-commit run vulture --all-files && pytest --cov=src --cov-fail-under=90
 ```
 
 ---
