@@ -580,4 +580,82 @@
       <Item>A custom read-only guard hook (plan 3c) is not built - Explore already lacks Edit/Write; decision recorded in the plan.</Item>
     </constraints>
   </Feature>
+  <Feature source="20261014-full-audit-source-layout-discovery.md" bd_id="python-ai-skills-5xi">
+    <feature>full-audit-source-layout</feature>
+    <date>2026-10-14</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <risk_justification>One shell orchestrator (full-audit/lib/run.sh) plus its SKILL.md/references rows; deterministic, reversible, no secrets, no network; a wrong derivation is visible (red audit), not silent, and the src/ branch stays as the fallback.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>Every src assumption located by grep; exit codes of radon/vulture/interrogate/pytest-cov on a missing dir measured in a scratch project; pyproject keys of 47 sibling projects inventoried (21 with src/, 26 without); tool config behaviour confirmed via Context7 (vulture, coverage.py, pytest-cov, radon) and interrogate 1.7.0 --help + installed source.</evidence_justification>
+    <open_questions/>
+    <decisions>
+      <Item>Q1 (user, 2026-10-14): no derivable target dir -&gt; the checks are SKIPPED with a reason via run.sh skip(), never PASS.</Item>
+      <Item>Q2 (user, 2026-10-14): the Python self-checks (check_anchors/check_contracts/check_ssot) are out of scope here -&gt; bd python-ai-skills-aw0.1.</Item>
+      <Item>Q3 (user, 2026-10-14): tests/ is dropped from the derived list for radon, vulture and interrogate; mypy keeps a declared list verbatim.</Item>
+    </decisions>
+    <functional_requirements>
+      <Item id="FR-1">
+        <text>run.sh derives the list of target package dirs once per run from project config, falling back to src/ when that dir exists (issue text, suggested direction).</text>
+      </Item>
+      <Item id="FR-2">
+        <text>mypy (03), coverage (06), radon cc (14), radon mi (15), vulture (16), interrogate (17) run against the derived dirs; on a backend/telegram_bot/scheduler/shared layout their excerpts are non-empty (issue ACCEPTANCE).</text>
+      </Item>
+      <Item id="FR-3">
+        <text>When nothing can be derived, checks 06/14/15/16/17 are never recorded PASS; measured today radon cc/mi exit 0 with empty output and pytest --cov=src exits 0 with &quot;No data to report&quot; on a missing src/.</text>
+      </Item>
+      <Item id="FR-4">
+        <text>The existing mypy branch (run.sh:88-92) and the new derivation share one decision, so mypy and the metric tools cannot disagree about the layout (prior art db54d0a; SSoT principle).</text>
+      </Item>
+      <Item id="FR-5">
+        <text>SKILL.md rows 3, 6, 14-17 and references/checks.md rows 03, 06 describe the derived target instead of the literal src (SKILL.md:84-98 is the user-facing contract of the check commands).</text>
+      </Item>
+    </functional_requirements>
+    <non_functional_requirements>
+      <Item id="NFR-1">
+        <text>full-audit test suite stays green (38 passed, 0 failed on 2026-10-14) and tests cover the derivation for src/, config-declared and __init__-detected layouts.</text>
+      </Item>
+      <Item id="NFR-2">
+        <text>Projects with src/ run exactly the commands they run today (21 of 47 sibling projects use src/; no scope change for them).</text>
+      </Item>
+      <Item id="NFR-3">
+        <text>Derivation needs only tools already required by run.sh (bash, python3 3.11+ with tomllib per rules/python-dev.md); no new dependency.</text>
+      </Item>
+      <Item id="NFR-4">
+        <text>Derived dirs never include .venv, tests, docs, data, _output, scripts (Taro pyproject.toml:79-81 records coverage polluted by nested .venv dirs).</text>
+      </Item>
+    </non_functional_requirements>
+    <constraints>
+      <Item>radon reads [tool.radon] only for cc_min/exclude/ignore - no paths key; radon cc without a path exits 2 'the following arguments are required: paths' (Context7 /rubik/radon; measured).</Item>
+      <Item>interrogate 1.7.0 honours [tool.interrogate] paths only when -c pyproject.toml is passed; without -c it scans cwd including tests/ (measured; cli.py:364-365 falls back to cwd).</Item>
+      <Item>pytest-cov: --cov=X overrides [tool.coverage.run] source; bare --cov uses it, and bare --cov with no config measures tests too (Context7 /pytest-dev/pytest-cov; measured).</Item>
+      <Item>vulture reads [tool.vulture] paths; CLI args take precedence; no path and no config exits 2 'Please pass at least one file or directory' (Context7 /jendrikseipp/vulture; measured).</Item>
+      <Item>Taro pyproject.toml:98-102 notes interrogate hits RecursionError on that codebase - acceptance for check 17 on Taro may show an error excerpt rather than a percentage.</Item>
+      <Item>Do not read .env or secret files in sibling projects (global Security rule); only pyproject.toml was read.</Item>
+    </constraints>
+    <risks>
+      <Item>Top-level __init__.py probe picks tests/ (Taro has tests/__init__.py) - needs an exclusion list.</Item>
+      <Item>Multi-service repos with no top-level package (zemdozor_microservices, boilerplate_microservices, fastapi-crud-aidd-generated) still derive nothing - must land in the visible SKIPPED path, not PASS.</Item>
+      <Item>src/ projects with extra roots (Sinayara-Isuzu migrations/, migrations_mart/, tools/) - derivation must not widen their scope silently.</Item>
+      <Item>Namespace packages without __init__.py (Taro sets namespace_packages = true for mypy) are invisible to an __init__ probe; config keys stay the primary signal.</Item>
+      <Item>fingerprint.py:33-38 and check_trends.py:56-61 group findings by the segment after &quot;src&quot;; for non-src layouts grouping degrades (first segment / whole path) - trend pairing gets weaker but not wrong.</Item>
+    </risks>
+    <scope>
+      <in>
+        <Item>full-audit/lib/run.sh lines 88-92, 114, 160-163 (derivation + five checks)</Item>
+        <Item>full-audit/SKILL.md rows 3, 6, 14-17; full-audit/references/checks.md rows 03, 06</Item>
+        <Item>tests for the derivation in full-audit/tests/</Item>
+      </in>
+      <out>
+        <Item>thresholds (-n C, -f 70, --min-confidence 80) and required/optional flags</Item>
+        <Item>tests/golden/* fixture paths (data, not behaviour)</Item>
+        <Item>lib/ai_review_prompt.md src/ wording (agent-side review, separate concern)</Item>
+      </out>
+      <later>
+        <Item>check_anchors.py:19, check_contracts.py:11, check_ssot.py:39 - same defect class, no source in the issue text</Item>
+        <Item>fingerprint.py / check_trends.py module grouping for non-src layouts</Item>
+        <Item>summarize.py:35 remediation hint mentioning src.shared.*</Item>
+      </later>
+    </scope>
+  </Feature>
 </Requirements>

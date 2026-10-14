@@ -160,4 +160,25 @@
     <open_questions/>
     <context7_verified/>
   </Feature>
+  <Feature source="20261014-full-audit-source-layout-design.md" bd_id="python-ai-skills-5xi">
+    <feature>full-audit-source-layout</feature>
+    <date>2026-10-14</date>
+    <status>approved</status>
+    <risk>low</risk>
+    <approach>A - python3 helper full-audit/lib/source_dirs.py (tomllib) called once by run.sh</approach>
+    <context7_verified>
+      <Item>pytest-cov==7.1.0 (/pytest-dev/pytest-cov docs/config.rst: --cov multi-allowed; --cov=X overrides [tool.coverage.run] source) + measured --cov=backend --cov=shared</Item>
+      <Item>coverage==7.16.2 (pulled by pytest-cov 7.1.0 in the scratch run)</Item>
+      <Item>radon==6.0.1 (radon cc --help / radon mi --help: 'paths ... More than one path is allowed') + measured two dirs</Item>
+      <Item>vulture==2.16 (vulture --help: usage vulture [options] [PATH ...]) + measured two dirs</Item>
+      <Item>interrogate==1.7.0 (interrogate --help: Usage interrogate [OPTIONS] [PATHS]...) + measured two dirs</Item>
+      <Item>python3==3.12.6 stdlib tomllib (import + parse of the scratch pyproject.toml; stdlib since 3.11 per rules/python-dev.md)</Item>
+    </context7_verified>
+    <open_questions/>
+    <decisions>
+      <Item>Gate 5 (user, 2026-10-14): approach A approved.</Item>
+      <Item>OQ-1 (auto, 85 % &gt; 80 % threshold per user profile): src/ first, then config keys, then the __init__ probe.</Item>
+      <Item>OQ-2 (user, 2026-10-14): coverage (06) takes the tests-dropped list shared with 14-17.</Item>
+    </decisions>
+  </Feature>
 </Technology>
