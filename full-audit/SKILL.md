@@ -81,10 +81,10 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 |---|--------------|---------------------------------------------------------------|---------------------------------------|
 | 1 | lint         | `uv run ruff check . --output-format=json`                    | exit + JSON                           |
 | 2 | lint         | `uv run ruff format --check .`                                | exit + stderr                         |
-| 3 | types        | `uv run mypy src --no-error-summary`                          | exit + stdout                         |
+| 3 | types        | `uv run mypy <dirs> --no-error-summary` — `<dirs>` from `lib/source_dirs.py`: `src/` if present, else the first non-empty of `[tool.mypy] files`, `[tool.coverage.run] source`, `[tool.interrogate] paths`, `[tool.vulture] paths` (existing paths only), else top-level packages with `__init__.py` (not `tests`, `docs`, `data`, `_output`, `scripts`, `.venv`); none — bare `uv run mypy` | exit + stdout                         |
 | 4 | secrets      | `uv run pre-commit run gitleaks --all-files` (или `gitleaks detect`) | exit                                  |
 | 5 | secrets-fs   | grep policy: `*.env`, `*.pem`, `*.key`, `id_rsa*` outside `.env.example`/`tests/test.env` | поиск через `git ls-files`            |
-| 6 | tests        | `uv run pytest tests/unit -q --cov=src --cov-report=json:.full_audit_tmp/cov.json` | exit + cov.json                       |
+| 6 | tests        | `uv run pytest tests/unit -q --cov=<dir> ... --cov-report=json:.full_audit_tmp/cov.json` — one `--cov` per `<dirs>` entry without `tests`; none — SKIPPED | exit + cov.json                       |
 | 7 | tests-int    | `uv run pytest tests/integration -q` (если `--quick` — skip) | exit                                  |
 | 8 | grace        | `grace lint --format=json`                                    | exit + JSON                           |
 | 9 | grace        | `grace status`                                                | stdout                                |
@@ -92,10 +92,10 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 | 11| docs-anchors | grep `START_BLOCK_*`/`END_BLOCK_*` пары, paired & unique      | self-test                              |
 | 12| docs-contracts| `python lib/check_contracts.py` — каждый `src/**/*.py` (кроме `__init__.py`, alembic/versions) имеет `START_MODULE_CONTRACT` | self-test                              |
 | 13| beads        | `bd doctor`, `bd preflight`, `bd stale`, `bd orphans`         | exit + stdout                         |
-| 14| complexity   | `uvx radon cc src -n C -a` (если доступен `uvx`)             | stdout (CC > C = warn)                |
-| 15| complexity   | `uvx radon mi src -n B`                                       | stdout                                |
-| 16| dead-code    | `uvx vulture src --min-confidence 80`                         | exit + stdout                         |
-| 17| docstrings   | `uvx interrogate src -q -f 70`                                | exit                                   |
+| 14| complexity   | `uvx radon cc <dirs> -n C -a` (если доступен `uvx`; `<dirs>` as in row 3 without `tests`; none — SKIPPED) | stdout (CC > C = warn)                |
+| 15| complexity   | `uvx radon mi <dirs> -n B` (`<dirs>` — row 14)            | stdout                                |
+| 16| dead-code    | `uvx vulture <dirs> --min-confidence 80` (`<dirs>` — row 14) | exit + stdout                         |
+| 17| docstrings   | `uvx interrogate <dirs> -q -f 70` (`<dirs>` — row 14)     | exit                                   |
 | 18| deps-audit   | `uvx pip-audit -r <(uv export --no-dev)` или `uv export \| uvx pip-audit -r /dev/stdin` | exit + JSON                           |
 | 19| deps-pinned  | `python lib/check_pins.py` — все runtime зависимости через `==` | self-test                              |
 | 20a| sentrux     | `mcp__sentrux__scan` (полный архитектурный скан)                       | JSON в `.full_audit_tmp/sentrux/scan.json`        |

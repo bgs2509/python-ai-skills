@@ -77,16 +77,21 @@ have() { command -v "$1" >/dev/null 2>&1; }
 } > "${EXCERPTS}/00-context.txt"
 emit "00-context" "git context" "PASS" 0 "captured"
 
+# ── source dirs: derived once, used by mypy (03), coverage (06) and checks 14-17
+# SRC_DIRS: src/ if present, else paths declared in pyproject.toml, else top-level packages.
+# METRIC_DIRS: SRC_DIRS without tests/ (a declared mypy list may include it).
+mapfile -t SRC_DIRS < <(python3 "${LIB_DIR}/source_dirs.py")
+METRIC_DIRS=()
+for d in "${SRC_DIRS[@]}"; do [[ "$d" == tests ]] || METRIC_DIRS+=("$d"); done
+NO_SRC_REASON="no target dirs: no src/, no [tool.mypy|coverage.run|interrogate|vulture] paths, no top-level package"
+
 # ── 1-3. ruff + mypy
 run "01-ruff-check"  "ruff check"          1 uv run ruff check . --output-format=concise
 run "02-ruff-format" "ruff format --check" 1 uv run ruff format --check .
-# mypy: honour the project's own source layout. Many repos keep sources in src/,
-# but others (e.g. multi-package backends) declare packages via [tool.mypy]
-# files=... in pyproject.toml. Hardcoding `mypy src` makes mypy error with
-# "Cannot read file 'src'" on those repos. Probe for a src/ dir; if absent, run
-# bare `mypy` so it reads the pyproject config instead.
-if [[ -d src ]]; then
-  run "03-mypy"      "mypy src"            1 uv run mypy src --no-error-summary
+# mypy: run on the derived source dirs; with none, bare `mypy` reads the
+# pyproject config itself.
+if ((${#SRC_DIRS[@]})); then
+  run "03-mypy"      "mypy ${SRC_DIRS[*]}" 1 uv run mypy "${SRC_DIRS[@]}" --no-error-summary
 else
   run "03-mypy"      "mypy (pyproject)"    1 uv run mypy --no-error-summary
 fi
@@ -110,8 +115,13 @@ run "05-secret-files" "secret-file policy" 1 \
 
 # ── 6. tests + coverage
 if [[ $NO_TESTS -eq 0 ]]; then
-  run "06-pytest-unit" "pytest unit + coverage" 1 \
-    uv run pytest tests/unit -q --cov=src --cov-report=json:"${TMP}/cov.json" --cov-report=term
+  if ((${#METRIC_DIRS[@]})); then
+    COV_ARGS=("${METRIC_DIRS[@]/#/--cov=}")
+    run "06-pytest-unit" "pytest unit + coverage" 1 \
+      uv run pytest tests/unit -q "${COV_ARGS[@]}" --cov-report=json:"${TMP}/cov.json" --cov-report=term
+  else
+    skip "06-pytest-unit" "pytest unit + coverage" "$NO_SRC_REASON"
+  fi
 else
   skip "06-pytest-unit" "pytest unit" "--no-tests"
 fi
@@ -157,10 +167,16 @@ fi
 
 # ── 14-18. complexity / dead code / docstrings
 if have uvx; then
-  run "14-radon-cc"   "radon cc (high complexity)" 0 uvx --quiet radon cc src -n C -a
-  run "15-radon-mi"   "radon mi (maintainability)" 0 uvx --quiet radon mi src -n B
-  run "16-vulture"    "vulture dead code"          0 uvx --quiet vulture src --min-confidence 80
-  run "17-interrogate" "interrogate docstring %"   0 uvx --quiet interrogate src -q -f 70
+  if ((${#METRIC_DIRS[@]})); then
+    run "14-radon-cc"   "radon cc (high complexity)" 0 uvx --quiet radon cc "${METRIC_DIRS[@]}" -n C -a
+    run "15-radon-mi"   "radon mi (maintainability)" 0 uvx --quiet radon mi "${METRIC_DIRS[@]}" -n B
+    run "16-vulture"    "vulture dead code"          0 uvx --quiet vulture "${METRIC_DIRS[@]}" --min-confidence 80
+    run "17-interrogate" "interrogate docstring %"   0 uvx --quiet interrogate "${METRIC_DIRS[@]}" -q -f 70
+  else
+    for id in 14-radon-cc 15-radon-mi 16-vulture 17-interrogate; do
+      skip "$id" "$id" "$NO_SRC_REASON"
+    done
+  fi
   if [[ $QUICK -eq 0 ]]; then
     # Export deps with colour cleared.
     # Layer 1: NO_COLOR=1 — official convention; uv respects it.

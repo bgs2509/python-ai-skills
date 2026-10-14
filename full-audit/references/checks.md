@@ -6,10 +6,10 @@ For each check: what it measures, source of truth, how to act on FAIL.
 |----|------|----------|----------|----------------|
 | 01 | `ruff check` | yes | Lint errors (E/F/I/N/B/UP/RUF/ASYNC/S/SIM) | `uv run ruff check . --fix` |
 | 02 | `ruff format --check` | yes | Formatting drift | `uv run ruff format .` |
-| 03 | `mypy src` | yes | Static type errors (strict on `src.shared.*`) | Fix type annotations |
+| 03 | `mypy <derived dirs>` | yes | Static type errors (strict on `src.shared.*`; dirs: `src/`, else pyproject paths, else top-level packages) | Fix type annotations |
 | 04 | `gitleaks` | yes | Committed secrets in git history | Rotate secret + rewrite history |
 | 05 | filename allowlist | yes | Tracked secret-pattern files outside allowlist | `git rm --cached` + .gitignore |
-| 06 | `pytest tests/unit --cov` | yes | Failing unit tests / coverage drop | Fix tests / add coverage |
+| 06 | `pytest tests/unit --cov=<derived dir>` | yes | Failing unit tests / coverage drop (SKIPPED when no dirs can be derived) | Fix tests / add coverage |
 | 07 | `pytest tests/integration` | no | Integration tests (DB, HTTP) | Bring up `make test-up` & rerun |
 | 08 | `grace lint` | yes | GRACE markup integrity (XML, contracts, anchors) | Fix per `grace lint` output |
 | 09 | `grace status` | no | Artefact health snapshot | Informational |
