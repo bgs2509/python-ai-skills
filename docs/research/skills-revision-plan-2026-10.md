@@ -1,7 +1,7 @@
 # Revision Plan — Skills, Pipelines and Always-Loaded Instructions
 
 - **Date:** 2026-10-13
-- **Status:** DRAFT, second pass 2026-10-13 — decisions recorded per item; not yet executed. No skill, instruction or setting has been changed.
+- **Status:** CLOSED 2026-10-14 (epic `python-ai-skills-8of`). Steps 0-7 shipped 2026-10-13/14; the 7-day re-measure of steps 1 and 5-7 was dropped by user decision 2026-10-14, so their effect is recorded only as the change-part numbers below.
 - **bd issue:** none yet (an epic is created after approval).
 - **Goal:** cut token spend and wall-clock time of skills, pipelines and always-loaded instructions
   without losing quality; make subagents run on economical models.

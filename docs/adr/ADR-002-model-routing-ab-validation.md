@@ -39,9 +39,10 @@ and escalation rule cite `ADR-002` instead of restating numbers.
 - Easier: SKILL.md is lighter and load-bearing only; evidence has one home.
 - Limitation: the A/B was run 2026-05-13 against the Opus/Sonnet/Haiku lineup and
   predates the Claude 5 family (Fable). Latency and capacity were revalidated against
-  Claude 5 on 2026-09-22 and quality was not (see the amendment below); the
-  token/request re-measure of `python-ai-skills-8of.8` is due on or after 2026-10-20.
-  The matrix remains the SSoT for routing.
+  Claude 5 on 2026-09-22 and quality was not (see the amendment below). The
+  token/request re-measure planned for `python-ai-skills-8of.8` was dropped by user
+  decision 2026-10-14 when epic `python-ai-skills-8of` closed. The matrix remains the
+  SSoT for routing.
 
 ## Amendment 2026-09-22 — latency and capacity revalidated, quality not
 
@@ -58,8 +59,9 @@ lineup:
   which the original 2-test-fail trigger missed entirely.
 - **Quality — NOT revalidated.** The benchmark phase was cancelled by user decision
   2026-09-22. The 2026-05-13 numbers above remain the only quality evidence, and they
-  predate Claude 5. `python-ai-skills-4f4` was closed 2026-10-14 as superseded: the
-  practical check is the token/request re-measure of `python-ai-skills-8of.8`.
+  predate Claude 5. `python-ai-skills-4f4` was closed 2026-10-14 as superseded by the
+  token/request re-measure of `python-ai-skills-8of.8`, which was itself dropped the
+  same day (user decision): no quality or token re-measure is pending.
 
 Two structural facts were also recorded, neither of which the original A/B covered:
 the tier→model mapping now lives in `claude-home/model-registry.json` (this ADR and
