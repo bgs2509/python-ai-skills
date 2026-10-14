@@ -57,7 +57,8 @@ lineup:
   which the original 2-test-fail trigger missed entirely.
 - **Quality — NOT revalidated.** The benchmark phase was cancelled by user decision
   2026-09-22. The 2026-05-13 numbers above remain the only quality evidence, and they
-  predate Claude 5. `python-ai-skills-4f4` stays open for this axis alone.
+  predate Claude 5. `python-ai-skills-4f4` was closed 2026-10-14 as superseded: the
+  practical check is the token/request re-measure of `python-ai-skills-8of.8`.
 
 Two structural facts were also recorded, neither of which the original A/B covered:
 the tier→model mapping now lives in `claude-home/model-registry.json` (this ADR and

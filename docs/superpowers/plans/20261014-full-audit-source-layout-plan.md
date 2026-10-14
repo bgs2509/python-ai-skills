@@ -1,5 +1,12 @@
 # Plan: full-audit source layout (bd python-ai-skills-5xi)
 
+**Status (2026-10-14): done, bd `python-ai-skills-5xi` closed.** Tasks 1-6 landed in `f15958e`
+(docs `6817184`). Deviated: executed inline by the orchestrator, not by a mid-tier worker (plan
+carried complete code); Step 12 external review (NOT READY) fixed in `89a823c` - declared paths
+kept only when they are directories, a comma-separated `[tool.mypy] files` string accepted,
+`tests/...` subpaths dropped for checks 06/14-17, a failing helper named in the SKIPPED reason;
+4 tests added (23 in `test_source_dirs.py`). Follow-ups: `python-ai-skills-aw0.1`, `python-ai-skills-aw0.2`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development (recommended) or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 
 **Goal:** `/full-audit` derives its source dirs once (src/, else pyproject-declared paths, else top-level packages) so mypy, coverage, radon, vulture and interrogate never go green on a missing `src/`.
@@ -42,7 +49,7 @@ No GRACE artifacts and no MODULE_CONTRACT headers in `full-audit/lib/*.py` (only
 **Interfaces:**
 - Produces: tests importing `from source_dirs import derive, main` (Task 2 must provide `derive(root: Path) -> list[str]` and `main() -> int`).
 
-- [ ] **Step 1: Create `full-audit/tests/test_source_dirs.py`**
+- [x] **Step 1: Create `full-audit/tests/test_source_dirs.py`**
 
 ```python
 """Tests for source_dirs.derive and the run.sh wiring."""
@@ -150,7 +157,7 @@ def test_run_sh_calls_helper():
     assert "source_dirs.py" in RUN_SH.read_text(encoding="utf-8")
 ```
 
-- [ ] **Step 2: Run, expect failure**
+- [x] **Step 2: Run, expect failure**
 
 Run: `cd full-audit && python3 -m pytest tests/test_source_dirs.py`
 Expected: collection error `ModuleNotFoundError: No module named 'source_dirs'` (1 error, 0 passed).
@@ -165,7 +172,7 @@ Expected: collection error `ModuleNotFoundError: No module named 'source_dirs'` 
 **Interfaces:**
 - Produces: `derive(root: Path) -> list[str]` (paths relative to `root`), `main() -> int` (prints `derive(Path.cwd())`, one per line, exit 0). `run.sh` (Task 3) relies on: CLI `python3 source_dirs.py` run in the project root, empty stdout = nothing derived.
 
-- [ ] **Step 1: Create `full-audit/lib/source_dirs.py`**
+- [x] **Step 1: Create `full-audit/lib/source_dirs.py`**
 
 ```python
 #!/usr/bin/env python3
@@ -223,7 +230,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 2: Run, expect unit tests green and the 6 static run.sh tests red**
+- [x] **Step 2: Run, expect unit tests green and the 6 static run.sh tests red**
 
 Run: `cd full-audit && python3 -m pytest tests/test_source_dirs.py`
 Expected: `6 failed, 13 passed` - failures are `test_run_sh_has_no_hardcoded_src[...]` (5) and `test_run_sh_calls_helper`.
@@ -239,7 +246,7 @@ Expected: `6 failed, 13 passed` - failures are `test_run_sh_has_no_hardcoded_src
 - Consumes: `python3 "${LIB_DIR}/source_dirs.py"` (`LIB_DIR` is set at run.sh:23; cwd is the project root, `ROOT="$(pwd)"` at :19, so the helper's `Path.cwd()` is the project root).
 - Produces: arrays `SRC_DIRS`, `METRIC_DIRS`, string `NO_SRC_REASON`, used only inside run.sh.
 
-- [ ] **Step 1: Edit A - insert before line 80 (`# ── 1-3. ruff + mypy`)**
+- [x] **Step 1: Edit A - insert before line 80 (`# ── 1-3. ruff + mypy`)**
 
 Before:
 ```bash
@@ -262,7 +269,7 @@ NO_SRC_REASON="no target dirs: no src/, no [tool.mypy|coverage.run|interrogate|v
 # ── 1-3. ruff + mypy
 ```
 
-- [ ] **Step 2: Edit B - mypy, lines 83-92**
+- [x] **Step 2: Edit B - mypy, lines 83-92**
 
 Before:
 ```bash
@@ -289,7 +296,7 @@ fi
 ```
 (For a `src/` project the name stays `mypy src` and the command is unchanged.)
 
-- [ ] **Step 3: Edit C - coverage, lines 112-117**
+- [x] **Step 3: Edit C - coverage, lines 112-117**
 
 Before:
 ```bash
@@ -315,7 +322,7 @@ else
 fi
 ```
 
-- [ ] **Step 4: Edit D - checks 14-17, lines 159-163**
+- [x] **Step 4: Edit D - checks 14-17, lines 159-163**
 
 Before:
 ```bash
@@ -342,7 +349,7 @@ if have uvx; then
   if [[ $QUICK -eq 0 ]]; then
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `bash -n full-audit/lib/run.sh && cd full-audit && python3 -m pytest tests/test_source_dirs.py`
 Expected: no bash output, `19 passed`.
@@ -356,7 +363,7 @@ Expected: no bash output, `19 passed`.
 - Modify: `full-audit/references/checks.md` lines 9, 15
 - Modify: `CHANGELOG.md` line 45 area
 
-- [ ] **Step 1: `full-audit/SKILL.md` - replace these table rows (keep column alignment loose; markdown renders it)**
+- [x] **Step 1: `full-audit/SKILL.md` - replace these table rows (keep column alignment loose; markdown renders it)**
 
 Row 3 (line 84), replace the command cell:
 `` `uv run mypy <dirs> --no-error-summary` - `<dirs>` = target dirs derived by `lib/source_dirs.py`: `src/` if present, else the first non-empty of `[tool.mypy] files`, `[tool.coverage.run] source`, `[tool.interrogate] paths`, `[tool.vulture] paths` (existing dirs only), else top-level packages with `__init__.py` (not `tests`, `docs`, `data`, `_output`, `scripts`, `.venv`); none found - bare `uv run mypy` ``
@@ -371,18 +378,18 @@ Rows 14-17 (lines 95-98), replace `src` with `<dirs>` and add the suffix "(`<dir
 - 17: `` `uvx interrogate <dirs> -q -f 70` ``
 Put the "(`<dirs>` as in row 3 without `tests`; none - SKIPPED)" note once, at the end of row 14's command cell, and "(`<dirs>` - row 14)" in rows 15-17. Do not touch other rows (10, 12 keep `src`: out of scope).
 
-- [ ] **Step 2: `full-audit/references/checks.md`**
+- [x] **Step 2: `full-audit/references/checks.md`**
 
 Line 9: `| 03 | `mypy src` | yes | ...` -> `| 03 | `mypy <derived dirs>` | yes | Static type errors (strict on `src.shared.*`; dirs: `src/`, else pyproject paths, else top-level packages) | Fix type annotations |`
 Line 15: `| 06 | `pytest tests/unit --cov` | ...` -> `| 06 | `pytest tests/unit --cov=<derived dir>` | yes | Failing unit tests / coverage drop (SKIPPED when no dirs can be derived) | Fix tests / add coverage |`
 
-- [ ] **Step 3: `CHANGELOG.md`** - append as the last bullet of the existing `### Fixed` under `## [Unreleased]` (line 45 starts it; do not create a new subsection):
+- [x] **Step 3: `CHANGELOG.md`** - append as the last bullet of the existing `### Fixed` under `## [Unreleased]` (line 45 starts it; do not create a new subsection):
 
 ```markdown
 - `/full-audit` assumed `src/`: on a layout without it, coverage (06) and radon (14, 15) passed with empty output and vulture/interrogate (16, 17) warned about a missing path (bd `python-ai-skills-5xi`). New `full-audit/lib/source_dirs.py` derives the target dirs once (`src/`, else `[tool.mypy|coverage.run|interrogate|vulture]` paths, else top-level packages); `run.sh` feeds them to mypy, coverage and checks 14-17, and records 06/14-17 as SKIPPED with a reason when nothing is derivable. Projects with `src/` run the same commands as before. `check_anchors.py`, `check_contracts.py`, `check_ssot.py` keep their `src` assumption (bd `python-ai-skills-aw0.1`).
 ```
 
-- [ ] **Step 4: Check**
+- [x] **Step 4: Check**
 
 Run: `grep -n 'mypy src\|--cov=src\|radon cc src\|vulture src\|interrogate src' full-audit/SKILL.md full-audit/references/checks.md`
 Expected: no output.
@@ -391,21 +398,21 @@ Expected: no output.
 
 ### Task 5: Verification
 
-- [ ] **Step 1:** `cd full-audit && python3 -m pytest` - expect `57 passed` (38 + 19 new).
-- [ ] **Step 2:** `bash -n full-audit/lib/run.sh` - expect no output, exit 0.
-- [ ] **Step 3:** `ruff check full-audit` - expect `Found 5 errors.` (baseline; none in the two new files).
-- [ ] **Step 4:** `make test` - expect exit 0.
-- [ ] **Step 5 (smoke, NFR-2 / FR-2):**
+- [x] **Step 1:** `cd full-audit && python3 -m pytest` - expect `57 passed` (38 + 19 new).
+- [x] **Step 2:** `bash -n full-audit/lib/run.sh` - expect no output, exit 0.
+- [x] **Step 3:** `ruff check full-audit` - expect `Found 5 errors.` (baseline; none in the two new files).
+- [x] **Step 4:** `make test` - expect exit 0.
+- [x] **Step 5 (smoke, NFR-2 / FR-2):**
   - `cd /home/bgs/ai-steward/Gena_Beeline_Local/taro_project_2026-04-01 && python3 /home/bgs/ai-steward/Gena_Beeline_Local/python-ai-skills/full-audit/lib/source_dirs.py` - expect exactly `backend`, `telegram_bot`, `scheduler`, `shared` (one per line).
   - `cd /home/bgs/ai-steward/Gena_Beeline_Local/Sinayara-Isuzu && python3 /home/bgs/ai-steward/Gena_Beeline_Local/python-ai-skills/full-audit/lib/source_dirs.py` - expect exactly `src`.
   - Read-only: do not run `run.sh` there.
-- [ ] **Step 6:** `git status --short` - only the 6 files from "Files touched" (plus pre-existing unrelated changes) are new/modified.
+- [x] **Step 6:** `git status --short` - only the 6 files from "Files touched" (plus pre-existing unrelated changes) are new/modified.
 
 ---
 
 ### Task 6: Commit
 
-- [ ] **Step 1:** stage only this task's files and commit (pre-commit hooks must pass; no `--no-verify`):
+- [x] **Step 1:** stage only this task's files and commit (pre-commit hooks must pass; no `--no-verify`):
 
 ```bash
 git add full-audit/lib/source_dirs.py full-audit/tests/test_source_dirs.py full-audit/lib/run.sh full-audit/SKILL.md full-audit/references/checks.md CHANGELOG.md

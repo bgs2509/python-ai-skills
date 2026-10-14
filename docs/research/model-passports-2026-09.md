@@ -326,6 +326,10 @@ Items are ordered by how wrong the current text was.
 because each was a direct contradiction with the new registry rules. **STILL PROPOSED — P4, P6,
 P7 (tier re-mapping), P8, P9, P10**: they are independent of the registry and were left alone to
 keep the change scoped to what was approved.
+**Update 2026-10-14 (bd `python-ai-skills-bt9` closed):** P4 and P8 moved to bd
+`python-ai-skills-8of.9`; P6 and P9 dropped - model names live only in `model-registry.json` and are
+never restated in `CLAUDE.md`; P7 dropped with `python-ai-skills-4f4` (superseded by the
+`python-ai-skills-8of.8` re-measure); P10 is a user action outside the repo.
 
 ### P1 — `claude-home/CLAUDE.md:341` (Four Token Pools, item 3) — **factually misleading**
 

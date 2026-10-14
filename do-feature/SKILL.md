@@ -96,14 +96,14 @@ Per-step defaults: Steps 2, 4, 7, 8 always inward (judgement). Step 12 code revi
 
 **Orchestration = opus.** Every `inline` row in the matrix (Step 1 `bd create`, USER APPROVAL gates, Step 11 controller, Step 13 Finish) runs in the main session, not in a subagent — its model is the session model, `opus` via `settings.json` `model` (same user decision). Do not dispatch a subagent just to change the orchestrator's model.
 
-**Revalidation rule:** when the Agent tool's model lineup changes (new family), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. The current 4-tier mapping predates that revalidation (`python-ai-skills-4f4` is still open). Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
+**Revalidation rule:** when the Agent tool's model lineup changes (new family), re-map tiers to the nearest equivalents and open a `bd` issue to revalidate the A/B numbers in ADR-002 against the new lineup. The current 4-tier mapping is not A/B-revalidated on quality: `python-ai-skills-4f4` was closed 2026-10-14 as superseded by the per-stage routing re-measure in `python-ai-skills-8of.8`. Until revalidated, keep routing by tier — do not default to a single model "because it's newest."
 
 | Step | Dispatch | Tier | Rationale |
 |------|----------|------|-----------|
 | 1. `bd create` | inline | — | CLI |
 | 2. Discovery | research subagent (returns artifact + open questions) | top | requirements insight depth (caregiver, liability, PII) benefits from the frontier tier |
 | 3. USER APPROVAL — requirements | inline | — | gate |
-| 4. Brainstorming | research subagent (returns design options + trade-offs) | top | architectural fork, trade-offs; user decision 2026-10-13 (discovery and architecture only on the top tier) — not A/B-validated, ADR-002 measured `strong` here; revalidation `python-ai-skills-4f4` |
+| 4. Brainstorming | research subagent (returns design options + trade-offs) | top | architectural fork, trade-offs; user decision 2026-10-13 (discovery and architecture only on the top tier) — not A/B-validated, ADR-002 measured `strong` here; re-measure `python-ai-skills-8of.8` |
 | 5. USER APPROVAL — design | inline | — | gate |
 | 6. GRACE Ask | `Agent(model=<cheap>, subagent_type="general-purpose")` | cheap | graph sync (writes) + navigation |
 | 7. GRACE Plan | `Agent(model=<top>, subagent_type="general-purpose")` | top | module architecture + contracts is the highest-leverage design step |
