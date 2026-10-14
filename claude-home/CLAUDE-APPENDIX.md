@@ -199,15 +199,15 @@ Never jump straight to code when requirements, architecture, or verification int
 
 ### Workflow Hierarchy (dev-projects only)
 
-**Rule:** For any new feature, bugfix, or significant change in a `dev` project — invoke `do-feature` skill as the **single entry point**. It orchestrates Discovery → Brainstorming → GRACE Plan → Writing Plans → Execution → Review → Finish.
+**Rule:** Which procedure a change goes through is set by the task levels in `~/.claude/CLAUDE.md` → "Dev-project workflow" (the only copy). Full `do-feature` is level 1; `do-feature --lite` is level 2.
 
-**Flow:** `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`.
+**Почему:** until 2026-10-14 every change — a docs edit, a one-off script — went through all 13 steps of `do-feature`, which was built for shipped service code (bd `python-ai-skills-ynt`).
 
 ### USER APPROVAL Gates (dev-projects only)
 
 **Meta:** Agents have freedom in **HOW** to implement, but not in **WHAT** to build. Contracts, plans, graph references, verification requirements, and USER APPROVAL gates define the allowed space.
 
-**Rule:** Three mandatory gates in `do-feature`:
+**Rule:** Three mandatory gates in full `do-feature` (`--lite` has one — `do-feature` → Lite mode):
 - After Discovery (step 3) — approve FR/NFR/scope
 - After Brainstorming (step 5) — approve design
 - After Writing Plans (step 10) — approve implementation plan

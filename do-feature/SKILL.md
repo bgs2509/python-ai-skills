@@ -1,10 +1,11 @@
 ---
 name: do-feature
 description: >
-  Orchestrator for full feature development lifecycle: Discovery → Brainstorming → GRACE → Planning → Execution → Review → Finish.
+  Orchestrator for the development lifecycle of shipped code: Discovery → Brainstorming → GRACE → Planning → Execution → Review → Finish.
   Combines Superpowers (process), GRACE (structure), Beads (tracking).
-  TRIGGER when: user wants to implement a new feature, new service, or significant change in a dev-project.
-argument-hint: "[описание фичи или задачи] [--auto-approve|-y | --ask]"
+  TRIGGER when: task level 1 or 2 in ~/.claude/CLAUDE.md "Dev-project workflow" — a new feature, service or module, or a contract / public API / DB schema change in shipped code (full mode); a small low-risk change to shipped code (--lite).
+  SKIP when: a low-risk reproducible bug (systematic-debugging / grace-fix), docs / instructions / config / skill text only, one-off scripts and experiments.
+argument-hint: "[описание фичи или задачи] [--lite] [--auto-approve|-y | --ask]"
 ---
 
 # Feature Development Workflow — Orchestrator
@@ -60,6 +61,17 @@ Criteria:
 | `high` | **fallback to ask** (flag has no effect) | **fallback to ask** (flag has no effect) |
 
 **Boundary with Sentrux (Step 12):** this matrix is a *design-time* gate (Steps 3/5/10/11). Sentrux is a *post-execution* hard quality gate (Step 12). They are orthogonal: passing auto-approve does NOT exempt Step 12, and Sentrux failure cannot be silenced by `--auto-approve`.
+
+### Lite mode (`--lite`, task level 2)
+
+For shipped code with risk `low` and no contract, public API or DB schema change (level 2 in `~/.claude/CLAUDE.md` → "Dev-project workflow"). `--lite` combines with the approval flags above. It runs Step 1 and Pre-dispatch items 1–2, then:
+
+1. **Lite plan** (inline, no subagent), written to the bd issue notes: the approach in 2–5 sentences, the files to touch, the tests to write first, and `risk: low` with a one-line justification. No `discovery.md`, `design.md` or plan file.
+2. **[USER APPROVAL] — lite plan.** The only gate. The approval flags and the risk × evidence matrix apply as at Step 10; evidence is `strong` when the plan cites the project pattern it follows (`file:line`) and leaves no open question.
+3. **Step 11** inline in the main session with `superpowers:test-driven-development` — no phase batches, no `grace-execute` controller. The plan-deviation rule still applies.
+4. **Steps 12 and 13** unchanged.
+
+Steps 2–10 are skipped. **Escalation:** if the risk turns out `medium`/`high`, or a contract, public API or DB schema has to change, stop and restart in full mode from Step 2, keeping the lite plan as input.
 
 ## Overview
 
@@ -207,12 +219,12 @@ Required frontmatter keys in `discovery.md` and `design.md`:
 ## Orchestrator Rules
 
 1. **This workflow controls ALL transitions.** Sub-skills do NOT auto-transition (enforced by global Skill Hierarchy in `~/.claude/CLAUDE.md` — workers and utilities MUST NOT auto-transition to other skills).
-2. **USER APPROVAL gates:** Steps 3, 5, 10 are mandatory and are never skipped on the agent's own initiative. Step 11 has one advisory gate on plan deviation. Auto-approval is allowed ONLY with explicit user opt-in (`--auto-approve` flag or standing feedback memory) AND a passing risk × evidence matrix — see `## Flags` and the gate exception in `~/.claude/CLAUDE.md`. `high`-risk gates always fall back to interactive regardless of flag.
+2. **USER APPROVAL gates:** Steps 3, 5, 10 are mandatory (`--lite`: the one lite-plan gate) and are never skipped on the agent's own initiative. Step 11 has one advisory gate on plan deviation. Auto-approval is allowed ONLY with explicit user opt-in (`--auto-approve` flag or standing feedback memory) AND a passing risk × evidence matrix — see `## Flags` and the gate exception in `~/.claude/CLAUDE.md`. `high`-risk gates always fall back to interactive regardless of flag.
 3. **Pre-dispatch Protocol is orchestrator-owned.** Risk triage and preflight run inline before the Step 2 dispatch — never inside a subagent (its STOP gates need the user).
 4. **Beads tracking:** Update epic notes at each major milestone. Cross-reference `bd_id` in `plan.md` and XML artifacts (universal key across three planning SSoT zones).
 5. **md → xml automation:** Discovery and Brainstorming write prose + YAML frontmatter in `discovery.md` / `design.md`. XML (`requirements.xml`, `technology.xml`) auto-generated via pre-commit hook + Claude PostToolUse hook + CI check. Never edit XML manually.
 6. **SSoT discipline:** One artifact per concern (see the Documentation SSoT rules in `~/.claude/CLAUDE-APPENDIX.md` → Dev-project rules). No duplication between documents.
-7. **Adaptive depth:** All 13 steps apply to dev-projects. Depth scales with the risk classifier (preliminary value from Pre-dispatch; see reference.md, Step 2); steps MUST NOT be skipped — only lightened.
+7. **Adaptive depth:** In full mode all 13 steps apply. Depth scales with the risk classifier (preliminary value from Pre-dispatch; see reference.md, Step 2); steps MUST NOT be skipped — only lightened. The only sanctioned skip is `--lite` (see `### Lite mode`).
 8. **Per-step model routing follows the Model Routing Matrix** (the single SSoT for routing, expressed as tiers). Dispatch via `Agent(model=...)` mapped from the current tier. Only exceptions are audited via `bd update <epic> --notes` (see `### Audit trail`).
 9. **Subagents never talk to the user.** All user interaction happens inline at the orchestrator — see `## Research Subagent Pattern`.
 10. **Commit authority.** The user invoking `do-feature` IS explicit authority for the workflow's own commits — Step 11 per-step TDD commits and Step 13 meta commits — satisfying the Beads Conservative-profile bar of "unless explicitly asked" (mirrors how `--auto-approve` is legalized in `~/.claude/CLAUDE.md`). This authority is scoped to local commits only and **never** extends to `git push` — that always requires a separate explicit request.

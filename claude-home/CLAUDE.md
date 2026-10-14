@@ -36,7 +36,15 @@
 
 ## Dev-project workflow (dev-projects only)
 
-**Rule:** In a `dev` project every feature, bugfix or significant change goes through the `do-feature` skill — the single entry point: `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`. Design is approved before contracts, contracts before code.
+**Rule (task levels):** Before changing anything in a `dev` project pick the lightest level that fits and announce it in one line: `Level N: <signal>`. On a boundary take the higher level; mid-task a level only goes up. "Risk" = the criteria in `do-feature` → Flags. "Shipped code" = code a deployed service, an installed tool or a library user runs (in this repo: hooks, scripts).
+0. Several shipped features from one draft → `do-autopilot` / `do-multiagent`.
+1. Shipped code with risk `medium`/`high`, a new module, or a change to a contract, public API or DB schema → full `do-feature`: `bd create` → Discovery → [APPROVAL] → Brainstorming → [APPROVAL] → GRACE Ask → GRACE Plan → Q&A Contracts → Writing Plans → [APPROVAL] → Execution → Review → Finish → `bd close`. Design is approved before contracts, contracts before code.
+2. Shipped code, risk `low`, no contract change → `do-feature --lite`.
+3. A reproducible bug, risk `low`, no contract change → `superpowers:systematic-debugging` → failing test → fix → commit; in a GRACE project through `grace-fix`.
+4. No executable code changes (docs, instructions, config, skill text, GRACE XML) → edit → the validator that consumes the file → commit.
+5. Throwaway code nothing deploys, installs or imports (one-off script, experiment) → write and run; no tests, review, commit or `bd`. Reused later → level 2.
+
+**Rule:** Levels 2–4 in a GRACE project run `grace lint` before the commit. Levels 4–5 open no `bd` issue for the edit itself: close the issue the work resolves, file one for leftovers.
 
 **Rule:** USER APPROVAL gates are never skipped on the agent's own initiative. Auto-approval only with explicit user opt-in (`--auto-approve`, an auto-approving orchestrator the user invoked, or a standing `feedback` memory) AND a passing risk × evidence matrix (`do-feature` → Flags); `high`-risk gates stay interactive. Auto-approval never bypasses quality gates, hooks or destructive-operation confirmations.
 

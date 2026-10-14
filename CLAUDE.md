@@ -33,7 +33,7 @@ project_type: dev
 
 ### Workflow, GRACE & utility skills (32)
 
-- **Orchestrators:** `do-feature` (single entry point for features), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
+- **Orchestrators:** `do-feature` (shipped code: full mode for task level 1, `--lite` for level 2 — levels in `claude-home/CLAUDE.md`), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
 - **best-\* family:** `best-research` (analysis engine, SSoT), `best-recommend` (recommendation format atom), `best-approach` / `best-rank` / `best-questions` (thin wrappers)
 - **grace-\* (14):** `grace-init`, `grace-plan`, `grace-execute`, `grace-multiagent-execute`, `grace-refresh`, `grace-reviewer`, `grace-refactor`, `grace-fix`, `grace-ask`, `grace-status`, `grace-verification`, `grace-explainer`, `grace-cli`, `grace-setup-subagents`
 - **git & sync:** `git-commit`, `git-branch`, `git-finish` (closes the session: docs and plans always first → merge → delete → push → uppercase verdict), `project-sync`, `projects-sync`, `beads-sync`
@@ -60,7 +60,7 @@ project_type: dev
 | Architecture decision | _architecture, _adr |
 | Feature completed | _report; _docworkflow (TASK-NNN legacy projects only) |
 | Pipeline audit | py-supervisor |
-| Starting a task | do-feature (GRACE dev-projects); _docworkflow (TASK-NNN legacy projects) |
+| Starting a task | pick the task level (`claude-home/CLAUDE.md` → Dev-project workflow): do-feature for levels 1–2; _docworkflow (TASK-NNN legacy projects) |
 
 ---
 
