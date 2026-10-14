@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from source_dirs import derive, main
+from source_dirs import derive, main, vulture_args
 
 RUN_SH = Path(__file__).resolve().parent.parent / "lib" / "run.sh"
 
@@ -100,6 +100,32 @@ def test_main_prints_one_dir_per_line(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     assert main() == 0
     assert capsys.readouterr().out == "a\nb\n"
+
+
+def test_vulture_args_without_config_keep_cli_threshold(tmp_path):
+    assert vulture_args(tmp_path, ["src"]) == ["src", "--min-confidence", "80"]
+
+
+def test_vulture_args_config_with_paths_reads_config_only(tmp_path):
+    make(tmp_path, ["src"], '[tool.vulture]\npaths = ["src", "tests"]\nmin_confidence = 60\n')
+    assert vulture_args(tmp_path, ["src"]) == []
+
+
+def test_vulture_args_config_without_paths_passes_dirs_no_threshold(tmp_path):
+    make(tmp_path, ["src"], "[tool.vulture]\nmin_confidence = 60\n")
+    assert vulture_args(tmp_path, ["src"]) == ["src"]
+
+
+def test_main_vulture_mode_prints_args(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    assert main(["--vulture", "a", "b"]) == 0
+    assert capsys.readouterr().out == "a\nb\n--min-confidence\n80\n"
+
+
+def test_run_sh_takes_vulture_args_from_helper():
+    text = RUN_SH.read_text(encoding="utf-8")
+    assert "source_dirs.py\" --vulture" in text
+    assert "--min-confidence 80" not in text
 
 
 @pytest.mark.parametrize(

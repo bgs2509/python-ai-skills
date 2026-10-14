@@ -19,7 +19,7 @@ For each check: what it measures, source of truth, how to act on FAIL.
 | 13 | `bd doctor / stale / orphans` | no | Beads sync issues, stale issues, broken deps | `bd dolt push`, close/clean |
 | 14 | `radon cc -n C` | no | Cyclomatic complexity ≥ rank C | Refactor function |
 | 15 | `radon mi -n B` | no | Maintainability index ≤ B | Split module / reduce complexity |
-| 16 | `vulture` | no | Dead code (≥80% confidence) | Delete unused symbols |
+| 16 | `vulture` | no | Dead code: the project's `[tool.vulture]` when present, else ≥80% confidence | Delete unused symbols |
 | 17 | `interrogate -f 70` | no | Docstring coverage < 70% | Add docstrings to public API |
 | 18 | `pip-audit` | no | Known CVEs in pinned deps | Bump dep / pin secure version |
 | 19 | `check_pins.py` | yes | Runtime deps pinned with `==` | Replace `>=`/`~=`/`^` with `==` |

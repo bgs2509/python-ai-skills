@@ -94,7 +94,7 @@ Total: <N pass> / <M total>, <K critical>, <L warnings>
 | 13| beads        | `bd doctor`, `bd preflight`, `bd stale`, `bd orphans`         | exit + stdout                         |
 | 14| complexity   | `uvx radon cc <dirs> -n C -a` (если доступен `uvx`; `<dirs>` as in row 3 without `tests`; none — SKIPPED) | stdout (CC > C = warn)                |
 | 15| complexity   | `uvx radon mi <dirs> -n B` (`<dirs>` — row 14)            | stdout                                |
-| 16| dead-code    | `uvx vulture <dirs> --min-confidence 80` (`<dirs>` — row 14) | exit + stdout                         |
+| 16| dead-code    | `uvx vulture` + args from `lib/source_dirs.py --vulture`: with `[tool.vulture] paths` — none (the project config decides); `[tool.vulture]` without `paths` — `<dirs>` only; no `[tool.vulture]` — `<dirs> --min-confidence 80` (`<dirs>` — row 14) | exit + stdout                         |
 | 17| docstrings   | `uvx interrogate <dirs> -q -f 70` (`<dirs>` — row 14)     | exit                                   |
 | 18| deps-audit   | `uvx pip-audit -r <(uv export --no-dev)` или `uv export \| uvx pip-audit -r /dev/stdin` | exit + JSON                           |
 | 19| deps-pinned  | `python lib/check_pins.py` — все runtime зависимости через `==` | self-test                              |

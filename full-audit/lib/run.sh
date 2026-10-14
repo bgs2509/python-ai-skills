@@ -180,7 +180,10 @@ if have uvx; then
   if ((${#METRIC_DIRS[@]})); then
     run "14-radon-cc"   "radon cc (high complexity)" 0 uvx --quiet radon cc "${METRIC_DIRS[@]}" -n C -a
     run "15-radon-mi"   "radon mi (maintainability)" 0 uvx --quiet radon mi "${METRIC_DIRS[@]}" -n B
-    run "16-vulture"    "vulture dead code"          0 uvx --quiet vulture "${METRIC_DIRS[@]}" --min-confidence 80
+    # vulture: a project's [tool.vulture] (paths, min_confidence, ignores) wins;
+    # CLI options would override it, so the helper passes only what it lacks.
+    mapfile -t VULTURE_ARGS < <(python3 "${LIB_DIR}/source_dirs.py" --vulture "${METRIC_DIRS[@]}")
+    run "16-vulture"    "vulture dead code"          0 uvx --quiet vulture "${VULTURE_ARGS[@]}"
     run "17-interrogate" "interrogate docstring %"   0 uvx --quiet interrogate "${METRIC_DIRS[@]}" -q -f 70
   else
     for id in 14-radon-cc 15-radon-mi 16-vulture 17-interrogate; do
