@@ -2,6 +2,11 @@
 
 bd: python-ai-skills-5io · Discovery/Design: `docs/superpowers/specs/20261013-principles-ssot-*.md`
 
+**Status: done** — tasks 1–7 in commit `c89a42d`. Deviated after two external reviews, see
+commits `402ad49` and `e7dc4f6` (guard widened to all 17 labels and threshold tables,
+`py-test-writer` and `_testing` added as consumers, hook silent without `HOME`, codex prompt
+without backticks). Follow-ups: `python-ai-skills-o9b`, `python-ai-skills-v3n` (epic `python-ai-skills-aw0`).
+
 | # | Task | FR | Verify |
 |---|------|----|--------|
 | 1 | RED: `claude-home/hooks/test_principles_inject.py` + `test_principles_ssot.py` | FR-5, FR-6 | pytest fails (hook and principles.md absent, copies present) |
