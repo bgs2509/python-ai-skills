@@ -3,8 +3,8 @@ name: do-feature
 description: >
   Orchestrator for the development lifecycle of shipped code: Discovery → Brainstorming → GRACE → Planning → Execution → Review → Finish.
   Combines Superpowers (process), GRACE (structure), Beads (tracking).
-  TRIGGER when: task level 1 or 2 in ~/.claude/CLAUDE.md "Dev-project workflow" — a new feature, service or module, or a contract / public API / DB schema change in shipped code (full mode); a small low-risk change to shipped code (--lite).
-  SKIP when: a low-risk reproducible bug (systematic-debugging / grace-fix), docs / instructions / config / skill text only, one-off scripts and experiments.
+  TRIGGER when: the task is level 1 (full mode) or level 2 (--lite) in the task-level table of ~/.claude/CLAUDE.md "Dev-project workflow".
+  SKIP when: the task is level 0 or 3–5 in that table.
 argument-hint: "[описание фичи или задачи] [--lite] [--auto-approve|-y | --ask]"
 ---
 
@@ -21,11 +21,11 @@ Parsed from `argument-hint` / invocation args; first match wins:
 
 | Flag | Effect |
 |------|--------|
-| `--auto-approve`, `-y` | USER APPROVAL gates (Steps 3, 5, 10) and the Step 11 advisory deviation gate are auto-approved **when the risk × evidence matrix below passes**; `high`-risk gates always fall back to interactive. Announce "Gate auto-approved (--auto-approve)" and continue. |
+| `--auto-approve`, `-y` | USER APPROVAL gates (Steps 3, 5, 10; with `--lite` the lite-plan gate) and the Step 11 advisory deviation gate are auto-approved **when the risk × evidence matrix below passes**; `high`-risk gates always fall back to interactive. Announce "Gate auto-approved (--auto-approve)" and continue. |
 | `--ask` | Force interactive gates even if a standing `feedback` memory (check `bd memories auto-approve`) says auto-approve. |
 | *(none)* | Resolve via memory: if a `feedback` memory blanket-approves gates for this project → auto-approve; else → ask. |
 
-**Scope of auto-approval:** only the three USER APPROVAL gates (3, 5, 10) and the Step 11 *advisory* deviation gate. Auto-approve does NOT bypass:
+**Scope of auto-approval:** only the three USER APPROVAL gates (3, 5, 10) — with `--lite`, the one lite-plan gate — and the Step 11 *advisory* deviation gate. Auto-approve does NOT bypass:
 - Hard quality gates (Sentrux rule violations in Steps 2 & 12, lint baseline drift)
 - Pre-commit / git hooks
 - Destructive operations listed in global CLAUDE.md (force-push, rm -rf, drop table, etc.) — still require explicit confirmation
@@ -69,7 +69,7 @@ For shipped code with risk `low` and no contract, public API or DB schema change
 1. **Lite plan** (inline, no subagent), written to the bd issue notes: the approach in 2–5 sentences, the files to touch, the tests to write first, and `risk: low` with a one-line justification. No `discovery.md`, `design.md` or plan file.
 2. **[USER APPROVAL] — lite plan.** The only gate. The approval flags and the risk × evidence matrix apply as at Step 10; evidence is `strong` when the plan cites the project pattern it follows (`file:line`) and leaves no open question.
 3. **Step 11** inline in the main session with `superpowers:test-driven-development` — no phase batches, no `grace-execute` controller. The plan-deviation rule still applies.
-4. **Steps 12 and 13** unchanged.
+4. **Steps 12 and 13** as in full mode, with these inputs: the external review covers the whole commit range of the task; in `reviewer-prompt.md` `{DISCOVERY}`, `{DESIGN}` and `{PLAN}` carry the lite plan text and `{PHASE_VERDICTS}` is `none`. `grace-reviewer` and `grace-refresh` run only in a GRACE project (one with `docs/knowledge-graph.xml`).
 
 Steps 2–10 are skipped. **Escalation:** if the risk turns out `medium`/`high`, or a contract, public API or DB schema has to change, stop and restart in full mode from Step 2, keeping the lite plan as input.
 

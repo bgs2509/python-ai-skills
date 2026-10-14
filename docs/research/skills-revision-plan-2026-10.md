@@ -145,8 +145,9 @@ $5–8/MTok ≈ $100–180). Total ≈ 4–5 % of spend for one file. The listin
 
 ## 2. Plan
 
-Order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7. Every change to a skill, instruction or setting goes through
-`do-feature` with its approval gates; every change is re-measured after 7 days with the step-0 tool.
+Order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7. Since 2026-10-14 each change goes through the procedure of its
+task level (`claude-home/CLAUDE.md` → Dev-project workflow; skill, instruction and setting text is
+level 4), not through full `do-feature` by default; every change is re-measured after 7 days with the step-0 tool.
 
 Impact scale: **Quality** (↑ better / ↓ worse / = neutral), **Tokens & cost**, **Time** (wall clock
 of a task). Each estimate names its assumption.

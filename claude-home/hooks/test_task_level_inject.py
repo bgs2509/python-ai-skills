@@ -15,7 +15,7 @@ import pytest
 
 HOOK = Path(__file__).resolve().parent / "task-level-inject.sh"
 SECTION = "## Dev-project workflow (dev-projects only)\n\n**Rule (task levels):** sample level table\n"
-DOC = "# Global\n\n## Project Classification\n\nbefore\n\n" + SECTION + "\n## Skill Hierarchy\n\nafter\n"
+DOC = "# Global\n\n## Project Classification\n\nPREVIOUS-SECTION\n\n" + SECTION + "\n## Skill Hierarchy\n\nNEXT-SECTION\n"
 
 
 @pytest.fixture
@@ -51,8 +51,8 @@ def test_do_feature_gets_the_level_section(claude_md):
 
 def test_only_the_level_section_is_cut(claude_md):
     context = json.loads(run(skill("do-feature"), claude_md).stdout)["hookSpecificOutput"]["additionalContext"]
-    assert "before" not in context
-    assert "after" not in context
+    assert "PREVIOUS-SECTION" not in context
+    assert "NEXT-SECTION" not in context
     assert "## Skill Hierarchy" not in context
 
 
@@ -75,6 +75,33 @@ def test_file_without_the_section_is_silent(tmp_path):
     result = run(skill("do-feature"), path)
     assert result.returncode == 0
     assert result.stdout == ""
+
+
+def test_default_file_is_next_to_the_hooks_dir(tmp_path):
+    # Installed layout: <claude home>/hooks/<hook> and <claude home>/CLAUDE.md;
+    # the claude home may differ from $HOME/.claude (installer's CLAUDE_HOME).
+    home = tmp_path / "claude-home"
+    (home / "hooks").mkdir(parents=True)
+    hook = home / "hooks" / HOOK.name
+    hook.write_text(HOOK.read_text())
+    (home / "CLAUDE.md").write_text(DOC)
+    result = subprocess.run(
+        ["bash", str(hook)],
+        input=json.dumps(skill("do-feature")),
+        capture_output=True,
+        text=True,
+        timeout=30,
+        env={"PATH": "/usr/bin:/bin", "HOME": "/nonexistent"},
+    )
+    assert result.returncode == 0
+    assert "sample level table" in json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_directory_instead_of_file_is_silent(tmp_path):
+    result = run(skill("do-feature"), tmp_path)
+    assert result.returncode == 0
+    assert result.stdout == ""
+    assert result.stderr == ""
 
 
 @pytest.mark.parametrize("payload", ["", "not json", {"tool_input": {}}, {"other": 1}])
