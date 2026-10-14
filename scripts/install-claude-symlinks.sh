@@ -13,6 +13,14 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
+# The template puts CLAUDE_HOME inside single-quoted hook commands, inside JSON
+# strings, through a `sed s|…|…|` substitution. Spaces are fine; these
+# characters would break one of the three layers (bd python-ai-skills-4nb).
+case "$CLAUDE_HOME" in
+  *[\'\"\\\|\&]* | *$'\n'*)
+    echo "ERROR: CLAUDE_HOME must not contain ' \" \\ | & or a newline: $CLAUDE_HOME" >&2
+    exit 1 ;;
+esac
 
 # --force replaces an existing REAL directory at a link path (e.g. migrating a
 # machine that still has real skill dirs). Wrong symlinks and plain files are

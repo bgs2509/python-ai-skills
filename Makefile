@@ -29,7 +29,8 @@ test:
 	                   claude-home/scripts/test_model_run.py \
 	                   claude-home/scripts/test_model_stats.py \
 	                   claude-home/scripts/test_skill_stats.py \
-	                   claude-home/scripts/test_git_finish_state.py -q
+	                   claude-home/scripts/test_git_finish_state.py \
+	                   scripts/test_install_claude_symlinks.py -q
 	@python3 -m pytest audit-loop/tests -q
 	@cd full-audit && python3 -m pytest
 	@cd project-sync && python3 -m pytest

@@ -29,6 +29,15 @@ repos:
         files: ^claude-home/settings\.json\.template$
         pass_filenames: false
 
+      # The render puts CLAUDE_HOME into shell-run hook commands; a path with a
+      # space once split and the hook did not start (bd python-ai-skills-4nb).
+      - id: settings-render-tests
+        name: pytest (settings.json render via the installer)
+        entry: python3 -m pytest scripts/test_install_claude_symlinks.py -q
+        language: system
+        files: ^(claude-home/settings\.json\.template|scripts/install-claude-symlinks\.sh|scripts/test_install_claude_symlinks\.py)$
+        pass_filenames: false
+
       - id: hook-regression-tests
         name: pytest (hooks regression suite)
         entry: python3 -m pytest claude-home/hooks/ -q

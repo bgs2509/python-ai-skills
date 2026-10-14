@@ -298,7 +298,7 @@
           },
           {
             "type": "command",
-            "command": "python3 {{CLAUDE_HOME}}/hooks/hook-stats-digest.py",
+            "command": "python3 '{{CLAUDE_HOME}}/hooks/hook-stats-digest.py'",
             "timeout": 5
           }
         ]
@@ -321,15 +321,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/block-no-verify.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/block-no-verify.sh'"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-rewrite.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/rtk-rewrite.sh'"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/rtk-announce.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/rtk-announce.sh'"
           }
         ]
       },
@@ -356,7 +356,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/big-read-nudge.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/big-read-nudge.sh'"
           }
         ]
       },
@@ -365,7 +365,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/delegation-pool-nudge.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/delegation-pool-nudge.sh'"
           }
         ]
       },
@@ -374,15 +374,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/skill-finish-guard.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/skill-finish-guard.sh'"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/principles-inject.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/principles-inject.sh'"
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/task-level-inject.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/task-level-inject.sh'"
           }
         ]
       }
@@ -393,7 +393,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/regen-xml-on-spec-edit.sh"
+            "command": "'{{CLAUDE_HOME}}/hooks/regen-xml-on-spec-edit.sh'"
           }
         ]
       }
@@ -404,12 +404,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/anti-hallucination.sh",
+            "command": "'{{CLAUDE_HOME}}/hooks/anti-hallucination.sh'",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/explanation-terms.sh",
+            "command": "'{{CLAUDE_HOME}}/hooks/explanation-terms.sh'",
             "timeout": 10
           }
         ]
@@ -426,7 +426,7 @@
           },
           {
             "type": "command",
-            "command": "{{CLAUDE_HOME}}/hooks/git-finish-router.sh",
+            "command": "'{{CLAUDE_HOME}}/hooks/git-finish-router.sh'",
             "timeout": 3
           }
         ]
