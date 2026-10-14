@@ -379,6 +379,10 @@
           {
             "type": "command",
             "command": "{{CLAUDE_HOME}}/hooks/principles-inject.sh"
+          },
+          {
+            "type": "command",
+            "command": "{{CLAUDE_HOME}}/hooks/task-level-inject.sh"
           }
         ]
       }
