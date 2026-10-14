@@ -329,7 +329,10 @@ keep the change scoped to what was approved.
 **Update 2026-10-14 (bd `python-ai-skills-bt9` closed):** P4 and P8 moved to bd
 `python-ai-skills-8of.9`; P6 and P9 dropped - model names live only in `model-registry.json` and are
 never restated in `CLAUDE.md`; P7 dropped with `python-ai-skills-4f4` (superseded by the
-`python-ai-skills-8of.8` re-measure); P10 is a user action outside the repo.
+`python-ai-skills-8of.8` re-measure, itself dropped 2026-10-14 by user decision); P10 is a user
+action outside the repo. **Update 2026-10-14 (bd `python-ai-skills-8of.9` closed):** P4 and P8
+APPLIED in `699ec7e` — `audit-loop` takes its Codex model from the registry role `cross-auditor`
+instead of a pinned name in the skill, and ADR-002 no longer carries the stale line.
 
 ### P1 — `claude-home/CLAUDE.md:341` (Four Token Pools, item 3) — **factually misleading**
 

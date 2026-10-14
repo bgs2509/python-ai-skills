@@ -5,7 +5,7 @@
 carried complete code); Step 12 external review (NOT READY) fixed in `89a823c` - declared paths
 kept only when they are directories, a comma-separated `[tool.mypy] files` string accepted,
 `tests/...` subpaths dropped for checks 06/14-17, a failing helper named in the SKIPPED reason;
-4 tests added (23 in `test_source_dirs.py`). Follow-ups: `python-ai-skills-aw0.1`, `python-ai-skills-aw0.2`.
+4 tests added (23 in `test_source_dirs.py`). Follow-ups `python-ai-skills-aw0.1` (`a17ced3`) and `python-ai-skills-aw0.2` (`6ab7c4a`) closed 2026-10-14.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development (recommended) or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 
