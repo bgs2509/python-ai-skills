@@ -37,6 +37,15 @@ GIT_OPTIONS_WITH_VALUE = {"-C", "-c", "--git-dir", "--work-tree", "--namespace",
 PREFIX_WORDS = {"command", "env", "nice", "time"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
+# `git branch` flags that never create a branch, and the ones that move or copy.
+BRANCH_NON_CREATING = {
+    "-d", "-D", "--delete", "-l", "--list", "-a", "--all", "-r", "--remotes", "-v", "-vv",
+    "--verbose", "--show-current", "-u", "--set-upstream-to", "--unset-upstream",
+    "--edit-description", "--merged", "--no-merged", "--contains", "--no-contains",
+    "--points-at", "--format", "--sort", "--column", "--color",
+}
+BRANCH_MOVE_COPY = {"-m", "-M", "--move", "-c", "-C", "--copy"}
+
 DENY = """[branch-name-check] Refusing to create branch '{names}': no `branch` segment.
 
 Naming rule N-BRANCH (~/.claude/CLAUDE.md -> "Naming"): form {form},
@@ -101,11 +110,50 @@ def option_value(args, flags):
     return None
 
 
+def branch_name(args):
+    """New name from `git branch` arguments: create, move or copy; None when it only lists or edits."""
+    end = args.index("--") if "--" in args else len(args)
+    flags = [a for a in args[:end] if a.startswith("-")]
+    if any(f.split("=", 1)[0] in BRANCH_NON_CREATING for f in flags):
+        return None
+    positional = [a for a in args[:end] if not a.startswith("-")] + args[end + 1:]
+    if not positional:
+        return None
+    return positional[-1] if any(f in BRANCH_MOVE_COPY for f in flags) else positional[0]
+
+
+def worktree_name(args):
+    """Branch name `git worktree add` creates: -b/-B value, else the path basename; None otherwise."""
+    if not args or args[0] != "add":
+        return None
+    rest = args[1:]
+    value = option_value(rest, ("-b", "-B"))
+    if value is not None:
+        return value
+    if "--detach" in rest or "-d" in rest:
+        return None
+    positional, i = [], 0
+    while i < len(rest):
+        if rest[i] == "--reason":
+            i += 2
+            continue
+        if not rest[i].startswith("-"):
+            positional.append(rest[i])
+        i += 1
+    if len(positional) == 1:  # `<path> <commit-ish>` checks out an existing branch
+        return os.path.basename(positional[0].rstrip("/"))
+    return None
+
+
 def new_branch_name(sub, args):
     if sub == "checkout":
         return option_value(args, ("-b", "-B", "--orphan"))
     if sub == "switch":
         return option_value(args, ("-c", "-C", "--create", "--force-create", "--orphan"))
+    if sub == "branch":
+        return branch_name(args)
+    if sub == "worktree":
+        return worktree_name(args)
     return None
 
 

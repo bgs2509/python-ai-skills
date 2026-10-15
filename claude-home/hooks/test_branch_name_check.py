@@ -78,6 +78,17 @@ BLOCKED = [
     "command git checkout -b x",
     "/usr/bin/git checkout -b x",
     "rtk proxy git switch -c x",
+    # branch (forms 3, 6)
+    "git branch new-thing",
+    "git branch -f new-thing main",
+    "git branch -m old new-thing",
+    "git branch -m renamed",
+    "git branch --copy a b",
+    # worktree add (forms 4, 5)
+    "git worktree add -b feat/x ../wt",
+    "git worktree add ../lazy-fox",
+    "git worktree add --orphan ../lazy-fox",
+    "git worktree add --reason r ../lazy-fox",
 ]
 
 ALLOWED = [
@@ -100,6 +111,22 @@ ALLOWED = [
     "",
     "git checkout -b 'unbalanced",
     "git checkout -b",
+    # branch and worktree add, names with the segment
+    "git branch docs/branch-z",
+    "git branch -m old feat/branch-new",
+    "git worktree add ../feat-branch-x",
+    "git worktree add -b feat/branch-x ../wt",
+    # branch and worktree add, not creating
+    "git branch -d lazy-fox",
+    "git branch -D x",
+    "git branch --list",
+    "git branch",
+    "git branch -u origin/main",
+    "git branch --show-current",
+    "git worktree remove ../wt",
+    "git worktree add --detach ../wt",
+    "git worktree add ../wt lazy-fox",
+    "git worktree list",
 ]
 
 
