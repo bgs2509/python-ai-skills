@@ -97,6 +97,10 @@ BLOCKED = [
     "cd /tmp/r\ngit checkout -b x",
     "git status\ngit switch -c lazy-fox",
     "git checkout \\\n  -b x",
+    # operators glued to the words around them
+    "git status&&git checkout -b bad",
+    "git status;git checkout -b bad",
+    "true|git checkout -b bad",
 ]
 
 ALLOWED = [
@@ -139,6 +143,12 @@ ALLOWED = [
     'git commit -m "first line\ngit checkout -b x"',
     "cat <<EOF\ngit checkout -b x\nEOF",
     "echo hi\ngit status",
+    # glued operators, ordinary commands
+    "git status&&git log",
+    "echo a|grep a",
+    "git branch -d old",
+    "git branch -D old",
+    "git worktree add --detach x",
 ]
 
 

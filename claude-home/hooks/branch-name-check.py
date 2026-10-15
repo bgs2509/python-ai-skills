@@ -34,7 +34,7 @@ FORM = "<type>/branch-<slug>"
 TYPES = ("feat", "fix", "docs", "style", "refactor", "test", "chore", "perf", "build", "ci")
 
 # Shell splitting, as in block-no-verify.sh (second consumer; extract on a third).
-SEPARATORS = {"&&", "||", ";", "|", "&"}
+SEPARATORS = {"&&", "||", ";", "|", "|&", "&", "(", ")"}
 GIT_OPTIONS_WITH_VALUE = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
 PREFIX_WORDS = {"command", "env", "nice", "time"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
@@ -92,11 +92,6 @@ def segments(tokens):
     cur = []
     for tok in tokens:
         if tok in SEPARATORS:
-            yield cur
-            cur = []
-        elif tok.endswith(";"):  # shlex keeps `;` glued to the previous word
-            if tok.rstrip(";"):
-                cur.append(tok.rstrip(";"))
             yield cur
             cur = []
         else:
@@ -193,8 +188,11 @@ def offending_bash(command):
     """New branch names without the segment in a Bash command line."""
     if "git" not in command:
         return []
+    lexer = shlex.shlex(newlines_to_separators(command), posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    lexer.commenters = ""  # shlex.split() does the same: `#` is not a comment here
     try:
-        tokens = shlex.split(newlines_to_separators(command), posix=True)
+        tokens = list(lexer)
     except ValueError:
         return []
     names = []
