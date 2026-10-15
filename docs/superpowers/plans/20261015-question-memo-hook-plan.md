@@ -1080,7 +1080,7 @@ Expected: pre-commit passes (`principles-ssot` runs on `*.md`); one commit with 
 ---
 name: best-questions-auto-select-80
 description: "Superseded: option auto-select is the X% / Y% rule of the global CLAUDE.md section 'Questions and Numbers'; this memory only points there."
-metadata: 
+metadata:
   node_type: memory
   type: feedback
   originSessionId: c4d81a38-d881-46cc-96f3-8ea3ff2537c8

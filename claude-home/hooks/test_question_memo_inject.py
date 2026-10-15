@@ -73,6 +73,14 @@ def test_file_without_the_section_is_silent(tmp_path):
     assert result.stdout == ""
 
 
+def test_heading_with_the_same_prefix_is_not_the_memo(tmp_path):
+    path = tmp_path / "CLAUDE.md"
+    path.write_text(f"# Global\n\n{HEADING} Appendix\n\nNOT-THE-MEMO\n")
+    result = run(PROMPT, path)
+    assert result.returncode == 0
+    assert result.stdout == ""
+
+
 def test_directory_instead_of_file_is_silent(tmp_path):
     result = run(PROMPT, tmp_path)
     assert result.returncode == 0
@@ -111,7 +119,7 @@ def cut_section(text):
     lines, inside, cut = text.splitlines(), False, []
     for line in lines:
         if line.startswith("## "):
-            inside = line.startswith(HEADING)
+            inside = line == HEADING
         if inside:
             cut.append(line)
     return cut

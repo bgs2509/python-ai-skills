@@ -24,7 +24,7 @@ FILE="${QUESTION_MEMO_FILE:-$(dirname "$0")/../CLAUDE.md}"
 jq -e 'type == "object"' >/dev/null 2>&1 || exit 0
 [ -f "$FILE" ] && [ -r "$FILE" ] || exit 0
 
-SECTION=$(awk '/^## /{inside = /^## Questions and Numbers/} inside' "$FILE" 2>/dev/null)
+SECTION=$(awk '/^## /{inside = /^## Questions and Numbers$/} inside' "$FILE" 2>/dev/null)
 [ -n "$SECTION" ] || exit 0
 
 jq -n --arg s "$SECTION" --arg f "$FILE" '{

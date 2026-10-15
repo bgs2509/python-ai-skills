@@ -4,7 +4,7 @@ bd_id: python-ai-skills-r1f.3
 date: 2026-10-15
 status: draft
 risk: medium
-risk_justification: one new hook module that runs on every user prompt in every project on this machine (global settings.json), but it is advisory only (exit 0, no decision field, about 0.9 KB of text), degrades to silence when the section is missing, and changes no contract, API or schema.
+risk_justification: one new hook module that runs on every user prompt in every project on this machine (global settings.json), but it is advisory only (exit 0, no decision field, about 1,440 characters of context, measured 2026-10-15 after FR-2a), degrades to silence when the section is missing, and changes no contract, API or schema.
 evidence: strong
 evidence_justification: UserPromptSubmit contract quoted from code.claude.com/docs/en/hooks (fetched 2026-10-15); settings.json.template parsed with python3 json; pattern hook and its test read in full; the four best-* SKILL.md files grepped for confidence and question wording; memo size measured with wc -c on a draft; prompts per session counted over the 60 most recent transcripts of this project directory; Codex chain cap quoted from learn.chatgpt.com/docs/agent-configuration/agents-md; the Codex prompt-input probe itself was blocked by the sandbox (recorded as unverified).
 open_questions: []
