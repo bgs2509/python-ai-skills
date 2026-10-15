@@ -12,7 +12,8 @@ Contract:
   - stdin: PreToolUse JSON (tool_name, tool_input, cwd).
   - exit 0: allow, silent. Any unparsable input, missing field or exception also
     ends in exit 0: only a verified non-compliant name is denied.
-  - exit 2: deny, reason on stderr; one record is appended to
+  - exit 2: deny, reason on stderr; one record (ts, hook, cwd, kind, names: the
+    offending branch names, never the command text) is appended to
     ~/.claude/hook-stats/blocks.jsonl first.
   - Override: the line `N-BRANCH: off` under `## Naming overrides` in
     <git toplevel of cwd>/AGENTS.md; read only after an offending name is found.
@@ -265,7 +266,7 @@ def project_override(cwd):
     )
 
 
-def log_block(kind, text):
+def log_block(kind, names):
     """Append one record to the block journal; a write error never changes the verdict."""
     try:
         directory = os.path.expanduser("~/.claude/hook-stats")
@@ -275,7 +276,7 @@ def log_block(kind, text):
             "hook": "branch-name-check",
             "cwd": os.getcwd(),
             "kind": kind,
-            "command": text[:300],
+            "names": names,
         }
         with open(os.path.join(directory, "blocks.jsonl"), "a", encoding="utf-8") as journal:
             journal.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -288,10 +289,10 @@ def main():
         data = json.load(sys.stdin)
         tool, tool_input = data["tool_name"], data["tool_input"]
         if tool == "Bash":
-            kind, text = "bash-git", tool_input["command"]
-            names = offending_bash(text)
+            kind = "bash-git"
+            names = offending_bash(tool_input["command"])
         elif tool == "EnterWorktree":
-            kind, text = "enter-worktree", tool_input.get("name") or "<generated>"
+            kind = "enter-worktree"
             names = offending_worktree(tool_input)
         else:
             return 0
@@ -302,7 +303,7 @@ def main():
             return 0
     except Exception:  # fail open on anything unexpected: only a verified name is denied
         return 0
-    log_block(kind, text)
+    log_block(kind, names)
     message = DENY.format(names=", ".join(names), form=FORM, types=", ".join(TYPES), toplevel=toplevel)
     if mentioned:
         message += DENY_NOTE.format(toplevel=toplevel)

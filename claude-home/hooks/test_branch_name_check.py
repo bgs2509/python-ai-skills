@@ -202,7 +202,15 @@ def test_deny_is_journaled(repo, home):
     (record,) = journal(home)
     assert record["hook"] == "branch-name-check"
     assert record["kind"] == "bash-git"
-    assert record["command"] == "git checkout -b lazy-fox"
+    assert record["names"] == ["lazy-fox"]
+
+
+def test_journal_never_stores_the_command_text(repo, home):
+    run_hook(bash("TOKEN=s3cret git checkout -b lazy-fox && git switch -c other", repo), home)
+    (record,) = journal(home)
+    assert record["names"] == ["lazy-fox", "other"]
+    assert "command" not in record
+    assert "s3cret" not in json.dumps(record)
 
 
 @pytest.mark.parametrize("stdin", ["", "not json", "[]", "42", "{}", '{"tool_name": "Bash"}'])
@@ -231,7 +239,7 @@ def test_worktree_deny_is_journaled(repo, home):
     run_hook(enter_worktree({"name": "lazy-fox"}, repo), home)
     (record,) = journal(home)
     assert record["kind"] == "enter-worktree"
-    assert record["command"] == "lazy-fox"
+    assert record["names"] == ["lazy-fox"]
 
 
 def write_agents(repo_path, overrides):
