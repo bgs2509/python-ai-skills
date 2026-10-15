@@ -198,3 +198,43 @@ def test_worktree_deny_is_journaled(repo, home):
     (record,) = journal(home)
     assert record["kind"] == "enter-worktree"
     assert record["command"] == "lazy-fox"
+
+
+def write_agents(repo_path, overrides):
+    """AGENTS.md whose `## Other` section also carries an `off` line that must never count."""
+    (repo_path / "AGENTS.md").write_text(
+        f"# Project\n\n## Naming overrides\n\n{overrides}\n\n## Other\n\nN-BRANCH: off\n"
+    )
+    return repo_path
+
+
+def test_override_off_allows_and_leaves_no_journal(tmp_path, home):
+    repo_path = write_agents(make_repo(tmp_path / "r"), "N-BRANCH: off")
+    assert run_hook(bash("git checkout -b lazy-fox", repo_path), home).returncode == 0
+    assert journal(home) == []
+
+
+def test_other_override_text_keeps_the_check_and_says_so(tmp_path, home):
+    repo_path = write_agents(make_repo(tmp_path / "r"), "N-BRANCH: <type>-branch-<slug>")
+    result = run_hook(bash("git checkout -b lazy-fox", repo_path), home)
+    assert result.returncode == 2
+    assert "only `N-BRANCH: off` is machine-readable" in result.stderr
+
+
+def test_off_outside_the_overrides_section_is_ignored(tmp_path, home):
+    repo_path = write_agents(make_repo(tmp_path / "r"), "N-DOCS: x")
+    result = run_hook(bash("git checkout -b lazy-fox", repo_path), home)
+    assert result.returncode == 2
+    assert "machine-readable" not in result.stderr
+
+
+def test_override_is_read_from_the_repository_root(tmp_path, home):
+    repo_path = write_agents(make_repo(tmp_path / "r"), "N-BRANCH: off")
+    sub = repo_path / "src"
+    sub.mkdir()
+    assert run_hook(bash("git checkout -b lazy-fox", sub), home).returncode == 0
+
+
+def test_outside_a_repository_the_check_still_applies(tmp_path, home):
+    assert run_hook(bash("git checkout -b feat/branch-x", tmp_path), home).returncode == 0
+    assert run_hook(bash("git checkout -b lazy-fox", tmp_path), home).returncode == 2

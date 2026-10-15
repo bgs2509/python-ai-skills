@@ -23,7 +23,9 @@ import json
 import os
 import re
 import shlex
+import subprocess
 import sys
+from pathlib import Path
 
 # Rule constants. The wording of the rule is in claude-home/CLAUDE.md -> "Naming"
 # (segment boundaries) and -> "Commit Convention" (types); keep these in step.
@@ -46,6 +48,9 @@ BRANCH_NON_CREATING = {
 }
 BRANCH_MOVE_COPY = {"-m", "-M", "--move", "-c", "-C", "--copy"}
 
+OVERRIDE_HEADING = "## Naming overrides"
+OVERRIDE_OFF = re.compile(r"^\s*N-BRANCH:\s*off\s*$")
+
 DENY = """[branch-name-check] Refusing to create branch '{names}': no `branch` segment.
 
 Naming rule N-BRANCH (~/.claude/CLAUDE.md -> "Naming"): form {form},
@@ -53,6 +58,10 @@ Naming rule N-BRANCH (~/.claude/CLAUDE.md -> "Naming"): form {form},
 Worktrees: pass that form as the EnterWorktree name (Claude Code adds `worktree-` and turns `/` into `+`).
 Project override: a line `N-BRANCH: off` under `## Naming overrides` in {toplevel}/AGENTS.md.
 """
+DENY_NOTE = (
+    "Note: {toplevel}/AGENTS.md mentions N-BRANCH under Naming overrides, "
+    "but only `N-BRANCH: off` is machine-readable.\n"
+)
 
 
 def segments(tokens):
@@ -182,6 +191,35 @@ def offending_worktree(tool_input):
     return [] if SEGMENT.search(name) else [name]
 
 
+def project_override(cwd):
+    """(git toplevel of cwd, override is `off`, section mentions N-BRANCH) from AGENTS.md."""
+    toplevel = cwd
+    try:
+        run = subprocess.run(
+            ["git", "-C", cwd, "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if run.returncode == 0:
+            toplevel = run.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    try:
+        lines = Path(toplevel, "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    except (OSError, ValueError):
+        return toplevel, False, False
+    section, inside = [], False
+    for line in lines:
+        if line.startswith("## "):
+            inside = line.rstrip() == OVERRIDE_HEADING
+        elif inside:
+            section.append(line)
+    return (
+        toplevel,
+        any(OVERRIDE_OFF.match(line) for line in section),
+        any("N-BRANCH" in line for line in section),
+    )
+
+
 def log_block(kind, text):
     """Append one record to the block journal; a write error never changes the verdict."""
     try:
@@ -214,11 +252,15 @@ def main():
             return 0
         if not names:
             return 0
-        toplevel = data.get("cwd") or os.getcwd()
+        toplevel, off, mentioned = project_override(data.get("cwd") or os.getcwd())
+        if off:
+            return 0
     except Exception:  # fail open on anything unexpected: only a verified name is denied
         return 0
     log_block(kind, text)
     message = DENY.format(names=", ".join(names), form=FORM, types=", ".join(TYPES), toplevel=toplevel)
+    if mentioned:
+        message += DENY_NOTE.format(toplevel=toplevel)
     sys.stderr.write(message)
     return 2
 
