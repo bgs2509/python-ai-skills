@@ -193,6 +193,18 @@
     <context7_note>no external library is used; the script is Python 3 stdlib (`json`, `os`, `pathlib`, `subprocess`), the rest is `git`, `bd`, `pre-commit`, `codex` CLIs whose behaviour was probed in this session.</context7_note>
     <requirements>docs/superpowers/specs/20261015-agents-md-migration-discovery.md (FR-1..FR-8, NFR-1..NFR-4, groups A-G, resolutions 1-6)</requirements>
   </Feature>
+  <Feature source="20261015-branch-name-check-design.md" bd_id="python-ai-skills-31d">
+    <feature>branch-name-check</feature>
+    <date>2026-10-15</date>
+    <status>approved</status>
+    <risk>high</risk>
+    <risk_justification>same as Discovery - one PreToolUse deny hook (exit 2) in the global settings of every project on this machine (83 repositories), matchers Bash and EnterWorktree, running in the main conversation and in subagents; a false positive blocks branch and worktree creation machine-wide until fixed. Upward-only escalation keeps high.</risk_justification>
+    <approach>python-file-with-launcher</approach>
+    <open_questions/>
+    <context7_verified/>
+    <context7_note>stdlib only (json, re, shlex, subprocess, os, datetime, pathlib); no third-party library, so no Context7 lookup applies. Git option spellings were probed with git 2.43.0 in a throwaway repository in this session (`--create=&lt;name&gt;` and glued `-c&lt;name&gt;` are accepted; `git worktree add --orphan &lt;path&gt;` names the branch after the path).</context7_note>
+    <requirements>docs/superpowers/specs/20261015-branch-name-check-discovery.md (FR-1..FR-10, NFR-1..NFR-6, risks 1-9, forms 1-7, scope)</requirements>
+  </Feature>
   <Feature source="20261015-question-memo-hook-design.md" bd_id="python-ai-skills-r1f.3">
     <feature>question-memo-hook</feature>
     <date>2026-10-15</date>
