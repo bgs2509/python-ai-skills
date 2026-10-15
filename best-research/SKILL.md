@@ -4,8 +4,8 @@ description: >
   Engine (SSoT) of the best-* family: analyze ONE decision point end-to-end.
   Study the state of the project/idea (code + Context7 + web + CLAUDE.md), dig
   out the real intent and blind spots, check the 17 quality principles, produce
-  realistic variants with pros/cons, and rank them with confidence % delivered
-  via the best-recommend format. Reused by best-approach / best-rank /
+  realistic variants with pros/cons, and score them X% / Y% (global CLAUDE.md
+  section "Questions and Numbers") delivered via the best-recommend format. Reused by best-approach / best-rank /
   best-questions, which differ only by how they acquire the input.
   TRIGGER when: user calls /best-research, a sibling best-* skill delegates the
   per-decision analysis here, or you need a deep, sourced analysis of a single
@@ -17,7 +17,7 @@ argument-hint: "[точка решения: идея, вопрос или под
 
 # /best-research — Движок разбора одной точки решения
 
-> Единое ядро (SSoT) семьи `best-*`: изучить состояние → раскопать настоящее намерение → проверить качество → дать варианты + % → рекомендовать.
+> Единое ядро (SSoT) семьи `best-*`: изучить состояние → раскопать настоящее намерение → проверить качество → дать варианты + `X% / Y%` → рекомендовать.
 > `best-approach`, `best-rank`, `best-questions` — тонкие обёртки, различающиеся **только входом**; всю работу делает этот движок.
 
 ## Вход
@@ -57,7 +57,7 @@ argument-hint: "[точка решения: идея, вопрос или под
 - Pros/Cons — честные, со ссылкой на принципы качества.
 
 ### 5. Рекомендация
-Подай по формату `/best-recommend`: **проценты уверенности + объяснение как джуну + источник к каждому % + честный флаг гипотезы при сомнении**. Шкала: 85–100% — сильный фаворит; 50–84% — рабочий с оговорками; 20–49% — слабый/ситуативный; 0–19% — почти нет (но оставить с причиной).
+Подай по формату `/best-recommend`: **оценки `X% / Y%` + объяснение как джуну + источник к каждой оценке + честный флаг гипотезы при сомнении**. Смысл оценок, строка «Свой вариант / ни один» и порог автоматического выбора — глобальный CLAUDE.md → Questions and Numbers; отдельной шкалы нет.
 
 ## Формат вывода
 
@@ -87,13 +87,13 @@ argument-hint: "[точка решения: идея, вопрос или под
 ---
 
 ## 💡 Рекомендация
-{блок по формату /best-recommend: % + как джуну + источник + флаг гипотезы}
+{блок по формату /best-recommend: X% / Y% + как джуну + источник + флаг гипотезы}
 ```
 
 ## Правила
 
 1. **Исследование обязательно** — код + Context7 + WebSearch + правила из CLAUDE.md (уже в контексте). Без этого разбор недостоверен.
-2. **Объективность** — Pros/Cons и проценты честные, не подгонять под желаемый вывод.
+2. **Объективность** — Pros/Cons и оценки честные, не подгонять под желаемый вывод.
 3. **Контекст проекта** — стек, зависимости, паттерны, тип проекта (dev/life), профиль юзера.
 4. **СТОП перед действием** — ничего не реализовывать до явного выбора пользователя.
 5. **Адаптация формата** — без markdown-таблиц ни в Telegram, ни в терминале (глобальное правило Output Formatting); короткие блоки, списки.
@@ -105,7 +105,7 @@ argument-hint: "[точка решения: идея, вопрос или под
 - `best-research` = **движок** (research / analysis одной точки решения). Worker: возвращает findings вызывающему, **не** переключает workflow и **не** вызывает process-skills.
 - Обёртки переиспользуют этот алгоритм **по ссылке** (следуют спецификации), различаясь только входом:
   - `best-approach` — задача без списка → генерит варианты с нуля, затем этот движок.
-  - `best-rank` — готовый список → этот движок + ранжирование по % убыв.
+  - `best-rank` — готовый список → этот движок + ранжирование по X убыв.
   - `best-questions` — набор вопросов → цикл по движку, СТОП после каждого.
 - Формат финальной рекомендации — атом `best-recommend`.
 
