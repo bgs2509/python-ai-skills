@@ -404,11 +404,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "'{{CLAUDE_HOME}}/hooks/anti-hallucination.sh'",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "'{{CLAUDE_HOME}}/hooks/explanation-terms.sh'",
             "timeout": 10
           }
