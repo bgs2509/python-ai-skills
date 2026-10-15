@@ -103,6 +103,12 @@ BLOCKED = [
     "true|git checkout -b bad",
     # a here-string is one word: the rest of the line is still checked
     "printf foo <<< bar && git switch -c bad",
+    # grouped short options
+    "git switch -qc bad",
+    "git switch -qcbad",
+    "git checkout -qb bad",
+    "git checkout -fB bad",
+    "git branch -fm feat/branch-old bad",
 ]
 
 ALLOWED = [
@@ -152,6 +158,13 @@ ALLOWED = [
     "git branch -D old",
     "git worktree add --detach x",
     'cat <<< "git checkout -b x"',
+    # grouped short options: deleting, listing, or a name with the segment
+    "git branch -df old",
+    "git branch -Dr x",
+    "git switch -qc feat/branch-x",
+    "git checkout -qb feat/branch-x",
+    "git switch -qf main",
+    "git checkout -fq main",
 ]
 
 

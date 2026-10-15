@@ -122,26 +122,41 @@ def git_subcommand(segment):
     return None
 
 
-def option_value(args, flags):
-    """Value of the first option of `flags` (`-b x`, `-bx`, `--orphan x`, `--orphan=x`), else None."""
+def option_value(args, short, long):
+    """Value of the first option taking one: a letter of `short` (`-b x`, `-bx`, in a group `-qbx`)
+    or a name of `long` (`--orphan x`, `--orphan=x`); else None."""
     for i, tok in enumerate(args):
         if tok == "--":
             return None
-        for flag in flags:
-            if tok == flag:
-                return args[i + 1] if i + 1 < len(args) else ""
-            if flag.startswith("--") and tok.startswith(flag + "="):
-                return tok[len(flag) + 1:]
-            if not flag.startswith("--") and not tok.startswith("--") and tok.startswith(flag):
-                return tok[len(flag):]
+        if tok.startswith("--"):
+            for flag in long:
+                if tok == flag:
+                    return args[i + 1] if i + 1 < len(args) else ""
+                if tok.startswith(flag + "="):
+                    return tok[len(flag) + 1:]
+        elif tok.startswith("-"):
+            for j, letter in enumerate(tok[1:], 1):  # a group of single-letter flags (git's getopt rule)
+                if letter in short:
+                    return tok[j + 1:] or (args[i + 1] if i + 1 < len(args) else "")
     return None
+
+
+def expand_flags(args):
+    """Flags as separate items: `-fm` -> `-f`, `-m`; a long flag loses its `=value`."""
+    flags = []
+    for tok in args:
+        if tok.startswith("--"):
+            flags.append(tok.split("=", 1)[0])
+        elif tok.startswith("-"):
+            flags.extend("-" + letter for letter in tok[1:])
+    return flags
 
 
 def branch_name(args):
     """New name from `git branch` arguments: create, move or copy; None when it only lists or edits."""
     end = args.index("--") if "--" in args else len(args)
-    flags = [a for a in args[:end] if a.startswith("-")]
-    if any(f.split("=", 1)[0] in BRANCH_NON_CREATING for f in flags):
+    flags = expand_flags(args[:end])
+    if any(f in BRANCH_NON_CREATING for f in flags):
         return None
     positional = [a for a in args[:end] if not a.startswith("-")] + args[end + 1:]
     if not positional:
@@ -154,7 +169,7 @@ def worktree_name(args):
     if not args or args[0] != "add":
         return None
     rest = args[1:]
-    value = option_value(rest, ("-b", "-B"))
+    value = option_value(rest, "bB", ())
     if value is not None:
         return value
     if "--detach" in rest or "-d" in rest:
@@ -174,9 +189,9 @@ def worktree_name(args):
 
 def new_branch_name(sub, args):
     if sub == "checkout":
-        return option_value(args, ("-b", "-B", "--orphan"))
+        return option_value(args, "bB", ("--orphan",))
     if sub == "switch":
-        return option_value(args, ("-c", "-C", "--create", "--force-create", "--orphan"))
+        return option_value(args, "cC", ("--create", "--force-create", "--orphan"))
     if sub == "branch":
         return branch_name(args)
     if sub == "worktree":
