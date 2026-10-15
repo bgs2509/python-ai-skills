@@ -1,0 +1,150 @@
+"""Regression suite for the branch-name-check PreToolUse hook.
+
+The hook is the enforcement half of the N-BRANCH rule (claude-home/CLAUDE.md ->
+"Naming"): it denies Bash git commands and EnterWorktree calls that create a branch
+whose name has no `branch` segment, and must never block ordinary git work.
+
+Hook contract: exit 2 = denied, exit 0 = allowed.
+
+Run: pytest claude-home/hooks/test_branch_name_check.py
+"""
+
+import json
+import os
+import subprocess
+from pathlib import Path
+
+import pytest
+
+HOOK = Path(__file__).resolve().parent / "branch-name-check.sh"
+# No GIT_* variable may leak in: pre-commit runs this suite with GIT_INDEX_FILE (and
+# possibly GIT_DIR) set, which would point `git init` and `git rev-parse` at the real repository.
+ENV = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
+
+def make_repo(path):
+    subprocess.run(["git", "init", "-q", str(path)], check=True, capture_output=True, env=ENV)
+    return path
+
+
+@pytest.fixture(scope="module")
+def repo(tmp_path_factory):
+    return make_repo(tmp_path_factory.mktemp("repo"))
+
+
+@pytest.fixture
+def home(tmp_path):
+    """Fake HOME: the block journal (~/.claude/hook-stats/blocks.jsonl) never touches the real one."""
+    path = tmp_path / "home"
+    path.mkdir()
+    return path
+
+
+def run_hook(stdin, home):
+    return subprocess.run(
+        ["bash", str(HOOK)],
+        input=stdin if isinstance(stdin, str) else json.dumps(stdin),
+        capture_output=True,
+        text=True,
+        timeout=15,
+        env={**ENV, "HOME": str(home)},
+    )
+
+
+def bash(command, cwd):
+    return {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(cwd)}
+
+
+def journal(home):
+    path = home / ".claude" / "hook-stats" / "blocks.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+BLOCKED = [
+    # checkout / switch
+    "git checkout -b feat/gigaam",
+    "git checkout -B hotfix",
+    "git checkout --orphan=docs-site",
+    "git checkout --orphan docs-site",
+    "git checkout -b x -- file",
+    "git switch -c lazy-fox",
+    "git switch --create=x",
+    "git switch -cx",
+    # prefixes, global options, chains
+    "git -C /tmp/r switch -c x",
+    "git add -A && git checkout -b x",
+    "cd /tmp; git switch -c x",
+    "VAR=1 git checkout -b x",
+    "command git checkout -b x",
+    "/usr/bin/git checkout -b x",
+    "rtk proxy git switch -c x",
+]
+
+ALLOWED = [
+    # names with the segment
+    "git checkout -b feat/branch-x",
+    "git switch -c fix/branch-y",
+    # not creating
+    "git checkout main",
+    "git checkout -- file",
+    "git checkout --track origin/lazy-fox",
+    "git switch lazy-fox",
+    "git push -u origin HEAD",
+    "git status",
+    # text, not commands
+    'git commit -m "use git checkout -b x"',
+    "echo 'git checkout -b x'",
+    'grep -rn "checkout -b" docs/',
+    # empty or unparsable
+    "ls",
+    "",
+    "git checkout -b 'unbalanced",
+    "git checkout -b",
+]
+
+
+@pytest.mark.parametrize("command", BLOCKED)
+def test_branch_without_segment_is_denied(command, repo, home):
+    result = run_hook(bash(command, repo), home)
+    assert result.returncode == 2, f"hook allowed: {command!r}"
+    assert "N-BRANCH" in result.stderr
+
+
+@pytest.mark.parametrize("command", ALLOWED)
+def test_ordinary_command_is_allowed(command, repo, home):
+    result = run_hook(bash(command, repo), home)
+    assert result.returncode == 0, f"hook blocked: {command!r}"
+    assert result.stdout == "" and result.stderr == ""
+    assert journal(home) == []
+
+
+def test_deny_message_names_the_form_and_the_name(repo, home):
+    result = run_hook(bash("git checkout -b lazy-fox", repo), home)
+    assert "'lazy-fox'" in result.stderr
+    assert "<type>/branch-<slug>" in result.stderr
+    assert "feat, fix, docs, style, refactor, test, chore, perf, build, ci" in result.stderr
+    assert "N-BRANCH: off" in result.stderr
+    assert "machine-readable" not in result.stderr
+
+
+def test_every_offending_name_is_listed(repo, home):
+    result = run_hook(bash("git checkout -b a && git switch -c b", repo), home)
+    assert "'a, b'" in result.stderr
+
+
+def test_deny_is_journaled(repo, home):
+    run_hook(bash("git checkout -b lazy-fox", repo), home)
+    (record,) = journal(home)
+    assert record["hook"] == "branch-name-check"
+    assert record["kind"] == "bash-git"
+    assert record["command"] == "git checkout -b lazy-fox"
+
+
+@pytest.mark.parametrize("stdin", ["", "not json", "[]", "42", "{}", '{"tool_name": "Bash"}'])
+def test_malformed_input_is_allowed(stdin, home):
+    assert run_hook(stdin, home).returncode == 0
+
+
+def test_other_tools_are_ignored(repo, home):
+    payload = {"tool_name": "Read", "tool_input": {"command": "git checkout -b x", "name": "x"}, "cwd": str(repo)}
+    assert run_hook(payload, home).returncode == 0
