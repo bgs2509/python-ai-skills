@@ -196,7 +196,7 @@
   <Feature source="20261015-question-memo-hook-design.md" bd_id="python-ai-skills-r1f.3">
     <feature>question-memo-hook</feature>
     <date>2026-10-15</date>
-    <status>draft</status>
+    <status>approved</status>
     <risk>medium</risk>
     <risk_justification>one new hook that runs on every user prompt in every project on this machine; advisory only (exit 0, no decision field, about 1.4 KB of text), silent when the section is missing, no contract or schema change. Same as Discovery.</risk_justification>
     <approach>bash-copy</approach>

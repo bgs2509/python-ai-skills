@@ -2,7 +2,7 @@
 feature: question-memo-hook
 bd_id: python-ai-skills-r1f.3
 date: 2026-10-15
-status: draft
+status: approved
 risk: medium
 risk_justification: one new hook that runs on every user prompt in every project on this machine; advisory only (exit 0, no decision field, about 1.4 KB of text), silent when the section is missing, no contract or schema change. Same as Discovery.
 approach: bash-copy

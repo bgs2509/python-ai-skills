@@ -47,7 +47,7 @@ tasks: 14
 
 **Serves:** NFR evidence baseline (constraint 4).
 
-- [ ] **Step 1: claim the bead and confirm the tree.**
+- [x] **Step 1: claim the bead and confirm the tree.**
 
 ```bash
 bd update python-ai-skills-r1f.3 --claim
@@ -61,7 +61,7 @@ git status --short
 
 Expected (the snapshot at plan time): `M .beads/interactions.jsonl`, `M docs/requirements.xml`, `M docs/technology.xml`, `?? docs/superpowers/specs/20261015-question-memo-hook-design.md`, `?? docs/superpowers/specs/20261015-question-memo-hook-discovery.md`, `?? docs/superpowers/plans/20261015-question-memo-hook-plan.md`, plus `off.err`, `off.json`, `reports/`, `research_notes/`. Branch `main`.
 
-- [ ] **Step 2: record the baseline.**
+- [x] **Step 2: record the baseline.**
 
 ```bash
 make test
@@ -75,7 +75,7 @@ ruff check claude-home/hooks/
 
 Expected: `Found 1 error.` (F401, `test_big_read_nudge.py:22`).
 
-- [ ] **Step 3: confirm the bd note syntax** (needed in Tasks 6 and 14).
+- [x] **Step 3: confirm the bd note syntax** (needed in Tasks 6 and 14).
 
 ```bash
 bd update --help
@@ -83,7 +83,7 @@ bd update --help
 
 Expected: the help lists the flag that appends a note (`--notes` or `--append-notes`). Use exactly the flag it lists wherever a later step says "record in bd notes".
 
-- [ ] **Step 4: commit A — the approved Discovery, Design and this plan.**
+- [x] **Step 4: commit A — the approved Discovery, Design and this plan.**
 
 ```bash
 git add docs/superpowers/specs/20261015-question-memo-hook-discovery.md docs/superpowers/specs/20261015-question-memo-hook-design.md docs/superpowers/plans/20261015-question-memo-hook-plan.md
@@ -103,7 +103,7 @@ Expected: pre-commit hooks pass (gitleaks, `principles-ssot` skips `docs/`); one
 
 **Files:** create `claude-home/hooks/test_question_memo_inject.py`.
 
-- [ ] **Step 1: write the file with the Write tool**, exactly this content.
+- [x] **Step 1: write the file with the Write tool**, exactly this content.
 
 ```python
 """Tests for question-memo-inject.sh — UserPromptSubmit hook that re-sends the memo section.
@@ -235,7 +235,7 @@ def test_real_claude_md_has_one_memo_section_under_the_cap():
     assert len(cut) <= MAX_MEMO_LINES
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
@@ -243,7 +243,7 @@ python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
 
 Expected: `11 failed`. Reasons: tests 1-7 fail because `bash` cannot open `question-memo-inject.sh` (return code 127, or `FileNotFoundError` in the copy test); the guard fails on `assert 0 == 1` (the heading does not exist yet).
 
-- [ ] **Step 3: lint the test.**
+- [x] **Step 3: lint the test.**
 
 ```bash
 ruff check claude-home/hooks/test_question_memo_inject.py
@@ -259,9 +259,9 @@ Expected: `All checks passed!`
 
 **Files:** modify `claude-home/CLAUDE.md`, `claude-home/CLAUDE-APPENDIX.md` (both with the Edit tool).
 
-- [ ] **Step 1: read both files** (the Edit tool requires it): Read `claude-home/CLAUDE.md` lines 25-31 and `claude-home/CLAUDE-APPENDIX.md` lines 1-20.
+- [x] **Step 1: read both files** (the Edit tool requires it): Read `claude-home/CLAUDE.md` lines 25-31 and `claude-home/CLAUDE-APPENDIX.md` lines 1-20.
 
-- [ ] **Step 2: insert the section into `claude-home/CLAUDE.md`** (Edit tool; one blank line on each side; position after Output Formatting, before Project Classification).
+- [x] **Step 2: insert the section into `claude-home/CLAUDE.md`** (Edit tool; one blank line on each side; position after Output Formatting, before Project Classification).
 
 `old_string`:
 
@@ -290,7 +290,7 @@ Expected: `All checks passed!`
 ## Project Classification
 ````
 
-- [ ] **Step 3: insert the rationale paragraph into `claude-home/CLAUDE-APPENDIX.md`** (Edit tool; the appendix mirrors the section order; the new heading goes between Output Formatting and Project Classification). Grammar fix against the design text: «Порог автоматического выбора» (genitive).
+- [x] **Step 3: insert the rationale paragraph into `claude-home/CLAUDE-APPENDIX.md`** (Edit tool; the appendix mirrors the section order; the new heading goes between Output Formatting and Project Classification). Grammar fix against the design text: «Порог автоматического выбора» (genitive).
 
 `old_string`:
 
@@ -312,7 +312,7 @@ Expected: `All checks passed!`
 **Почему:** GRACE и do-feature создают overhead
 ````
 
-- [ ] **Step 4: the guard test is GREEN, the rest is still RED.**
+- [x] **Step 4: the guard test is GREEN, the rest is still RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
@@ -320,7 +320,7 @@ python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
 
 Expected: `1 passed, 10 failed` (the passed one is `test_real_claude_md_has_one_memo_section_under_the_cap`).
 
-- [ ] **Step 5: measure the section (NFR-1 evidence).**
+- [x] **Step 5: measure the section (NFR-1 evidence).**
 
 ```bash
 awk '/^## /{inside = /^## Questions and Numbers/} inside' claude-home/CLAUDE.md | wc -m
@@ -328,7 +328,7 @@ awk '/^## /{inside = /^## Questions and Numbers/} inside' claude-home/CLAUDE.md 
 
 Expected: about `1250` (design measured 1,234 for the heading-to-last-line text), well below `2000`.
 
-- [ ] **Step 6: the other guards still pass** (the section must not look like a restated principle).
+- [x] **Step 6: the other guards still pass** (the section must not look like a restated principle).
 
 ```bash
 python3 -m pytest claude-home/hooks/test_principles_ssot.py claude-home/hooks/test_task_level_inject.py -q
@@ -344,7 +344,7 @@ Expected: all passed, 0 failed.
 
 **Files:** create `claude-home/hooks/question-memo-inject.sh`.
 
-- [ ] **Step 1: write the file with the Write tool**, exactly this content.
+- [x] **Step 1: write the file with the Write tool**, exactly this content.
 
 ```bash
 #!/bin/bash
@@ -385,7 +385,7 @@ jq -n --arg s "$SECTION" --arg f "$FILE" '{
 exit 0
 ```
 
-- [ ] **Step 2: make it executable — run this Bash call with `dangerouslyDisableSandbox: true`** (the sandbox denies writes under `claude-home/hooks/`; settings run the hook by its path, so the mode bit matters). The user approves the call.
+- [x] **Step 2: make it executable — run this Bash call with `dangerouslyDisableSandbox: true`** (the sandbox denies writes under `claude-home/hooks/`; settings run the hook by its path, so the mode bit matters). The user approves the call.
 
 ```bash
 chmod 755 /home/bgs/ai-steward/Gena_Beeline_Local/python-ai-skills/claude-home/hooks/question-memo-inject.sh
@@ -397,7 +397,7 @@ ls -l claude-home/hooks/question-memo-inject.sh
 
 Expected: mode `-rwxr-xr-x`.
 
-- [ ] **Step 3: see GREEN.**
+- [x] **Step 3: see GREEN.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
@@ -405,7 +405,7 @@ python3 -m pytest claude-home/hooks/test_question_memo_inject.py -q
 
 Expected: `11 passed`.
 
-- [ ] **Step 4: NFR-2 / NFR-3 evidence on the real file** (hook against the real `claude-home/CLAUDE.md`, timing, exit code, context size).
+- [x] **Step 4: NFR-2 / NFR-3 evidence on the real file** (hook against the real `claude-home/CLAUDE.md`, timing, exit code, context size).
 
 ```bash
 echo '{"hook_event_name":"UserPromptSubmit","prompt":"x"}' | QUESTION_MEMO_FILE=claude-home/CLAUDE.md bash -c 'time claude-home/hooks/question-memo-inject.sh' | jq -r '.hookSpecificOutput.additionalContext | length'
@@ -419,7 +419,7 @@ echo 'not json' | claude-home/hooks/question-memo-inject.sh; echo "exit=$?"
 
 Expected: empty output, `exit=0`.
 
-- [ ] **Step 5: lint.**
+- [x] **Step 5: lint.**
 
 ```bash
 ruff check claude-home/hooks/
@@ -435,7 +435,7 @@ Expected: still exactly `Found 1 error.` (the pre-existing F401 in `test_big_rea
 
 **Files:** modify `Makefile`, `claude-home/settings.json.template`.
 
-- [ ] **Step 1: Makefile — add the test file to `test:`** (Edit tool). Read `Makefile` first. Tabs matter: the continuation lines are one TAB followed by 19 spaces.
+- [x] **Step 1: Makefile — add the test file to `test:`** (Edit tool). Read `Makefile` first. Tabs matter: the continuation lines are one TAB followed by 19 spaces.
 
 `old_string`:
 
@@ -456,7 +456,7 @@ cat -A Makefile | sed -n 27,29p
 
 Expected: both lines start with `^I` followed by 19 spaces and end with `\$`.
 
-- [ ] **Step 2: template — add the third handler** (Edit tool). Read `claude-home/settings.json.template` lines 410-432 first. Insert after the `git-finish-router.sh` handler, inside the same group (the group's `matcher: "*"` stays).
+- [x] **Step 2: template — add the third handler** (Edit tool). Read `claude-home/settings.json.template` lines 410-432 first. Insert after the `git-finish-router.sh` handler, inside the same group (the group's `matcher: "*"` stays).
 
 `old_string`:
 
@@ -481,7 +481,7 @@ Expected: both lines start with `^I` followed by 19 spaces and end with `\$`.
 
 If the Edit tool reports the `old_string` is not unique, extend it by the following lines (`        ]`, `      }`, `    ]`, `  },`, `  "statusLine": {`) copied exactly from the Read output.
 
-- [ ] **Step 3: template is valid JSON and has 3 handlers.**
+- [x] **Step 3: template is valid JSON and has 3 handlers.**
 
 ```bash
 python3 -m json.tool claude-home/settings.json.template > /dev/null
@@ -495,7 +495,7 @@ jq '.hooks.UserPromptSubmit[0].hooks | length' claude-home/settings.json.templat
 
 Expected: `3`.
 
-- [ ] **Step 4: installer tests (the one-shell-word test now covers the new path).**
+- [x] **Step 4: installer tests (the one-shell-word test now covers the new path).**
 
 ```bash
 python3 -m pytest scripts/test_install_claude_symlinks.py -q
@@ -503,7 +503,7 @@ python3 -m pytest scripts/test_install_claude_symlinks.py -q
 
 Expected: all passed (the count equals the baseline of that file; `test_every_hook_path_is_one_shell_word` passes, which needs the hook file to exist).
 
-- [ ] **Step 5: re-render the live settings — Bash call with `dangerouslyDisableSandbox: true`** (it writes `~/.claude/settings.json` and symlinks into `~/.claude`; the user approves this call; idempotent, safe to re-run).
+- [x] **Step 5: re-render the live settings — Bash call with `dangerouslyDisableSandbox: true`** (it writes `~/.claude/settings.json` and symlinks into `~/.claude`; the user approves this call; idempotent, safe to re-run).
 
 ```bash
 make install-symlinks
@@ -511,7 +511,7 @@ make install-symlinks
 
 Expected: the installer ends without error.
 
-- [ ] **Step 6: verify the live result (read-only).**
+- [x] **Step 6: verify the live result (read-only).**
 
 ```bash
 jq '.hooks.UserPromptSubmit[0].hooks | length' ~/.claude/settings.json
@@ -537,7 +537,7 @@ Expected: a symlink to `.../python-ai-skills/claude-home/CLAUDE.md` (NFR-6: the 
 
 **Serves:** NFR-6, scope item "Q5". Result is recorded in bd notes only.
 
-- [ ] **Step 1: find the invocation.**
+- [x] **Step 1: find the invocation.**
 
 ```bash
 codex debug prompt-input --help
@@ -545,7 +545,7 @@ codex debug prompt-input --help
 
 Expected: usage text for the subcommand (if it fails inside the sandbox with a read-only-filesystem error, re-run it with `dangerouslyDisableSandbox: true`).
 
-- [ ] **Step 2: run it outside the sandbox from this repository — Bash call with `dangerouslyDisableSandbox: true`** (inside the sandbox it failed with `Error: Read-only file system (os error 30)`; the user approves the call). Use the arguments the help of Step 1 lists; the output goes to a file in `$TMPDIR`; if `$TMPDIR` is empty in the unsandboxed shell use `/tmp/claude`.
+- [x] **Step 2: run it outside the sandbox from this repository — Bash call with `dangerouslyDisableSandbox: true`** (inside the sandbox it failed with `Error: Read-only file system (os error 30)`; the user approves the call). Use the arguments the help of Step 1 lists; the output goes to a file in `$TMPDIR`; if `$TMPDIR` is empty in the unsandboxed shell use `/tmp/claude`.
 
 ```bash
 codex debug prompt-input > "${TMPDIR:-/tmp/claude}/codex-prompt-input.txt" 2>&1
@@ -553,7 +553,7 @@ codex debug prompt-input > "${TMPDIR:-/tmp/claude}/codex-prompt-input.txt" 2>&1
 
 (Add the positional prompt argument only if the help requires one.)
 
-- [ ] **Step 3: read the result (sandboxed, read-only).**
+- [x] **Step 3: read the result (sandboxed, read-only).**
 
 ```bash
 grep -n '^## ' "$TMPDIR/codex-prompt-input.txt" | head -60
@@ -569,7 +569,7 @@ grep -n '^## ' "$TMPDIR/codex-prompt-input.txt" | tail -5
 
 Expected: the list of `## ` headings of `claude-home/CLAUDE.md` that Codex put into its prompt, whether `Questions and Numbers` is among them (count `>= 1`), and the last heading loaded (the file is about 40 KB, above Codex's 32 KiB default chain cap, so a tail truncation is possible; the new section sits about 2 KB into the file and should survive one).
 
-- [ ] **Step 4: record in bd notes** with the flag found in Task 1 Step 3 (example form, replace the bracketed facts with the observed ones):
+- [x] **Step 4: record in bd notes** with the flag found in Task 1 Step 3 (example form, replace the bracketed facts with the observed ones):
 
 ```bash
 bd update python-ai-skills-r1f.3 --notes "Q5 (Codex chain, codex debug prompt-input, 2026-10-15): section 'Questions and Numbers' loaded: <yes|no>; last '## ' heading loaded: <heading>; total '## ' headings loaded: <n> of 22."
@@ -585,7 +585,7 @@ Expected: the note is saved. **Branch for Task 7:** if the section is `yes`, the
 
 **Files:** modify `CHANGELOG.md`.
 
-- [ ] **Step 1: add the entry under `## [Unreleased]` → `### Added`** (Edit tool; read the lines 6-16 of `CHANGELOG.md` first; the new bullet goes first in `### Added`).
+- [x] **Step 1: add the entry under `## [Unreleased]` → `### Added`** (Edit tool; read the lines 6-16 of `CHANGELOG.md` first; the new bullet goes first in `### Added`).
 
 `old_string`:
 
@@ -604,7 +604,7 @@ Expected: the note is saved. **Branch for Task 7:** if the section is `yes`, the
 
 (The original second bullet continues after the replaced prefix; the Edit replaces only the matched prefix, so the rest of that line stays intact.)
 
-- [ ] **Step 2: full gate.**
+- [x] **Step 2: full gate.**
 
 ```bash
 make test
@@ -624,7 +624,7 @@ python3 -m json.tool claude-home/settings.json.template > /dev/null
 
 Expected: exit 0.
 
-- [ ] **Step 3: NFR-4 evidence — the rule text has one home.**
+- [x] **Step 3: NFR-4 evidence — the rule text has one home.**
 
 ```bash
 grep -rln 'точка сравнения' --include=*.md --include=*.sh --include=*.py --include=*.json --include=*.template . --exclude-dir=docs --exclude-dir=.git --exclude-dir=.beads
@@ -632,7 +632,7 @@ grep -rln 'точка сравнения' --include=*.md --include=*.sh --includ
 
 Expected: exactly one path, `./claude-home/CLAUDE.md`. (`docs/` is excluded: the Design quotes the section by necessity.)
 
-- [ ] **Step 4: NFR-5 evidence — no project-specific word in the section.**
+- [x] **Step 4: NFR-5 evidence — no project-specific word in the section.**
 
 ```bash
 awk '/^## /{inside = /^## Questions and Numbers/} inside' claude-home/CLAUDE.md | grep -c 'python-ai-skills\|Sensedar\|bd \|GRACE'
@@ -640,7 +640,7 @@ awk '/^## /{inside = /^## Questions and Numbers/} inside' claude-home/CLAUDE.md 
 
 Expected: `0` (grep exits 1 with count 0; that is the passing result).
 
-- [ ] **Step 5: stage and commit B** (explicit files only; the exec bit is part of the `git add` of the hook).
+- [x] **Step 5: stage and commit B** (explicit files only; the exec bit is part of the `git add` of the hook).
 
 ```bash
 git add claude-home/CLAUDE.md claude-home/CLAUDE-APPENDIX.md claude-home/hooks/question-memo-inject.sh claude-home/hooks/test_question_memo_inject.py Makefile claude-home/settings.json.template CHANGELOG.md
@@ -664,7 +664,7 @@ Expected: pre-commit passes (gitleaks, template JSON, settings render tests, hoo
 
 **Serves:** FR-5 (`best-recommend`), NFR-4. Read the file first (Edit requirement); six Edit calls, each `old_string` unique in the file. Grammar fix against the design: «порог автоматического выбора».
 
-- [ ] **Step 1: description (lines 5-7).**
+- [x] **Step 1: description (lines 5-7).**
 
 `old_string`:
 
@@ -683,23 +683,23 @@ Two scores per option, written X% / Y% as defined in the
   moment there is doubt.
 ```
 
-- [ ] **Step 2: line 17.**
+- [x] **Step 2: line 17.**
 
 `old_string`: `проценты + объяснение как джуну + источник + честный флаг неуверенности.`
 `new_string`: ``оценки `X% / Y%` + объяснение как джуну + источник + честный флаг неуверенности.``
 
-- [ ] **Step 3: line 29 (the whole numbered item).**
+- [x] **Step 3: line 29 (the whole numbered item).**
 
 `old_string`: `1. **Проценты уверенности.** Рекомендация выражается в % уверенности на каждый вариант. Проценты — это ранжирование уверенности, не обязаны суммироваться в 100%. Близкие варианты — назвать близкими явно, не подгонять разброс.`
 
 `new_string`: ``1. **Две оценки на вариант.** Каждый вариант несёт пару `X% / Y%`; смысл X и Y, сумма 100 % со строкой «Свой вариант / ни один» и порог автоматического выбора заданы в одном месте — глобальный CLAUDE.md → Questions and Numbers; здесь не повторяются. Близкие варианты — назвать близкими явно, не подгонять разброс.``
 
-- [ ] **Step 4: line 33 (prefix only; the rest of the line stays).**
+- [x] **Step 4: line 33 (prefix only; the rest of the line stays).**
 
 `old_string`: `3. **Источник к каждому проценту.** Каждый % сопровождай`
 `new_string`: ``3. **Источник к каждой оценке.** Каждую пару `X% / Y%` сопровождай``
 
-- [ ] **Step 5: template (lines 41-45).**
+- [x] **Step 5: template (lines 41-45).**
 
 `old_string`:
 
@@ -723,13 +723,13 @@ Two scores per option, written X% / Y% as defined in the
 {Если есть неуверенность — явный флаг: «предположительно A, требует проверки B».}
 ```
 
-- [ ] **Step 6: reuse line (58).**
+- [x] **Step 6: reuse line (58).**
 
 `old_string`: `Формат рекомендации — по `/best-recommend`: проценты + как джуну + источник к каждому % + честный флаг гипотезы при сомнении.`
 
 `new_string`: ``Формат рекомендации — по `/best-recommend`: оценки `X% / Y%` (глобальный CLAUDE.md → Questions and Numbers) + как джуну + источник к каждой оценке + честный флаг гипотезы при сомнении.``
 
-- [ ] **Step 7: the frontmatter still parses.**
+- [x] **Step 7: the frontmatter still parses.**
 
 ```bash
 python3 -c "import yaml; t=open('best-recommend/SKILL.md').read().split('---')[1]; print(yaml.safe_load(t)['name'])"
@@ -743,7 +743,7 @@ Expected: `best-recommend`.
 
 **Serves:** FR-5 (`best-rank`), Discovery Q2 (user decision: the two-score rule replaces "probability of acceptance"). Read the file first; Edit calls below.
 
-- [ ] **Step 1: description (lines 6-8).**
+- [x] **Step 1: description (lines 6-8).**
 
 `old_string`:
 
@@ -762,23 +762,23 @@ missing best-practice options, then give every option the two scores X% / Y% of
   ready list and ranking by X.
 ```
 
-- [ ] **Step 2: line 19.**
+- [x] **Step 2: line 19.**
 
 `old_string`: `проставлю каждому вероятность принятия 0–100% и отранжирую.`
 `new_string`: ``проставлю каждому две оценки `X% / Y%` (глобальный CLAUDE.md → Questions and Numbers) и отранжирую по X.``
 
-- [ ] **Step 3: line 29.**
+- [x] **Step 3: line 29.**
 
 `old_string`: `3. **Оцени и отранжируй по %** — каждому варианту (исходному + добавленному) процент вероятности принятия 0–100% (по формату `best-recommend`), сортировка по % убыв.`
 
 `new_string`: ``3. **Оцени и отранжируй по X** — каждому варианту (исходному + добавленному) пара `X% / Y%` по формату `best-recommend`, плюс строка «Свой вариант / ни один — N%»; сортировка по X убыв.``
 
-- [ ] **Step 4: lines 34 and 35.**
+- [x] **Step 4: lines 34 and 35.**
 
 `old_string`: `проценты различимы;` → `new_string`: `значения X различимы;`
 `old_string`: `по % убыв (от фаворита к аутсайдеру)` → `new_string`: `по X убыв (от фаворита к аутсайдеру)`
 
-- [ ] **Step 5: output template (lines 48-54).**
+- [x] **Step 5: output template (lines 48-54).**
 
 `old_string`:
 
@@ -805,14 +805,14 @@ missing best-practice options, then give every option the two scores X% / Y% of
 **Свой вариант / ни один — N%**
 ```
 
-- [ ] **Step 6: line 65.**
+- [x] **Step 6: line 65.**
 
 `old_string`: `пересчитай % для гибрида.`
 `new_string`: ``пересчитай `X% / Y%` для гибрида.``
 
 Lines 69 and 72 stay (they remain true: «рейтинг по вероятности»).
 
-- [ ] **Step 7: frontmatter parses.**
+- [x] **Step 7: frontmatter parses.**
 
 ```bash
 python3 -c "import yaml; t=open('best-rank/SKILL.md').read().split('---')[1]; print(yaml.safe_load(t)['name'])"
@@ -826,7 +826,7 @@ Expected: `best-rank`.
 
 **Serves:** FR-5 (`best-research`). Read the file first.
 
-- [ ] **Step 1: description (lines 7-8).**
+- [x] **Step 1: description (lines 7-8).**
 
 `old_string`:
 
@@ -842,33 +842,33 @@ realistic variants with pros/cons, and score them X% / Y% (global CLAUDE.md
   section "Questions and Numbers") delivered via the best-recommend format.
 ```
 
-- [ ] **Step 2: line 20.**
+- [x] **Step 2: line 20.**
 
 `old_string`: `дать варианты + % → рекомендовать`
 `new_string`: ``дать варианты + `X% / Y%` → рекомендовать``
 
-- [ ] **Step 3: line 60 (the whole paragraph; the 85/50/20 scale is removed).**
+- [x] **Step 3: line 60 (the whole paragraph; the 85/50/20 scale is removed).**
 
 `old_string`: `Подай по формату `/best-recommend`: **проценты уверенности + объяснение как джуну + источник к каждому % + честный флаг гипотезы при сомнении**. Шкала: 85–100% — сильный фаворит; 50–84% — рабочий с оговорками; 20–49% — слабый/ситуативный; 0–19% — почти нет (но оставить с причиной).`
 
 `new_string`: ``Подай по формату `/best-recommend`: **оценки `X% / Y%` + объяснение как джуну + источник к каждой оценке + честный флаг гипотезы при сомнении**. Смысл оценок, строка «Свой вариант / ни один» и порог автоматического выбора — глобальный CLAUDE.md → Questions and Numbers; отдельной шкалы нет.``
 
-- [ ] **Step 4: line 90.**
+- [x] **Step 4: line 90.**
 
 `old_string`: `{блок по формату /best-recommend: % + как джуну + источник + флаг гипотезы}`
 `new_string`: `{блок по формату /best-recommend: X% / Y% + как джуну + источник + флаг гипотезы}`
 
-- [ ] **Step 5: line 96.**
+- [x] **Step 5: line 96.**
 
 `old_string`: `Pros/Cons и проценты честные`
 `new_string`: `Pros/Cons и оценки честные`
 
-- [ ] **Step 6: line 108 (addition to the design: the sibling summary still said "по % убыв", which contradicts `best-rank` after Task 9).**
+- [x] **Step 6: line 108 (addition to the design: the sibling summary still said "по % убыв", which contradicts `best-rank` after Task 9).**
 
 `old_string`: `этот движок + ранжирование по % убыв.`
 `new_string`: `этот движок + ранжирование по X убыв.`
 
-- [ ] **Step 7: frontmatter parses.**
+- [x] **Step 7: frontmatter parses.**
 
 ```bash
 python3 -c "import yaml; t=open('best-research/SKILL.md').read().split('---')[1]; print(yaml.safe_load(t)['name'])"
@@ -882,7 +882,7 @@ Expected: `best-research`.
 
 **Serves:** FR-5 (`best-questions`), FR-1 (question header in its block), FR-2a (auto-select exception; never at USER APPROVAL gates — stated in the section, not repeated here, NFR-4). Read the file first.
 
-- [ ] **Step 1: description (lines 5-7).**
+- [x] **Step 1: description (lines 5-7).**
 
 `old_string`:
 
@@ -901,17 +901,17 @@ and STOP after each for the user's choice unless the auto-select threshold of th
   hard stop after every one that is not auto-selected.
 ```
 
-- [ ] **Step 2: line 18.**
+- [x] **Step 2: line 18.**
 
 `old_string`: `СТОП после каждого, жду ответ.`
 `new_string`: `СТОП после каждого (кроме автоматического выбора по порогу — глобальный CLAUDE.md → Questions and Numbers), жду ответ.`
 
-- [ ] **Step 3: line 27.**
+- [x] **Step 3: line 27.**
 
 `old_string`: ``рекомендация по формату `best-recommend` (проценты)``
 `new_string`: ``рекомендация по формату `best-recommend` (оценки `X% / Y%`)``
 
-- [ ] **Step 4: block (lines 35-38) — the question header precedes the question.**
+- [x] **Step 4: block (lines 35-38) — the question header precedes the question.**
 
 `old_string`:
 
@@ -932,13 +932,13 @@ and STOP after each for the user's choice unless the auto-select threshold of th
 {разбор по формату best-research: Контекст → Что сейчас в коде → Что нужно решить → Варианты (pros/cons) → Рекомендация (`X% / Y%` по формату best-recommend, со строкой «Свой вариант / ни один»)}
 ```
 
-- [ ] **Step 5: line 44.**
+- [x] **Step 5: line 44.**
 
 `old_string`: `**СТОП.** Жди ответ. НЕ переходи к следующему вопросу.`
 
 `new_string`: `**СТОП** — жди ответ, НЕ переходи к следующему вопросу. Исключение — автоматический выбор по порогу (глобальный CLAUDE.md → Questions and Numbers): показать разбор, пометить выбранный вариант «[выбран автоматически]» и идти дальше.`
 
-- [ ] **Step 6: add a handling item after line 47.**
+- [x] **Step 6: add a handling item after line 47.**
 
 `old_string`: `- **Номер** → записать решение, к следующему вопросу.`
 
@@ -949,24 +949,24 @@ and STOP after each for the user's choice unless the auto-select threshold of th
 - **Автоматический выбор** → записать как решение с пометкой «[выбран автоматически]», к следующему вопросу.
 ```
 
-- [ ] **Step 7: summary line 59 (`X` was a free placeholder and would now read as a score).**
+- [x] **Step 7: summary line 59 (`X` was a free placeholder and would now read as a score).**
 
 `old_string`: `→ Вариант X: {решение}`
 `new_string`: `→ Вариант {k}: {решение} [автоматический выбор | выбор пользователя]`
 
-- [ ] **Step 8: rule 2 (line 69).**
+- [x] **Step 8: rule 2 (line 69).**
 
 `old_string`: `2. **СТОП после каждого** — жди ответ.`
 `new_string`: `2. **СТОП после каждого** — жди ответ; единственное исключение — автоматический выбор по порогу из глобального CLAUDE.md → Questions and Numbers.`
 
-- [ ] **Step 9: line 74.**
+- [x] **Step 9: line 74.**
 
 `old_string`: ``формат варианта, % рекомендация``
 `new_string`: ``формат варианта, оценки `X% / Y%```
 
 (the matched phrase ends before the original `)`, which stays after the replacement.)
 
-- [ ] **Step 10: frontmatter parses.**
+- [x] **Step 10: frontmatter parses.**
 
 ```bash
 python3 -c "import yaml; t=open('best-questions/SKILL.md').read().split('---')[1]; print(yaml.safe_load(t)['name'])"
@@ -980,7 +980,7 @@ Expected: `best-questions`.
 
 **Serves:** FR-5 (evidence), FR-8 (second CHANGELOG line), NFR-4.
 
-- [ ] **Step 1: the old definitions are gone.**
+- [x] **Step 1: the old definitions are gone.**
 
 ```bash
 grep -rn 'вероятность принятия\|не обязаны суммироваться\|85–100%\|confidence %' best-recommend/SKILL.md best-rank/SKILL.md best-research/SKILL.md best-questions/SKILL.md
@@ -988,7 +988,7 @@ grep -rn 'вероятность принятия\|не обязаны сумм�
 
 Expected: no output (grep exit 1).
 
-- [ ] **Step 2: the pointers and templates are present.**
+- [x] **Step 2: the pointers and templates are present.**
 
 ```bash
 grep -c 'Questions and Numbers' best-recommend/SKILL.md best-rank/SKILL.md best-research/SKILL.md best-questions/SKILL.md
@@ -1002,7 +1002,7 @@ grep -n 'X% / Y%' best-recommend/SKILL.md best-rank/SKILL.md best-research/SKILL
 
 Expected: matches in all four files, including the output templates of `best-recommend` and `best-rank`.
 
-- [ ] **Step 3: no skill repeats the meaning of X or Y, the 100 % rule or the threshold numbers (NFR-4).**
+- [x] **Step 3: no skill repeats the meaning of X or Y, the 100 % rule or the threshold numbers (NFR-4).**
 
 ```bash
 grep -n '20 процентных\|сумме дают 100\|не ниже 80\|без переделки' best-recommend/SKILL.md best-rank/SKILL.md best-research/SKILL.md best-questions/SKILL.md
@@ -1010,7 +1010,7 @@ grep -n '20 процентных\|сумме дают 100\|не ниже 80\|б�
 
 Expected: no output.
 
-- [ ] **Step 4: the repo-wide SSoT guard and the whole suite.**
+- [x] **Step 4: the repo-wide SSoT guard and the whole suite.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_principles_ssot.py -q
@@ -1024,7 +1024,7 @@ make test
 
 Expected: sum `484`, no failures.
 
-- [ ] **Step 5: CHANGELOG — second line, under `### Changed`** (Edit tool; read lines 6-14 first).
+- [x] **Step 5: CHANGELOG — second line, under `### Changed`** (Edit tool; read lines 6-14 first).
 
 `old_string`:
 
@@ -1041,7 +1041,7 @@ Expected: sum `484`, no failures.
 - `claude-home/hooks/explanation-terms.py` no longer blocks the turn
 ````
 
-- [ ] **Step 6: stage and commit C.**
+- [x] **Step 6: stage and commit C.**
 
 ```bash
 git add best-recommend/SKILL.md best-rank/SKILL.md best-research/SKILL.md best-questions/SKILL.md CHANGELOG.md
@@ -1059,7 +1059,7 @@ Expected: pre-commit passes (`principles-ssot` runs on `*.md`); one commit with 
 
 **Serves:** FR-9. Edit/Write tools only (`~/.claude/projects` is sandbox-protected; the profile is outside the repo but within the allowed `~/ai-steward/**/*.md` area). If the harness refuses an Edit, stop and hand the exact text below to the user instead of working around it.
 
-- [ ] **Step 1: profile — item 3.** Read `/home/bgs/ai-steward/Gena_Beeline_Local/CLAUDE.md` lines 18-28, then Edit.
+- [x] **Step 1: profile — item 3.** Read `/home/bgs/ai-steward/Gena_Beeline_Local/CLAUDE.md` lines 18-28, then Edit.
 
 `old_string`:
 
@@ -1074,7 +1074,7 @@ Expected: pre-commit passes (`principles-ssot` runs on `*.md`); one commit with 
 3. Автоматический выбор варианта в `/best-questions` и в любой другой рекомендации — только по порогу из глобального CLAUDE.md → Questions and Numbers; своих порогов здесь нет.
 ```
 
-- [ ] **Step 2: auto-memory file — replace with a pointer.** Read `/home/bgs/.claude/projects/-home-bgs-ai-steward-Gena-Beeline-Local-python-ai-skills/memory/best-questions-auto-select-80.md`, then Write the whole file (file name and frontmatter keys are kept; `originSessionId` kept; `description` and `modified` and body replaced):
+- [x] **Step 2: auto-memory file — replace with a pointer.** Read `/home/bgs/.claude/projects/-home-bgs-ai-steward-Gena-Beeline-Local-python-ai-skills/memory/best-questions-auto-select-80.md`, then Write the whole file (file name and frontmatter keys are kept; `originSessionId` kept; `description` and `modified` and body replaced):
 
 ```text
 ---
@@ -1090,7 +1090,7 @@ metadata:
 Superseded 2026-10-15 (bd python-ai-skills-r1f.3): the ">80 % confidence" threshold is replaced by the two-score rule written X% / Y% in claude-home/CLAUDE.md → "Questions and Numbers" (loaded at session start and re-sent before every answer by claude-home/hooks/question-memo-inject.sh). Do not apply the old threshold; the profile item 3 points to the same section.
 ```
 
-- [ ] **Step 3: `MEMORY.md` index line 6** (Edit; read the file first).
+- [x] **Step 3: `MEMORY.md` index line 6** (Edit; read the file first).
 
 `old_string`:
 
@@ -1104,7 +1104,7 @@ Superseded 2026-10-15 (bd python-ai-skills-r1f.3): the ">80 % confidence" thresh
 - [best-questions auto-select >80%](best-questions-auto-select-80.md) — superseded: option auto-select is the X% / Y% rule in global CLAUDE.md → Questions and Numbers; the file is a pointer only.
 ```
 
-- [ ] **Step 4: verify by reading back (no shell writes involved).**
+- [x] **Step 4: verify by reading back (no shell writes involved).**
 
 ```bash
 grep -n 'Questions and Numbers' /home/bgs/ai-steward/Gena_Beeline_Local/CLAUDE.md /home/bgs/.claude/projects/-home-bgs-ai-steward-Gena-Beeline-Local-python-ai-skills/memory/MEMORY.md /home/bgs/.claude/projects/-home-bgs-ai-steward-Gena-Beeline-Local-python-ai-skills/memory/best-questions-auto-select-80.md
@@ -1204,3 +1204,15 @@ Expected: saved. If any answer is `no`, do not close the bead: file a bead for t
 **6. Task order respects dependencies.** Tests (2) before section (3) before hook (4); the guard test becomes GREEN only after the section exists (3); the hook exists before the template wiring and the installer test (5); the installer re-render (5) before the installed-layout check; the Codex check (6) needs the section in the repo file (3); the CHANGELOG (7) is written after the Codex result (6); skills (8-11) and profile/memory (13) point to a section that exists (3) and is already committed (7); the live check (14) needs the re-rendered settings (5).
 
 **7. Machine constraints encoded.** Edit/Write for protected paths (constraint 1; Tasks 2, 3, 4, 13); standalone git with explicit `git add` lists and the phantom-path warning (constraint 2; Tasks 1, 7, 12); `$TMPDIR` (Task 6); sandbox-disabled steps stated explicitly: `chmod` (Task 4 step 2), `make install-symlinks` (Task 5 step 5), `codex debug prompt-input` (Task 6 step 2); the quality gate with the 473 → 484 count and the untouched F401 (Tasks 1, 4, 7, 12); out-of-git edits (Task 13); user-run live check (Task 14).
+
+## Execution outcome (2026-10-15)
+
+- Tasks 1-13 done: commits `2e42ff4` (A, docs), `53f5303` (B, section + hook + tests + template), `e7cf553` (C, best-* skills);
+  Task 13 edited the profile, the auto-memory file and `MEMORY.md` outside git. `make test` 484 of 484 after commit C.
+- Deviated, see commit `e750e95`: the external review (gpt-sol-xhigh, 450.83 s, NOT READY) found a prefix match of the
+  heading in the hook (now an exact `^## Questions and Numbers$` match, plus a near-miss test - 12 tests, not 11),
+  threshold numbers repeated in `CLAUDE-APPENDIX.md` (removed), the 0.9 KB estimate in the discovery frontmatter and a
+  trailing space here. `make test` 485 of 485 after the fix.
+- Codex check (Task 6): all 22 `## ` sections of `claude-home/CLAUDE.md` load, `Questions and Numbers` included, no truncation.
+- Task 14 open: the memo was observed before every turn of the implementing session (including auto-started turns), but
+  the fresh-session check with a typed slash command was not run; carried over to bd `python-ai-skills-d1i`.

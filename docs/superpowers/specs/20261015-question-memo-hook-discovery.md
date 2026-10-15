@@ -2,7 +2,7 @@
 feature: question-memo-hook
 bd_id: python-ai-skills-r1f.3
 date: 2026-10-15
-status: draft
+status: approved
 risk: medium
 risk_justification: one new hook module that runs on every user prompt in every project on this machine (global settings.json), but it is advisory only (exit 0, no decision field, about 1,440 characters of context, measured 2026-10-15 after FR-2a), degrades to silence when the section is missing, and changes no contract, API or schema.
 evidence: strong
