@@ -11,9 +11,10 @@ installed skill/agent names), or in the files of the current git repository.
 Two candidate shapes are checked, on whole whitespace-separated words:
   1. hyphenated Latin compounds  -- index-time, write-through
   2. single Latin words in inline backticks  -- `boosting`, `analyzer`
-Words with `_`, digits or `/`, and single backticked words with a
-lower-to-upper letter pair (camelCase), are identifiers, not coined terms, and
-are skipped. A compound keeps camelCase parts: `reverse-WireGuard` is coined.
+Words with `_`, digits or `/`, and single backticked words with a capital
+after the first letter (`HTTPServer`, `HTTPS`, camelCase), are identifiers,
+not coined terms, and are skipped. A compound keeps capitals inside:
+`reverse-WireGuard` is coined.
 
 Rationale: a term the model actually read somewhere leaves a trace in the
 session or the repository. A term the model constructed on the fly --
@@ -73,10 +74,11 @@ IGNORE = {
 CYRILLIC_SHARE = 0.30
 
 COMPOUND = re.compile(r"[A-Za-z]{2,}(?:-[A-Za-z]{2,})+")
-CAMEL = re.compile(r"[a-z][A-Z]")
+SINGLE_WORD = re.compile(r"[A-Za-z][a-z]{4,}")
 # Punctuation that may stick to a word in prose; stripped before shape checks.
 WORD_EDGES = ".,;:!?()[]{}«»\"'*`"
-GIT_GREP_TIMEOUT_S = 2
+# One git grep for all words; the Stop hook itself has 10 s in settings.json.template.
+GIT_GREP_TIMEOUT_S = 5
 
 
 def is_russian_prose(text: str) -> bool:
@@ -107,7 +109,7 @@ def collect_candidates(text: str) -> set:
     # Shape 2: single Latin word inside inline backticks.
     for m in re.findall(r"`([^`\n]{1,40})`", prose):
         token = m.strip()
-        if re.fullmatch(r"[A-Za-z]{5,}", token) and not CAMEL.search(token):
+        if SINGLE_WORD.fullmatch(token):
             candidates.add(token)
 
     return {c for c in candidates if c.lower() not in IGNORE}
@@ -147,13 +149,17 @@ def instruction_corpus(cwd: str) -> str:
     return "\n".join(chunks)
 
 
-def session_corpus(transcript_path: str) -> str:
-    """Tool results, tool inputs and user messages of the session."""
+def session_corpus(transcript_path: str) -> list:
+    """Tool results, tool inputs and user messages of the session, one fragment each."""
     p = pathlib.Path(transcript_path) if transcript_path else None
     if not p or not p.is_file():
-        return ""
+        return []
+    try:
+        lines = p.read_text(errors="ignore").splitlines()
+    except OSError:
+        return []
     chunks = []
-    for line in p.read_text(errors="ignore").splitlines():
+    for line in lines:
         try:
             ev = json.loads(line)
         except Exception:
@@ -193,28 +199,31 @@ def session_corpus(transcript_path: str) -> str:
                     chunks.append(json.dumps(b.get("input", {}), ensure_ascii=False))
                 except Exception:
                     pass
-    return "\n".join(chunks)
+    return chunks
 
 
-def normalise(corpus: str) -> str:
+def normalise(fragment: str) -> str:
     """Join words a terminal wrapped after a hyphen; collapse other whitespace."""
-    corpus = re.sub(r"-[ \t]*\n\s*", "-", corpus)
-    return re.sub(r"\s+", " ", corpus).lower()
+    fragment = re.sub(r"-[ \t]*\n\s*", "-", fragment)
+    return re.sub(r"\s+", " ", fragment).lower()
 
 
-def in_repository(word: str, cwd: str) -> bool:
-    """True if a file tracked by the git repository at cwd mentions the word."""
-    if not cwd:
-        return False
+def repository_mentions(words: list, cwd: str) -> set:
+    """The words (lowercased) that some file tracked by the git repository at cwd mentions."""
+    if not cwd or not words:
+        return set()
+    patterns = [arg for w in words for arg in ("-e", w)]
     try:
         r = subprocess.run(
-            ["git", "-C", cwd, "grep", "-F", "-i", "-q", "-e", word],
+            # -o -h prints each matched text alone; ':/' searches from the repository root.
+            ["git", "-C", cwd, "grep", "-F", "-i", "-o", "-h", "-I", *patterns, "--", ":/"],
             capture_output=True,
+            text=True,
             timeout=GIT_GREP_TIMEOUT_S,
         )
     except (OSError, subprocess.TimeoutExpired):
-        return False
-    return r.returncode == 0
+        return set()
+    return {line.lower() for line in r.stdout.splitlines()}
 
 
 def main() -> int:
@@ -235,15 +244,16 @@ def main() -> int:
         return 0
 
     cwd = data.get("cwd") or ""
-    corpus = normalise(session_corpus(data.get("transcript_path")) + "\n" + instruction_corpus(cwd))
-    unverified = sorted(
-        c for c in candidates
-        if c.lower() not in corpus and not in_repository(c, cwd)
-    )
+    fragments = session_corpus(data.get("transcript_path")) + [instruction_corpus(cwd)]
+    # Fragments stay apart, so a wrap join never glues the end of one to the start of another.
+    corpus = "\n".join(normalise(f) for f in fragments)
+    unseen = sorted(c for c in candidates if c.lower() not in corpus)
+    in_repo = repository_mentions(unseen, cwd)
+    unverified = [c for c in unseen if c.lower() not in in_repo]
     if not unverified:
         return 0
 
-    words = ", ".join(f"«{w}»" for w in unverified[:15])
+    words = ", ".join(f"«{w}»" for w in unverified)
     context = (
         "EXPLANATION PROTOCOL: these Latin words in your last message appear in no "
         "tool result, tool input or user message of this session, in no instruction "
@@ -256,7 +266,7 @@ def main() -> int:
         "Use the second form only for a real name or an established industry term. "
         "See ~/.claude/CLAUDE.md -> 'Explanation Protocol'."
     )
-    log_block({"unverified": unverified[:15]})
+    log_block({"unverified": unverified})
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "Stop",
         "additionalContext": context,

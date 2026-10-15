@@ -58,13 +58,13 @@ def assistant_text(text):
     return {"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": text}]}}
 
 
-def run(home, workdir, message, events=(), tmp_path=None, in_transcript=True, **extra):
+def run(home, workdir, message, events=(), tmp_path=None, in_transcript=True, transcript_path=None, **extra):
     events = list(events) + ([assistant_text(message)] if in_transcript else [])
     payload = {
         "hook_event_name": "Stop",
         "last_assistant_message": message,
         "cwd": str(workdir),
-        "transcript_path": str(transcript(tmp_path, events)),
+        "transcript_path": str(transcript_path or transcript(tmp_path, events)),
         **extra,
     }
     return subprocess.run(
@@ -78,18 +78,28 @@ def run(home, workdir, message, events=(), tmp_path=None, in_transcript=True, **
     )
 
 
+def silent(result):
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+
+
 def feedback(result):
+    assert result.returncode == 0
     out = json.loads(result.stdout)
     assert "decision" not in out
     assert out["hookSpecificOutput"]["hookEventName"] == "Stop"
     return out["hookSpecificOutput"]["additionalContext"]
 
 
+def git_repo_with_note(workdir):
+    (workdir / "notes.md").write_text("the drift-guard compares renders\n")
+    subprocess.run(["git", "init", "-q"], cwd=workdir, check=True)
+    subprocess.run(["git", "add", "notes.md"], cwd=workdir, check=True)
+
+
 def test_reads_the_final_message_from_last_assistant_message(home, workdir, tmp_path):
     # The transcript holds no assistant message at all, as can happen at Stop time.
     result = run(home, workdir, PROSE + "Слово read-nudge здесь.", [user_text("вопрос")], tmp_path,
                  in_transcript=False)
-    assert result.returncode == 0
     assert "read-nudge" in feedback(result)
 
 
@@ -100,10 +110,19 @@ def test_coined_word_gets_one_line_correction_request_not_a_block(home, workdir,
     assert "Поправка к термину" in context
 
 
-@pytest.mark.parametrize("token", ["foo_bar_baz", "qwen38-lil-low", "`dangerouslyDisableSandbox`"])
+def test_every_coined_word_is_listed(home, workdir, tmp_path):
+    words = [f"coined-{chr(ord('a') + i) * 3}" for i in range(16)]
+    result = run(home, workdir, PROSE + "Слова " + " ".join(words) + " здесь.", [], tmp_path)
+    context = feedback(result)
+    assert all(f"«{w}»" in context for w in words)
+
+
+@pytest.mark.parametrize(
+    "token", ["foo_bar_baz", "qwen38-lil-low", "`dangerouslyDisableSandbox`", "`HTTPServer`", "`HTTPS`"]
+)
 def test_identifier_shapes_are_not_candidates(home, workdir, tmp_path, token):
     result = run(home, workdir, PROSE + f"Имя {token} здесь.", [], tmp_path)
-    assert result.stdout == ""
+    silent(result)
 
 
 def test_compound_with_a_product_name_inside_is_still_a_candidate(home, workdir, tmp_path):
@@ -115,23 +134,42 @@ def test_compound_with_a_product_name_inside_is_still_a_candidate(home, workdir,
 def test_word_broken_by_a_line_wrap_after_a_hyphen_is_found(home, workdir, tmp_path):
     wrapped = "path claude-home/housekeeping/claude-housekeeping-\n      task.md"
     result = run(home, workdir, PROSE + "Файл claude-housekeeping-task здесь.", [tool_result(wrapped)], tmp_path)
-    assert result.stdout == ""
+    silent(result)
+
+
+def test_a_line_wrap_join_never_crosses_two_evidence_fragments(home, workdir, tmp_path):
+    events = [tool_result("ends with read-"), tool_result("nudge starts here")]
+    result = run(home, workdir, PROSE + "Слово read-nudge здесь.", events, tmp_path)
+    assert "«read-nudge»" in feedback(result)
 
 
 def test_word_present_in_a_repository_file_is_real(home, workdir, tmp_path):
-    (workdir / "notes.md").write_text("the drift-guard compares renders\n")
-    subprocess.run(["git", "init", "-q"], cwd=workdir, check=True)
-    subprocess.run(["git", "add", "notes.md"], cwd=workdir, check=True)
+    git_repo_with_note(workdir)
     result = run(home, workdir, PROSE + "Проверка drift-guard здесь.", [], tmp_path)
-    assert result.stdout == ""
+    silent(result)
+
+
+def test_repository_search_covers_files_outside_the_session_subdirectory(home, workdir, tmp_path):
+    git_repo_with_note(workdir)
+    (workdir / "sub").mkdir()
+    result = run(home, workdir / "sub", PROSE + "Проверка drift-guard здесь.", [], tmp_path)
+    silent(result)
+
+
+def test_unreadable_transcript_counts_as_no_session_evidence(home, workdir, tmp_path):
+    unreadable = tmp_path / "unreadable.jsonl"
+    unreadable.write_text("{}")
+    unreadable.chmod(0)
+    result = run(home, workdir, PROSE + "Слово read-nudge здесь.", [], tmp_path, transcript_path=unreadable)
+    assert "«read-nudge»" in feedback(result)
 
 
 def test_silent_when_already_continuing_after_a_stop_hook(home, workdir, tmp_path):
     result = run(home, workdir, PROSE + "Слово read-nudge здесь.", [], tmp_path, stop_hook_active=True)
-    assert result.stdout == ""
+    silent(result)
 
 
 def test_english_text_is_not_checked(home, workdir, tmp_path):
     message = "This English answer mentions read-nudge and many other words. " * 5
     result = run(home, workdir, message, [], tmp_path)
-    assert result.stdout == ""
+    silent(result)
