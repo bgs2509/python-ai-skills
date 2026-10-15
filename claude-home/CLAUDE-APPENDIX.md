@@ -49,7 +49,7 @@
 
 ## Anti-Hallucination Protocol (CRITICAL)
 
-**Почему:** Галлюцинация имён артефактов в чате — fundamental LLM failure mode. В отличие от кода, где её ловят pre-commit / tests / USER APPROVAL gates, в свободном диалоге нет automated gate. Кейс 2026-05-11: модель в разговоре про onboarding сочинила переменные `AISW_ONBOARDING_MODE` и `AISW_ONBOARDING_RATE_LIMIT`, которых нет в `.env.example` — пользователь поймал руками. Слой 1 (этот текст) даёт ~60% защиты, слой 3 (Read-first hard rule) — ~95%, слой 2 (Stop hook) — финальная сетка от остаточных случаев. Цена — больше tool-вызовов и медленнее ответ; это приемлемо.
+**Почему:** Галлюцинация имён артефактов в чате — fundamental LLM failure mode. В отличие от кода, где её ловят pre-commit / tests / USER APPROVAL gates, в свободном диалоге нет automated gate. Кейс 2026-05-11: модель в разговоре про onboarding сочинила переменные `AISW_ONBOARDING_MODE` и `AISW_ONBOARDING_RATE_LIMIT`, которых нет в `.env.example` — пользователь поймал руками. Слой 1 (этот текст) даёт ~60% защиты, слой 3 (Read-first hard rule) — ~95%. Слой 2 (Stop hook `anti-hallucination.sh`) удалён 2026-10-15: он пропускал текст в обратных кавычках, где и пишутся идентификаторы, и не сработал ни разу (bd `python-ai-skills-r1f.2`). Цена — больше tool-вызовов и медленнее ответ; это приемлемо.
 
 ## Explanation Protocol (CRITICAL)
 
