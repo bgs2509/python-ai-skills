@@ -120,3 +120,9 @@ def test_work_window_reaches_the_page() -> None:
     p = plan()
     p["work_window"] = [9, 21]
     assert '"work_window": [\n  9,\n  21\n ]' in render.render(p)
+
+
+def test_page_carries_the_stage_dialog() -> None:
+    page = render.render(plan())
+    assert '<dialog id="stage-dlg"' in page
+    assert "Столбец этапов: доли часов плана" in page

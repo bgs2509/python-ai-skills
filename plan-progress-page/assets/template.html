@@ -137,6 +137,32 @@ ul.subs li.d { color: var(--muted); }
   .viz { padding-inline: 10px; }
   .g-lab b { white-space: normal; overflow: visible; }
 }
+
+/* Stage dialog and clickable stage names. */
+.sect { margin: 0 0 2px; font-size: 1rem; font-weight: 600; }
+.sect-cap { margin: 0 0 12px; color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
+.stage-link { all: unset; cursor: pointer; border-radius: 3px; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.stage-link:hover { text-decoration-color: currentColor; }
+.stage-link:focus-visible, .mk:focus-visible, .g-bar:focus-visible { outline: 2px solid var(--run); outline-offset: 2px; }
+.g-lab .stage-link { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk, .g-bar[data-stages] { cursor: pointer; }
+.mk:hover rect { stroke-width: 3; }
+.dlg { width: min(560px, calc(100% - 32px)); max-height: 85vh; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--fg); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); }
+.dlg::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); }
+.dlg-title { margin: 0; font-size: 1rem; font-weight: 600; }
+.dlg-head form { margin: 0; }
+.dlg-close { font: inherit; font-size: 1.3rem; line-height: 1; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--fg); cursor: pointer; }
+.dlg-body { display: grid; gap: 12px; padding: 14px 16px 16px; }
+.dstage { padding: 8px 12px; border-left: 3px solid var(--left); background: var(--left-tint); }
+.dstage.done { border-left-color: var(--done); background: var(--done-tint); }
+.dstage.run { border-left-color: var(--run); background: var(--run-tint); }
+.dstage h3 { margin: 0; font-size: 0.98rem; font-weight: 600; }
+.dstage p { margin: 3px 0 0; color: var(--muted); font-size: 0.86rem; }
+.dstage .when, .dstage .nums { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--fg); font-size: 0.8rem; }
+.dstage .fc { color: var(--muted); }
+.dstage ul.subs li { font-size: 0.86rem; }
+@media (max-width: 560px) { .g-lab .stage-link { white-space: normal; overflow: visible; } }
 </style>
 
 <div class="wrap">
@@ -154,7 +180,13 @@ ul.subs li.d { color: var(--muted); }
   <p class="cap">Строка — этап; полоса — от начала до конца (зелёная — факт, синяя — идёт, зелёная часть — сделанная доля, красная штриховка — прогноз). Серая черта под полосой — длительность по плановым часам от начала этапа: длиннее полосы — этап идёт быстрее плана. Синяя вертикаль — сейчас.</p>
   <div class="gantt" data-viz="gantt"></div>
   <div class="vlegend"><span><i class="box" style="background:var(--done)"></i>факт</span><span><i class="box" style="background:var(--run)"></i>идёт</span><span><i class="box" style="background:repeating-linear-gradient(45deg,var(--left) 0 5px,var(--left-tint) 5px 8px)"></i>прогноз</span><span><i class="box" style="background:var(--muted);opacity:.55;height:4px;vertical-align:2px"></i>по плановым часам</span><span><i class="box" style="background:var(--night);outline:1px solid var(--line)"></i><span class="offhours"></span></span></div></section>
+  <h2 class="sect">Столбец этапов: доли часов плана</h2>
+  <p class="sect-cap">Высота отрезка — доля этапа в часах плана; нажмите на название этапа — откроется полное описание.</p>
   <div class="chart" id="chart"></div>
+  <dialog id="stage-dlg" class="dlg" aria-labelledby="stage-dlg-title">
+    <div class="dlg-head"><h2 class="dlg-title" id="stage-dlg-title"></h2><form method="dialog"><button class="dlg-close" aria-label="Закрыть">×</button></form></div>
+    <div class="dlg-body"></div>
+  </dialog>
   <div class="legend">
     <span><i style="background:var(--done)"></i>готово</span>
     <span><i style="background:var(--run)"></i>идёт · синяя стрелка — где мы сейчас</span>
@@ -192,6 +224,34 @@ document.getElementById("summary").innerHTML =
   (annLast ? `<div><b>${fmt(pct(annFrom))}–${fmt(pct(annTo))}%</b><span>${esc(ANN_SUMMARY)} (${annFirst === annLast ? "этап " + annFirst : "этапы " + annFirst + "–" + annLast})</span></div>` : "") +
   `<div><b>${FINISH}</b><span>окончание (прогноз); начало — ${START}</span></div>`;
 
+// One stage's description: the bar's box and the stage dialog show the same text.
+function stageInner(s, i, linked) {
+  const tag = s.fact ? "факт" : (s.state === "run" ? "начало факт, конец прогноз" : "прогноз");
+  const name = `${i + 1}. ${esc(s.name)}`;
+  return `<h3>${linked ? `<button type="button" class="stage-link" data-stages="${i}">${name}</button>` : name}<span class="pill ${s.state}">${STATE_LABEL[s.state]}</span>${s.ann ? ` <span class="annmark">· ${esc(ANN_LABEL)}</span>` : ""}</h3>` +
+    `<p class="when">${s.start} → ${s.end} <span class="fc">(${tag})</span></p>` +
+    `<p class="nums">${fmt(s.hours)} ч = ${fmt(pct(s.hours))}% плана · сделано ${fmt(100 * s.done / s.hours, 0)}% · подэтапов ${subCount(s, "d")} из ${s.subs.length}</p>` +
+    (s.detail ? `<p>${esc(s.detail)}</p>` : "") +
+    `<ul class="subs">${s.subs.map((x) => `<li class="${x[0]}">${esc(x[1])}</li>`).join("")}</ul>`;
+}
+
+// Stage dialog: any element with data-stages="i[,j…]" opens the full description of those stages.
+function openStages(ids) {
+  const dlg = document.getElementById("stage-dlg");
+  dlg.querySelector(".dlg-body").innerHTML = ids.map((i) => `<div class="dstage ${STAGES[i].state}">${stageInner(STAGES[i], i, false)}</div>`).join("");
+  dlg.querySelector(".dlg-title").textContent = ids.length > 1 ? `Этапы ${ids.map((i) => i + 1).join(", ")}` : "Этап " + (ids[0] + 1);
+  if (!dlg.open) dlg.showModal();
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-stages]");
+  if (t) openStages(t.dataset.stages.split(",").map(Number));
+  else if (e.target.id === "stage-dlg") e.target.close(); // click on the backdrop
+});
+document.addEventListener("keydown", (e) => {
+  const t = e.target.closest && e.target.closest("svg [data-stages]");
+  if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openStages(t.dataset.stages.split(",").map(Number)); }
+});
+
 function draw() {
   const narrow = window.matchMedia("(max-width: 560px)").matches;
   const pxPerHour = narrow ? 34 : 40;
@@ -204,18 +264,10 @@ function draw() {
     row.className = `row ${s.state}` + (h < 46 ? " tiny" : "") + (i === STAGES.length - 1 ? " last" : "");
     row.style.top = y + "px";
     row.style.height = h + "px";
-    const tag = s.fact ? "факт" : (s.state === "run" ? "начало факт, конец прогноз" : "прогноз");
-    const subs = s.subs.map((x) => `<li class="${x[0]}">${esc(x[1])}</li>`).join("");
     row.innerHTML =
       `<div class="tick">${fmt(pct(cum))}% · ${fmt(cum)} ч<br><em>${s.start}</em>${s.fact || s.state === "run" ? "" : " прогн."}</div>` +
       `<div class="seg"><div class="fill" style="height:${(s.done / s.hours) * 100}%"></div></div>` +
-      `<div class="desc" tabindex="0" aria-label="${esc(s.name)}">` +
-        `<h3>${i + 1}. ${esc(s.name)}<span class="pill ${s.state}">${STATE_LABEL[s.state]}</span>${s.ann ? ` <span class="annmark">· ${esc(ANN_LABEL)}</span>` : ""}</h3>` +
-        `<p class="when">${s.start} → ${s.end} <span class="fc">(${tag})</span></p>` +
-        `<p class="nums">${fmt(s.hours)} ч = ${fmt(pct(s.hours))}% плана · сделано ${fmt(100 * s.done / s.hours, 0)}% · подэтапов ${subCount(s, "d")} из ${s.subs.length}</p>` +
-        (s.detail ? `<p>${esc(s.detail)}</p>` : "") +
-        `<ul class="subs">${subs}</ul>` +
-      `</div>`;
+      `<div class="desc" tabindex="0" aria-label="${esc(s.name)}">${stageInner(s, i, true)}</div>`;
     chart.appendChild(row);
     y += h; cum += s.hours;
   });
@@ -281,7 +333,7 @@ window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw
     const marks = [...fact.slice(1, -1), ...fc.slice(1)].map((p) => ({ x: x(p[0]), y: y(p[1]), n: STAGES.indexOf(p[2]) + 1, done: p[2].state === "done" }));
     const groups = [];
     marks.forEach((mk) => { const g0 = groups[groups.length - 1]; if (g0 && Math.hypot(mk.x - g0.x, mk.y - g0.y) < 16) { g0.n.push(mk.n); g0.x = mk.x; g0.y = mk.y; g0.done = g0.done && mk.done; } else groups.push({ ...mk, n: [mk.n] }); });
-    groups.forEach((gr) => { const lab = gr.n.join(","), w = Math.max(16, lab.length * 6.6 + 8); g += `<rect x="${gr.x - w / 2}" y="${gr.y - 8}" width="${w}" height="16" rx="8" fill="var(--panel)" stroke="${gr.done ? "var(--done)" : "var(--left)"}" stroke-width="2"/><text x="${gr.x}" y="${gr.y + 3.5}" text-anchor="middle" class="num">${lab}</text>`; });
+    groups.forEach((gr) => { const lab = gr.n.join(","), w = Math.max(16, lab.length * 6.6 + 8); g += `<g class="mk" data-stages="${gr.n.map((n) => n - 1).join(",")}" tabindex="0" role="button" aria-label="Этап ${lab}: подробно"><rect x="${gr.x - w / 2}" y="${gr.y - 8}" width="${w}" height="16" rx="8" fill="var(--panel)" stroke="${gr.done ? "var(--done)" : "var(--left)"}" stroke-width="2"/><text x="${gr.x}" y="${gr.y + 3.5}" text-anchor="middle" class="num">${lab}</text></g>`; });
     const nx = x(tn), lab = `сейчас ${fmt(pct(doneTotal))}%`, lw = lab.length * 7.4 + 12;
     const lx = nx + 4 + lw > W - m.r ? nx - 4 - lw : nx + 4;
     g += `<line x1="${nx}" x2="${nx}" y1="${m.t}" y2="${H - m.b}" stroke="var(--run)" stroke-width="2"/>`;
@@ -306,8 +358,8 @@ window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw
       const pos = `left:${L(a)};width:${Wd(a, b)}`;
       const style = s.state === "run" ? `${pos};background:linear-gradient(90deg,var(--done) ${f}%,var(--run) ${f}%)` : pos;
       const endDay = s.end.slice(0, 5) !== s.start.slice(0, 5) ? ` (${s.end.slice(0, 5)})` : "";
-      rows += `<div class="g-row ${s.state}"><div class="g-lab"><b>${i + 1}. ${esc(s.name)}</b><span>${fmt(s.hours)} ч · ${s.start.slice(6)} → ${s.end.slice(6)}${endDay}</span></div>` +
-        `<div class="g-track">${bg}<i class="g-base" style="left:${L(a)};width:${Wd(a, Math.min(t1, a + s.hours))}"></i><i class="g-bar ${s.state}" style="${style}"></i></div></div>`;
+      rows += `<div class="g-row ${s.state}"><div class="g-lab"><button type="button" class="stage-link" data-stages="${i}">${i + 1}. ${esc(s.name)}</button><span>${fmt(s.hours)} ч · ${s.start.slice(6)} → ${s.end.slice(6)}${endDay}</span></div>` +
+        `<div class="g-track">${bg}<i class="g-base" style="left:${L(a)};width:${Wd(a, Math.min(t1, a + s.hours))}"></i><i class="g-bar ${s.state}" data-stages="${i}" style="${style}"></i></div></div>`;
     });
     el.innerHTML = rows;
   }

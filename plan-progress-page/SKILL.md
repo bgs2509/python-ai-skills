@@ -165,3 +165,8 @@ forecast finish.
    blue running with its done share, red hatched forecast) and a grey line under it of the
    stage's plan hours from its start (shorter bar = faster than plan). Both are computed from
    the stage fields; no extra data. Stage-end markers closer than 16 px merge into one «1,2».
+7. 2026-10-15: a click on a burn-up marker, on a stage name in the Gantt, or on a stage name
+   in the bar opens a dialog with that stage's full description (a merged marker «1,2» shows
+   both stages); Esc, × or a click outside closes it. The bar got the heading «Столбец этапов:
+   доли часов плана» — the owner called it a sidebar, but a sidebar is a side navigation
+   panel; the block is a vertical stacked bar chart with a label beside each segment.
