@@ -193,4 +193,16 @@
     <context7_note>no external library is used; the script is Python 3 stdlib (`json`, `os`, `pathlib`, `subprocess`), the rest is `git`, `bd`, `pre-commit`, `codex` CLIs whose behaviour was probed in this session.</context7_note>
     <requirements>docs/superpowers/specs/20261015-agents-md-migration-discovery.md (FR-1..FR-8, NFR-1..NFR-4, groups A-G, resolutions 1-6)</requirements>
   </Feature>
+  <Feature source="20261015-question-memo-hook-design.md" bd_id="python-ai-skills-r1f.3">
+    <feature>question-memo-hook</feature>
+    <date>2026-10-15</date>
+    <status>draft</status>
+    <risk>medium</risk>
+    <risk_justification>one new hook that runs on every user prompt in every project on this machine; advisory only (exit 0, no decision field, about 1.4 KB of text), silent when the section is missing, no contract or schema change. Same as Discovery.</risk_justification>
+    <approach>bash-copy</approach>
+    <open_questions/>
+    <context7_verified/>
+    <context7_note>no library is involved; the hook is bash + awk + jq (already used by `task-level-inject.sh`), the tests are pytest + stdlib `subprocess`/`json`. Behaviour was probed in this session (prototype in `$TMPDIR`, see 2.3).</context7_note>
+    <requirements>docs/superpowers/specs/20261015-question-memo-hook-discovery.md (FR-1..FR-9 incl. FR-2a, NFR-1..NFR-6, risks 1-10, scope, resolved questions Q1-Q5)</requirements>
+  </Feature>
 </Technology>

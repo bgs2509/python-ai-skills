@@ -669,4 +669,14 @@
     <open_questions/>
     <status_note>approved at gate 3 on 2026-10-15; resolutions below</status_note>
   </Feature>
+  <Feature source="20261015-question-memo-hook-discovery.md" bd_id="python-ai-skills-r1f.3">
+    <feature>question-memo-hook</feature>
+    <date>2026-10-15</date>
+    <status>draft</status>
+    <risk>medium</risk>
+    <risk_justification>one new hook module that runs on every user prompt in every project on this machine (global settings.json), but it is advisory only (exit 0, no decision field, about 0.9 KB of text), degrades to silence when the section is missing, and changes no contract, API or schema.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>UserPromptSubmit contract quoted from code.claude.com/docs/en/hooks (fetched 2026-10-15); settings.json.template parsed with python3 json; pattern hook and its test read in full; the four best-* SKILL.md files grepped for confidence and question wording; memo size measured with wc -c on a draft; prompts per session counted over the 60 most recent transcripts of this project directory; Codex chain cap quoted from learn.chatgpt.com/docs/agent-configuration/agents-md; the Codex prompt-input probe itself was blocked by the sandbox (recorded as unverified).</evidence_justification>
+    <open_questions/>
+  </Feature>
 </Requirements>
