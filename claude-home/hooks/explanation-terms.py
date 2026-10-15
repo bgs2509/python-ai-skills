@@ -1,27 +1,34 @@
 #!/usr/bin/env python3
 """Explanation-terms Stop hook.
 
-Reads Stop event JSON from stdin, scans the last assistant message for
-Latin-script coined terms inside Russian prose, and blocks the turn if such
-a term never appears in tool results, tool inputs, or user messages of the
-current session, nor in the user's standing instruction files (global and
-project CLAUDE.md/AGENTS.md, rules, installed skill/agent names).
+Reads Stop event JSON from stdin, scans the final assistant message
+(`last_assistant_message`) for Latin-script coined terms inside Russian prose,
+and asks for a one-line correction per term if such a term never appears in
+tool results, tool inputs or user messages of the current session, in the
+user's standing instruction files (global and project CLAUDE.md/AGENTS.md,
+installed skill/agent names), or in the files of the current git repository.
 
-Two candidate shapes are checked:
-  1. compound Latin tokens  -- index-time, foo_bar, write-through
+Two candidate shapes are checked, on whole whitespace-separated words:
+  1. hyphenated Latin compounds  -- index-time, write-through
   2. single Latin words in inline backticks  -- `boosting`, `analyzer`
+Words with `_`, digits or `/`, and single backticked words with a
+lower-to-upper letter pair (camelCase), are identifiers, not coined terms, and
+are skipped. A compound keeps camelCase parts: `reverse-WireGuard` is coined.
 
 Rationale: a term the model actually read somewhere leaves a trace in the
-session (a doc fetch, a file Read, the user's own words). A term the model
-constructed on the fly -- typically by completing the missing half of a real
-pair, as in search-time -> index-time -- leaves no trace at all.
+session or the repository. A term the model constructed on the fly --
+typically by completing the missing half of a real pair, as in
+search-time -> index-time -- leaves no trace at all.
+
+The hook never blocks: the user has already read the message, and a block made
+the model rewrite it (bd python-ai-skills-r1f.1: 106 blocks in 76 sessions,
+answered with repeats and out-of-context paragraphs). Stop `additionalContext`
+asks instead for exactly one line per term, saying which word is replaced by
+which, or that the word is real.
 
 Deliberately NOT detected: Russian jargon ("прогон" instead of
 "тестирование"). It is formally indistinguishable from any other Russian
 word, so it stays on the rule in CLAUDE.md rather than on this hook.
-
-Transcript-walking logic intentionally mirrors anti-hallucination.py instead
-of importing from it: that hook is a working safety net and is left untouched.
 
 See ~/.claude/CLAUDE.md -> "Explanation Protocol".
 """
@@ -30,11 +37,12 @@ import json
 import os
 import pathlib
 import re
+import subprocess
 import sys
 
 
 def log_block(detail: dict) -> None:
-    """Append one JSONL record to the block journal for monthly review."""
+    """Append one JSONL record to the hook journal for monthly review."""
     try:
         log_dir = pathlib.Path.home() / ".claude" / "hook-stats"
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -64,18 +72,11 @@ IGNORE = {
 # prose. Below this the answer is code or English, and the rule does not apply.
 CYRILLIC_SHARE = 0.30
 
-
-def last_assistant_text(events: list) -> str:
-    for ev in reversed(events):
-        if ev.get("type") != "assistant":
-            continue
-        parts = []
-        for block in ev.get("message", {}).get("content", []) or []:
-            if isinstance(block, dict) and block.get("type") == "text":
-                parts.append(block.get("text", ""))
-        if parts:
-            return "\n".join(parts)
-    return ""
+COMPOUND = re.compile(r"[A-Za-z]{2,}(?:-[A-Za-z]{2,})+")
+CAMEL = re.compile(r"[a-z][A-Z]")
+# Punctuation that may stick to a word in prose; stripped before shape checks.
+WORD_EDGES = ".,;:!?()[]{}«»\"'*`"
+GIT_GREP_TIMEOUT_S = 2
 
 
 def is_russian_prose(text: str) -> bool:
@@ -97,24 +98,19 @@ def collect_candidates(text: str) -> set:
 
     candidates = set()
 
-    # Shape 1: compound Latin tokens, in or out of backticks.
-    for m in re.findall(r"\b[A-Za-z]{2,}(?:[-_][A-Za-z]{2,})+\b", prose):
-        if len(m) >= 6:
-            candidates.add(m)
+    # Shape 1: a whole word that is a hyphenated Latin compound.
+    for word in prose.split():
+        word = word.strip(WORD_EDGES)
+        if len(word) >= 6 and COMPOUND.fullmatch(word):
+            candidates.add(word)
 
     # Shape 2: single Latin word inside inline backticks.
     for m in re.findall(r"`([^`\n]{1,40})`", prose):
         token = m.strip()
-        if re.fullmatch(r"[A-Za-z]{5,}", token):
+        if re.fullmatch(r"[A-Za-z]{5,}", token) and not CAMEL.search(token):
             candidates.add(token)
 
-    # Paths, calls, file names and flags are artifact names -- the
-    # anti-hallucination hook owns those.
-    return {
-        c for c in candidates
-        if not any(ch in c for ch in "./\\()[]{}<>:@$")
-        and c.lower() not in IGNORE
-    }
+    return {c for c in candidates if c.lower() not in IGNORE}
 
 
 def instruction_corpus(cwd: str) -> str:
@@ -123,7 +119,7 @@ def instruction_corpus(cwd: str) -> str:
     Vocabulary the user wrote into their own global/project rules
     (do-feature, knowledge-graph, Fail-Fast, ...) is not a coined term, but
     system instructions never appear in the transcript as tool results, so
-    without this the hook blocks the model for quoting the user's own rules.
+    without this the hook flags the model for quoting the user's own rules.
     """
     home = pathlib.Path.home() / ".claude"
     files = [home / "CLAUDE.md", home / "CLAUDE-APPENDIX.md"]
@@ -148,12 +144,20 @@ def instruction_corpus(cwd: str) -> str:
                 chunks.extend(p.name for p in d.iterdir())
         except OSError:
             continue
-    return "\n".join(chunks).lower()
+    return "\n".join(chunks)
 
 
-def verified_corpus(events: list) -> str:
+def session_corpus(transcript_path: str) -> str:
+    """Tool results, tool inputs and user messages of the session."""
+    p = pathlib.Path(transcript_path) if transcript_path else None
+    if not p or not p.is_file():
+        return ""
     chunks = []
-    for ev in events:
+    for line in p.read_text(errors="ignore").splitlines():
+        try:
+            ev = json.loads(line)
+        except Exception:
+            continue
         if not isinstance(ev, dict):
             continue
         msg = ev.get("message")
@@ -189,7 +193,28 @@ def verified_corpus(events: list) -> str:
                     chunks.append(json.dumps(b.get("input", {}), ensure_ascii=False))
                 except Exception:
                     pass
-    return "\n".join(chunks).lower()
+    return "\n".join(chunks)
+
+
+def normalise(corpus: str) -> str:
+    """Join words a terminal wrapped after a hyphen; collapse other whitespace."""
+    corpus = re.sub(r"-[ \t]*\n\s*", "-", corpus)
+    return re.sub(r"\s+", " ", corpus).lower()
+
+
+def in_repository(word: str, cwd: str) -> bool:
+    """True if a file tracked by the git repository at cwd mentions the word."""
+    if not cwd:
+        return False
+    try:
+        r = subprocess.run(
+            ["git", "-C", cwd, "grep", "-F", "-i", "-q", "-e", word],
+            capture_output=True,
+            timeout=GIT_GREP_TIMEOUT_S,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return r.returncode == 0
 
 
 def main() -> int:
@@ -201,56 +226,41 @@ def main() -> int:
     if data.get("stop_hook_active"):
         return 0
 
-    transcript_path = data.get("transcript_path")
-    if not transcript_path:
-        return 0
-    p = pathlib.Path(transcript_path)
-    if not p.exists():
-        return 0
-
-    events = []
-    for line in p.read_text(errors="ignore").splitlines():
-        try:
-            events.append(json.loads(line))
-        except Exception:
-            continue
-
-    text = last_assistant_text(events)
-    if not text or not is_russian_prose(text):
+    text = data.get("last_assistant_message") or ""
+    if not is_russian_prose(text):
         return 0
 
     candidates = collect_candidates(text)
     if not candidates:
         return 0
 
-    corpus = verified_corpus(events) + "\n" + instruction_corpus(data.get("cwd") or "")
-    unverified = sorted(c for c in candidates if c.lower() not in corpus)
+    cwd = data.get("cwd") or ""
+    corpus = normalise(session_corpus(data.get("transcript_path")) + "\n" + instruction_corpus(cwd))
+    unverified = sorted(
+        c for c in candidates
+        if c.lower() not in corpus and not in_repository(c, cwd)
+    )
     if not unverified:
         return 0
 
-    reason = (
-        "EXPLANATION PROTOCOL GATE BLOCKED YOUR RESPONSE.\n\n"
-        "Your last message used these Latin terms, and NONE of them appears "
-        "in any tool result, file Read, tool input, or user message in this "
-        "session, nor in the user's instruction files (CLAUDE.md, rules, "
-        "skill names):\n"
-        "  " + ", ".join(unverified[:15]) + "\n\n"
-        "That is the signature of a coined term -- typically completing the "
-        "missing half of a real pair (search-time -> index-time). Per "
-        "~/.claude/CLAUDE.md -> 'Explanation Protocol', required action NOW:\n"
-        "  1. Replace each term with a plain Russian phrase, which is the "
-        "default: 'во время индексирования', not 'index-time'.\n"
-        "  2. Keep the term ONLY if the user genuinely needs it (it appears "
-        "in docs they will read, or will be spoken at an interview) -- and "
-        "then verify its exact spelling in the source first, and introduce it "
-        "with its Russian equivalent on first use.\n"
-        "  3. A verified half of a pair does NOT verify the other half. "
-        "Check each term separately, by its literal written form.\n\n"
-        "Do NOT bypass this hook by dropping the backticks or the hyphen. "
-        "The point is that the reader must understand the word."
+    words = ", ".join(f"«{w}»" for w in unverified[:15])
+    context = (
+        "EXPLANATION PROTOCOL: these Latin words in your last message appear in no "
+        "tool result, tool input or user message of this session, in no instruction "
+        f"file and in no file of the repository: {words}.\n\n"
+        "The user has ALREADY READ that message. Do NOT repeat, rewrite or quote it; "
+        "no paragraphs, no 'проверяю', no apology. Reply with exactly one line per word "
+        "and nothing else, in one of two forms:\n"
+        "  Поправка к термину: «<word>» → «<plain Russian description of what it means>»\n"
+        "  «<word>» — <where it occurs or what it is>, замены нет\n"
+        "Use the second form only for a real name or an established industry term. "
+        "See ~/.claude/CLAUDE.md -> 'Explanation Protocol'."
     )
     log_block({"unverified": unverified[:15]})
-    print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "Stop",
+        "additionalContext": context,
+    }}, ensure_ascii=False))
     return 0
 
 
