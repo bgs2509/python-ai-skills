@@ -1,0 +1,197 @@
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: every stage is one row whose height is its share of hours (1 h = fixed px); tick, bar segment and description share that row; a blue arrow left of the bar marks "now". */
+:root {
+  --bg: #f6f7f5;
+  --panel: #ffffff;
+  --fg: #1b1f1d;
+  --muted: #5f6a65;
+  --line: #c9d1cd;
+  --done: #2f8a4c;
+  --done-tint: #e3f1e7;
+  --left: #c9423a;
+  --left-tint: #f7e4e2;
+  --run: #2f5bd3;
+  --run-tint: #e3e9f8;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121514; --panel: #1a1f1d; --fg: #e6ebe8; --muted: #9aa69f; --line: #343c38;
+    --done: #3fae63; --done-tint: #16291d; --left: #e0594f; --left-tint: #2e1816;
+    --run: #6f95ff; --run-tint: #19223a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121514; --panel: #1a1f1d; --fg: #e6ebe8; --muted: #9aa69f; --line: #343c38;
+  --done: #3fae63; --done-tint: #16291d; --left: #e0594f; --left-tint: #2e1816;
+  --run: #6f95ff; --run-tint: #19223a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.4; }
+.wrap { max-width: 940px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; }
+h1 { font-size: 1.6rem; font-weight: 600; margin: 0 0 4px; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+.meta { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0 0 16px; font-size: 0.86rem; }
+.meta div { display: contents; }
+.meta dt { color: var(--muted); }
+.meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.meta code { font-family: var(--font-mono); font-size: 0.82rem; }
+@media (max-width: 560px) { .meta { grid-template-columns: 1fr; } .meta dd { margin-bottom: 4px; } }
+.summary { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 0 0 22px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.summary div { min-width: 0; }
+.summary b { display: block; font-family: var(--font-mono); font-size: 1.3rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.summary span { color: var(--muted); font-size: 0.85rem; }
+.summary .g b { color: var(--done); }
+.summary .r b { color: var(--left); }
+.summary .b b { color: var(--run); }
+.chart { position: relative; }
+.row { position: absolute; left: 0; right: 0; display: grid; grid-template-columns: 150px 30px 1fr; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.tick { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); text-align: right; padding: 2px 10px 0 0; line-height: 1.25; font-variant-numeric: tabular-nums; overflow: hidden; }
+.tick em { font-style: normal; color: var(--fg); }
+.seg { position: relative; background: var(--left); }
+.seg .fill { position: absolute; left: 0; right: 0; top: 0; background: var(--done); }
+.row:first-child .seg { border-radius: 6px 6px 0 0; }
+.row.last .seg { border-radius: 0 0 6px 6px; }
+.desc { margin-left: 12px; padding: 4px 10px 4px; overflow-y: auto; overflow-x: hidden; min-width: 0; border-left: 3px solid var(--left); background: var(--left-tint);
+  scrollbar-width: thin; scrollbar-color: var(--left) transparent; overscroll-behavior: contain; }
+.row.done .desc { border-left-color: var(--done); background: var(--done-tint); scrollbar-color: var(--done) transparent; }
+.row.run .desc { border-left-color: var(--run); background: var(--run-tint); scrollbar-color: var(--run) transparent; }
+.desc::-webkit-scrollbar { width: 6px; }
+.desc::-webkit-scrollbar-track { background: transparent; }
+.desc::-webkit-scrollbar-thumb { background: var(--left); border-radius: 3px; }
+.row.done .desc::-webkit-scrollbar-thumb { background: var(--done); }
+.row.run .desc::-webkit-scrollbar-thumb { background: var(--run); }
+.desc h3 { margin: 0; font-size: 0.92rem; font-weight: 600; }
+.desc p { margin: 1px 0 0; color: var(--muted); font-size: 0.8rem; }
+.desc .when, .desc .nums { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--fg); font-size: 0.76rem; }
+.desc .fc { color: var(--muted); }
+.row.tiny .desc { padding-block: 1px; }
+.row.tiny .desc h3 { font-size: 0.8rem; }
+.pill { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0 6px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
+.pill.done { color: var(--done); border: 1px solid var(--done); }
+.pill.run { color: var(--run); border: 1px solid var(--run); }
+.pill.wait { color: var(--left); border: 1px solid var(--left); }
+.annmark { color: var(--run); font-weight: 600; font-size: 0.78rem; }
+ul.subs { list-style: none; margin: 4px 0 2px; padding: 0; display: grid; gap: 1px; }
+ul.subs li { font-size: 0.8rem; display: grid; grid-template-columns: 16px 1fr; gap: 4px; align-items: baseline; min-width: 0; }
+ul.subs li::before { content: "○"; color: var(--left); font-size: 0.75rem; text-align: center; }
+ul.subs li.d::before { content: "✓"; color: var(--done); font-weight: 600; }
+ul.subs li.r::before { content: "▶"; color: var(--run); }
+ul.subs li.r { font-weight: 600; }
+ul.subs li.d { color: var(--muted); }
+.endtick { position: absolute; left: 0; width: 150px; text-align: right; padding-right: 10px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); line-height: 1.25; }
+.endtick em { font-style: normal; color: var(--fg); }
+.arrow { position: absolute; left: 0; width: 150px; height: 44px; transform: translateY(-50%); z-index: 3; pointer-events: none; display: flex; align-items: center; justify-content: flex-end; }
+.arrow svg { width: 150px; height: 44px; display: block; }
+.arrow svg path { fill: var(--run); }
+.arrow svg text { fill: #ffffff; font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 22px 0 0; color: var(--muted); font-size: 0.85rem; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.foot { margin-top: 18px; color: var(--muted); font-size: 0.82rem; max-width: 72ch; }
+.foot p { margin: 6px 0; }
+@media (max-width: 560px) {
+  .row { grid-template-columns: 100px 22px 1fr; }
+  .endtick, .arrow, .arrow svg { width: 100px; }
+  .tick, .endtick { font-size: 0.62rem; }
+  .desc { margin-left: 6px; padding-inline: 6px; }
+  .arrow svg text { font-size: 11px; }
+}
+</style>
+
+<div class="wrap">
+  <h1>{{TITLE}}</h1>
+  <p class="sub" id="updated"></p>
+  <dl class="meta">
+{{META}}
+  </dl>
+  <div class="summary" id="summary"></div>
+  <div class="chart" id="chart"></div>
+  <div class="legend">
+    <span><i style="background:var(--done)"></i>готово</span>
+    <span><i style="background:var(--run)"></i>идёт · синяя стрелка — где мы сейчас</span>
+    <span><i style="background:var(--left)"></i>впереди</span>
+    <span>✓ сделано · ▶ идёт · ○ впереди</span>
+  </div>
+  <div class="foot">
+{{FOOT}}
+  </div>
+</div>
+
+<script>
+// Data comes from the plan JSON via render.py; edit the JSON and re-render, never this file.
+const DATA = {{DATA}};
+const { updated: UPDATED, start: START, finish: FINISH, stages: STAGES } = DATA;
+const ANN_LABEL = DATA.ann_label || "";
+const ANN_SUMMARY = DATA.ann_summary || `отрезок «${ANN_LABEL}»`;
+const STATE_LABEL = { done: "готово", run: "идёт", wait: "впереди" };
+
+const total = STAGES.reduce((s, x) => s + x.hours, 0);
+const doneTotal = STAGES.reduce((s, x) => s + x.done, 0);
+const pct = (h) => (100 * h / total);
+const fmt = (n, d = 1) => n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let annFrom = 0, annTo = 0, acc = 0, annFirst = 0, annLast = 0;
+STAGES.forEach((s, i) => { if (s.ann && !annTo) { annFrom = acc; annFirst = i + 1; } acc += s.hours; if (s.ann) { annTo = acc; annLast = i + 1; } });
+const current = STAGES.findIndex((s) => s.state === "run");
+const subCount = (st, k) => st.subs.filter((x) => x[0] === k).length;
+
+document.getElementById("updated").textContent = "Обновлено " + UPDATED;
+document.getElementById("summary").innerHTML =
+  `<div class="g"><b>${fmt(pct(doneTotal))}%</b><span>сделано: ${fmt(doneTotal)} ч из ${fmt(total)} ч</span></div>` +
+  `<div class="r"><b>${fmt(100 - pct(doneTotal))}%</b><span>осталось: ${fmt(total - doneTotal)} ч из ${fmt(total)} ч</span></div>` +
+  (current >= 0 ? `<div class="b"><b>этап ${current + 1} из ${STAGES.length}</b><span>сейчас: ${esc(STAGES[current].name)}</span></div>` : "") +
+  (annLast ? `<div><b>${fmt(pct(annFrom))}–${fmt(pct(annTo))}%</b><span>${esc(ANN_SUMMARY)} (${annFirst === annLast ? "этап " + annFirst : "этапы " + annFirst + "–" + annLast})</span></div>` : "") +
+  `<div><b>${FINISH}</b><span>окончание (прогноз); начало — ${START}</span></div>`;
+
+function draw() {
+  const narrow = window.matchMedia("(max-width: 560px)").matches;
+  const pxPerHour = narrow ? 34 : 40;
+  const chart = document.getElementById("chart");
+  chart.innerHTML = "";
+  let y = 0, cum = 0;
+  STAGES.forEach((s, i) => {
+    const h = s.hours * pxPerHour;
+    const row = document.createElement("div");
+    row.className = `row ${s.state}` + (h < 46 ? " tiny" : "") + (i === STAGES.length - 1 ? " last" : "");
+    row.style.top = y + "px";
+    row.style.height = h + "px";
+    const tag = s.fact ? "факт" : (s.state === "run" ? "начало факт, конец прогноз" : "прогноз");
+    const subs = s.subs.map((x) => `<li class="${x[0]}">${esc(x[1])}</li>`).join("");
+    row.innerHTML =
+      `<div class="tick">${fmt(pct(cum))}% · ${fmt(cum)} ч<br><em>${s.start}</em>${s.fact || s.state === "run" ? "" : " прогн."}</div>` +
+      `<div class="seg"><div class="fill" style="height:${(s.done / s.hours) * 100}%"></div></div>` +
+      `<div class="desc" tabindex="0" aria-label="${esc(s.name)}">` +
+        `<h3>${i + 1}. ${esc(s.name)}<span class="pill ${s.state}">${STATE_LABEL[s.state]}</span>${s.ann ? ` <span class="annmark">· ${esc(ANN_LABEL)}</span>` : ""}</h3>` +
+        `<p class="when">${s.start} → ${s.end} <span class="fc">(${tag})</span></p>` +
+        `<p class="nums">${fmt(s.hours)} ч = ${fmt(pct(s.hours))}% плана · сделано ${fmt(100 * s.done / s.hours, 0)}% · подэтапов ${subCount(s, "d")} из ${s.subs.length}</p>` +
+        (s.detail ? `<p>${esc(s.detail)}</p>` : "") +
+        `<ul class="subs">${subs}</ul>` +
+      `</div>`;
+    chart.appendChild(row);
+    y += h; cum += s.hours;
+  });
+  const end = document.createElement("div");
+  end.className = "endtick";
+  end.style.top = (y + 2) + "px";
+  end.innerHTML = `100,0% · ${fmt(total)} ч<br><em>${FINISH}</em> прогн.`;
+  chart.appendChild(end);
+  chart.style.height = (y + 34) + "px";
+
+  const w = narrow ? 100 : 150;
+  const arrow = document.createElement("div");
+  arrow.className = "arrow";
+  arrow.style.top = (doneTotal / total) * y + "px";
+  arrow.innerHTML =
+    `<svg viewBox="0 0 ${w} 44" aria-label="сейчас ${fmt(pct(doneTotal))}%">` +
+    `<path d="M2 8 H${w - 26} V0 L${w - 2} 22 L${w - 26} 44 V36 H2 Z"/>` +
+    `<text x="10" y="27">сейчас ${fmt(pct(doneTotal))}%</text></svg>`;
+  chart.appendChild(arrow);
+}
+draw();
+let rt;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+</script>

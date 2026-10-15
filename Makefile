@@ -35,5 +35,6 @@ test:
 	                   claude-home/scripts/test_git_finish_state.py \
 	                   scripts/test_install_claude_symlinks.py -q
 	@python3 -m pytest audit-loop/tests -q
+	@python3 -m pytest plan-progress-page/scripts -q
 	@cd full-audit && python3 -m pytest
 	@cd project-sync && python3 -m pytest
