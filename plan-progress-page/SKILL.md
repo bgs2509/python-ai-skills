@@ -5,7 +5,9 @@ description: >
   plan, published as a private claude.ai Artifact: a vertical bar where each stage's
   height is its share of plan hours, green = done, red = left, a big blue "now"
   arrow, percent and hour ticks with fact/forecast timestamps, a forecast finish,
-  and every stage's sub-stages in a scrollable box beside its bar segment. Works
+  and every stage's sub-stages in a scrollable box beside its bar segment; above it a
+  burn-up chart (done hours over calendar time, forecast to finish) and a Gantt chart
+  (stages on the calendar against their plan-hour length). Works
   for any project (dev or life) and any number of stages. Plan start and actual
   hours come from Claude Code session logs via a bundled script, never from memory.
   TRIGGER when: user asks where they are in a big plan, wants "ход плана", "прогресс
@@ -22,7 +24,8 @@ argument-hint: "[plan path | epic id] [--update <artifact url>]"
 
 > **Utility skill.** Builds or updates one page; does NOT auto-transition to other skills.
 > The layout is fixed by `assets/template.html` — a copy of the owner-approved reference
-> (Sinayara-Isuzu release 0, Artifact `UvmCnuPtSDU8C4ShuoGXha` v6, bd `python-ai-skills-29g`).
+> (Sinayara-Isuzu release 0, Artifact `UvmCnuPtSDU8C4ShuoGXha` v6, bd `python-ai-skills-29g`)
+> plus two time views the owner chose on 2026-10-15 from three prototypes: burn-up and Gantt.
 > You write only data (`plan.json`); `scripts/render.py` fills the template. Do not edit the
 > template's CSS or JS for one project: every rule in it answers a correction by the owner
 > (see "Owner corrections" below), and a local tweak silently reverts one of them.
@@ -86,6 +89,7 @@ Keep it next to the page in `$TMPDIR` (e.g. `$TMPDIR/<plan-slug>-progress.json`)
   "finish": "ДД.ММ ЧЧ:ММ",
   "ann_label": "разметка",
   "ann_summary": "отрезок самой разметки",
+  "work_window": [10, 23],
   "meta": [["Проект", "<имя — назначение (project_type: dev)>"], ["Рабочий каталог", "<code>…</code>"],
            ["Репозиторий", "адрес, ветка, коммит"], ["План", "решение/эпик, путь главного плана"],
            ["Цель", "одной строкой, с числами"], ["Машины", "где что исполняется"],
@@ -115,7 +119,11 @@ Field rules (`render.py` enforces each one and refuses to write the page otherwi
    other string is escaped.
 6. Every number with a unit; every percent is of the whole plan (= total hours).
    The footer «Как читать» states the scale: 1 ч = 40 px.
-7. The scale is fixed, so a stage under ~1 h is a thin row (< 46 px gets the compact
+7. `updated` starts with «ДД.ММ.ГГГГ ЧЧ:ММ»: the page takes the year of every other
+   timestamp from it, and its time is the «сейчас» line on both time views.
+8. `work_window` — the owner's working hours `[start, end]` (default `[10, 23]`); the hours
+   outside it are shaded on both time views. Every stage's `end` is not earlier than its `start`.
+9. The scale is fixed, so a stage under ~1 h is a thin row (< 46 px gets the compact
    `tiny` style) and its ticks crowd the next one; in a plan of only a few hours most
    rows are thin. Merge sub-hour stages into a neighbour and list them as sub-stages
    rather than changing the scale.
@@ -149,3 +157,11 @@ forecast finish.
 4. v4 → v5: a big blue arrow left of the bar instead of a dashed line; every stage shows its
    sub-stages; overflow scrolls inside the box with a thin status-colored scrollbar.
 5. v6: header with project, workdir, repository/branch/commit, plan, goal, machines, owner.
+6. 2026-10-15: between the summary and the bar, two time views (owner picked "both" of three
+   prototypes): **burn-up** — x = calendar time, y = plan hours; green line = done hours
+   (0 at `start`, +hours at each done stage's `end`, the running stage's `done` at `updated`),
+   red dashed line = forecast (+remaining hours at each other stage's `end`), black line =
+   plan scope, blue line = now; **Gantt** — one row per stage from `start` to `end` (green fact,
+   blue running with its done share, red hatched forecast) and a grey line under it of the
+   stage's plan hours from its start (shorter bar = faster than plan). Both are computed from
+   the stage fields; no extra data. Stage-end markers closer than 16 px merge into one «1,2».

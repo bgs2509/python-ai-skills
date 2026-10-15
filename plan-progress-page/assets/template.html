@@ -15,6 +15,7 @@
   --left-tint: #f7e4e2;
   --run: #2f5bd3;
   --run-tint: #e3e9f8;
+  --night: #eceeeb;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -22,13 +23,13 @@
   :root:not([data-theme="light"]) {
     --bg: #121514; --panel: #1a1f1d; --fg: #e6ebe8; --muted: #9aa69f; --line: #343c38;
     --done: #3fae63; --done-tint: #16291d; --left: #e0594f; --left-tint: #2e1816;
-    --run: #6f95ff; --run-tint: #19223a; color-scheme: dark;
+    --run: #6f95ff; --run-tint: #19223a; --night: #252c29; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #121514; --panel: #1a1f1d; --fg: #e6ebe8; --muted: #9aa69f; --line: #343c38;
   --done: #3fae63; --done-tint: #16291d; --left: #e0594f; --left-tint: #2e1816;
-  --run: #6f95ff; --run-tint: #19223a; color-scheme: dark;
+  --run: #6f95ff; --run-tint: #19223a; --night: #252c29; color-scheme: dark;
 }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.4; }
 .wrap { max-width: 940px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; }
@@ -100,6 +101,42 @@ ul.subs li.d { color: var(--muted); }
   .desc { margin-left: 6px; padding-inline: 6px; }
   .arrow svg text { font-size: 11px; }
 }
+/* Time views: burn-up (cumulative hours over calendar time) and Gantt (stages on the calendar). */
+.viz { margin: 0 0 22px; padding: 14px 16px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.viz h2 { margin: 0 0 2px; font-size: 1rem; font-weight: 600; }
+.viz .cap { margin: 0 0 10px; color: var(--muted); font-size: 0.8rem; max-width: 72ch; }
+.viz svg { display: block; max-width: 100%; }
+.viz .ax { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.viz .ax.strong { fill: var(--fg); }
+.viz .num { font-family: var(--font-mono); font-size: 10px; font-weight: 600; fill: var(--fg); }
+.viz .nowlab { font-family: var(--font-mono); font-size: 12px; font-weight: 500; fill: #ffffff; }
+.vlegend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; color: var(--muted); font-size: 0.8rem; }
+.vlegend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: 3px; margin-right: 6px; }
+.vlegend i.box { height: 10px; border: 0; vertical-align: -1px; }
+.gantt { display: grid; gap: 0; }
+.g-row { display: grid; grid-template-columns: 230px 1fr; align-items: center; min-height: 34px; border-top: 1px solid var(--line); }
+.g-row.g-axis { border-top: 0; min-height: 44px; }
+.g-lab { min-width: 0; padding-right: 10px; font-size: 0.8rem; line-height: 1.2; }
+.g-lab b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-lab span { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.g-track { position: relative; align-self: stretch; min-height: 34px; overflow: hidden; }
+.g-axis .g-track { min-height: 44px; overflow: visible; }
+.g-night { position: absolute; top: 0; bottom: 0; background: var(--night); }
+.g-now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--run); z-index: 2; }
+.g-tick { position: absolute; bottom: 4px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+.g-tick.strong { color: var(--fg); }
+.g-nowlab { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.7rem; color: #fff; background: var(--run); padding: 0 6px; border-radius: 4px; white-space: nowrap; z-index: 3; }
+.g-bar { position: absolute; top: 8px; height: 14px; min-width: 3px; border-radius: 3px; z-index: 1; }
+.g-bar.done { background: var(--done); }
+.g-bar.wait { background: repeating-linear-gradient(45deg, var(--left) 0 5px, var(--left-tint) 5px 8px); border: 1px solid var(--left); }
+.g-base { position: absolute; top: 25px; height: 4px; min-width: 2px; border-radius: 2px; background: var(--muted); opacity: 0.55; z-index: 1; }
+@media (max-width: 560px) {
+  .g-row { grid-template-columns: 112px 1fr; }
+  .g-lab { font-size: 0.72rem; padding-right: 6px; }
+  .g-lab span { font-size: 0.62rem; }
+  .viz { padding-inline: 10px; }
+  .g-lab b { white-space: normal; overflow: visible; }
+}
 </style>
 
 <div class="wrap">
@@ -109,6 +146,14 @@ ul.subs li.d { color: var(--muted); }
 {{META}}
   </dl>
   <div class="summary" id="summary"></div>
+  <section class="viz"><h2>Burn-up: сделанные часы во времени</h2>
+  <p class="cap">По горизонтали — время отметок этапов, по вертикали — часы плана. Зелёная линия — сделано (факт), красный пунктир — прогноз по концам оставшихся этапов; где он встречает линию объёма — окончание. Метка с номером — конец этапа. Затенено нерабочее время <span class="offhours"></span>.</p>
+  <div data-viz="burnup"></div>
+  <div class="vlegend"><span><i style="border-color:var(--done)"></i>сделано (факт)</span><span><i style="border-color:var(--left);border-top-style:dashed"></i>прогноз</span><span><i style="border-color:var(--fg)"></i>объём плана</span><span><i style="border-color:var(--run)"></i>сейчас</span><span><i class="box" style="background:var(--night);outline:1px solid var(--line)"></i><span class="offhours"></span></span></div></section>
+  <section class="viz"><h2>Гант: этапы на календаре</h2>
+  <p class="cap">Строка — этап; полоса — от начала до конца (зелёная — факт, синяя — идёт, зелёная часть — сделанная доля, красная штриховка — прогноз). Серая черта под полосой — длительность по плановым часам от начала этапа: длиннее полосы — этап идёт быстрее плана. Синяя вертикаль — сейчас.</p>
+  <div class="gantt" data-viz="gantt"></div>
+  <div class="vlegend"><span><i class="box" style="background:var(--done)"></i>факт</span><span><i class="box" style="background:var(--run)"></i>идёт</span><span><i class="box" style="background:repeating-linear-gradient(45deg,var(--left) 0 5px,var(--left-tint) 5px 8px)"></i>прогноз</span><span><i class="box" style="background:var(--muted);opacity:.55;height:4px;vertical-align:2px"></i>по плановым часам</span><span><i class="box" style="background:var(--night);outline:1px solid var(--line)"></i><span class="offhours"></span></span></div></section>
   <div class="chart" id="chart"></div>
   <div class="legend">
     <span><i style="background:var(--done)"></i>готово</span>
@@ -194,4 +239,82 @@ function draw() {
 draw();
 let rt;
 window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+
+// Time views over the same STAGES: burn-up (cumulative hours over calendar time) and Gantt
+// (one row per stage on the calendar). Times "ДД.ММ ЧЧ:ММ" are owner-local wall time; the year comes from UPDATED.
+(() => {
+  const YEAR = +UPDATED.match(/\d\d\.\d\d\.(\d{4})/)[1];
+  const tp = (s) => { const m = s.match(/(\d\d)\.(\d\d)(?:\.\d{4})? (\d\d):(\d\d)/); return Date.UTC(YEAR, m[2] - 1, +m[1], +m[3], +m[4]) / 3.6e6; };
+  const p2 = (n) => String(n).padStart(2, "0");
+  const hm = (t) => { const d = new Date(t * 3.6e6); return p2(d.getUTCHours()) + ":" + p2(d.getUTCMinutes()); };
+  const dm = (t) => { const d = new Date(t * 3.6e6); return p2(d.getUTCDate()) + "." + p2(d.getUTCMonth() + 1); };
+  const WIN = DATA.work_window || [10, 23];
+  const t0 = tp(START);
+  const t1 = Math.max(tp(FINISH), ...STAGES.map((s) => tp(s.end)));
+  const tn = tp(UPDATED);
+  const nights = () => { const out = []; for (let d = Math.floor(t0 / 24) * 24 - 24; d < t1; d += 24) { const a = Math.max(t0, d + WIN[1]), b = Math.min(t1, d + 24 + WIN[0]); if (b > a) out.push([a, b]); } return out; };
+  const ticks = (step) => { const out = []; for (let t = Math.ceil(t0 / step) * step; t <= t1; t += step) out.push(t); return out; };
+  const tickStep = (narrow) => { const span = t1 - t0, want = narrow ? 4 : 8; return [1, 2, 3, 6, 12, 24, 48, 72, 168].find((s) => span / s <= want) || 168; };
+  document.querySelectorAll(".offhours").forEach((e) => { e.textContent = `${p2(WIN[1])}:00–${p2(WIN[0])}:00`; });
+
+  function burnup(el) {
+    const W = el.clientWidth, narrow = W < 520, H = narrow ? 230 : 290;
+    const m = { l: 44, r: 14, t: 16, b: 38 };
+    const x = (t) => m.l + ((t - t0) / (t1 - t0)) * (W - m.l - m.r);
+    const y = (h) => H - m.b - (h / total) * (H - m.t - m.b);
+    const fact = [[t0, 0]]; let c = 0;
+    STAGES.filter((s) => s.state === "done").sort((a, b) => tp(a.end) - tp(b.end)).forEach((s) => { c += s.hours; fact.push([tp(s.end), c, s]); });
+    fact.push([tn, doneTotal]);
+    const fc = [[tn, doneTotal]]; c = doneTotal;
+    STAGES.filter((s) => s.state !== "done").sort((a, b) => tp(a.end) - tp(b.end)).forEach((s) => { c += s.hours - s.done; fc.push([tp(s.end), c, s]); });
+    const pts = (a) => a.map((p) => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+    const step = total > 40 ? 10 : total > 15 ? 5 : total > 4 ? 1 : 0.5;
+    let g = "";
+    nights().forEach(([a, b]) => { g += `<rect x="${x(a)}" y="${m.t}" width="${x(b) - x(a)}" height="${H - m.t - m.b}" fill="var(--night)"/>`; });
+    for (let h = 0; h <= total + 1e-9; h += step) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(h)}" y2="${y(h)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l - 6}" y="${y(h) + 4}" text-anchor="end" class="ax">${fmt(h, step < 1 ? 1 : 0)} ч</text>`;
+    ticks(tickStep(narrow)).forEach((t) => { const mid = (t % 24) === 0; g += `<line x1="${x(t)}" x2="${x(t)}" y1="${H - m.b}" y2="${H - m.b + 5}" stroke="var(--muted)"/><text x="${x(t)}" y="${H - m.b + 18}" text-anchor="middle" class="ax${mid ? " strong" : ""}">${mid ? dm(t) : hm(t)}</text>`; });
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(total)}" y2="${y(total)}" stroke="var(--fg)" stroke-width="1.5"/><text x="${m.l + 4}" y="${y(total) - 5}" class="ax strong">объём плана ${fmt(total)} ч</text>`;
+    g += `<polygon points="${pts(fact)} ${x(tn).toFixed(1)},${y(0)} ${x(t0)},${y(0)}" fill="var(--done-tint)"/>`;
+    g += `<polyline points="${pts(fact)}" fill="none" stroke="var(--done)" stroke-width="3" stroke-linejoin="round"/>`;
+    g += `<polyline points="${pts(fc)}" fill="none" stroke="var(--left)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>`;
+    // Stage-end markers; ends closer than 16 px share one pill labelled "1,2".
+    const marks = [...fact.slice(1, -1), ...fc.slice(1)].map((p) => ({ x: x(p[0]), y: y(p[1]), n: STAGES.indexOf(p[2]) + 1, done: p[2].state === "done" }));
+    const groups = [];
+    marks.forEach((mk) => { const g0 = groups[groups.length - 1]; if (g0 && Math.hypot(mk.x - g0.x, mk.y - g0.y) < 16) { g0.n.push(mk.n); g0.x = mk.x; g0.y = mk.y; g0.done = g0.done && mk.done; } else groups.push({ ...mk, n: [mk.n] }); });
+    groups.forEach((gr) => { const lab = gr.n.join(","), w = Math.max(16, lab.length * 6.6 + 8); g += `<rect x="${gr.x - w / 2}" y="${gr.y - 8}" width="${w}" height="16" rx="8" fill="var(--panel)" stroke="${gr.done ? "var(--done)" : "var(--left)"}" stroke-width="2"/><text x="${gr.x}" y="${gr.y + 3.5}" text-anchor="middle" class="num">${lab}</text>`; });
+    const nx = x(tn), lab = `сейчас ${fmt(pct(doneTotal))}%`, lw = lab.length * 7.4 + 12;
+    const lx = nx + 4 + lw > W - m.r ? nx - 4 - lw : nx + 4;
+    g += `<line x1="${nx}" x2="${nx}" y1="${m.t}" y2="${H - m.b}" stroke="var(--run)" stroke-width="2"/>`;
+    // The label sits on the scope line's band at the top, where no stage marker can be.
+    g += `<rect x="${lx}" y="${y(total) + 4}" width="${lw}" height="20" rx="4" fill="var(--run)"/><text x="${lx + 6}" y="${y(total) + 18}" class="nowlab">${lab}</text>`;
+    const finLab = `окончание ${FINISH}`, fxr = Math.min(x(tp(FINISH)), W - m.r) - 16, fxl = fxr - finLab.length * 6.7;
+    const finY = fxl < lx + lw + 6 && fxr > lx - 6 ? y(total) + 40 : y(total) + 16; // drop below the "now" label when they meet
+    g += `<text x="${fxr}" y="${finY}" text-anchor="end" class="ax strong">${finLab}</text>`;
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Burn-up: сделано ${fmt(doneTotal)} ч из ${fmt(total)} ч">${g}</svg>`;
+  }
+
+  function gantt(el) {
+    const narrow = el.clientWidth < 520;
+    const L = (t) => (100 * (t - t0) / (t1 - t0)).toFixed(3) + "%";
+    const Wd = (a, b) => (100 * (b - a) / (t1 - t0)).toFixed(3) + "%";
+    const bg = nights().map(([a, b]) => `<i class="g-night" style="left:${L(a)};width:${Wd(a, b)}"></i>`).join("") + `<i class="g-now" style="left:${L(tn)}"></i>`;
+    let rows = `<div class="g-row g-axis"><div class="g-lab"></div><div class="g-track">${bg}` +
+      ticks(tickStep(narrow)).map((t) => `<span class="g-tick${t % 24 === 0 ? " strong" : ""}" style="left:${L(t)}">${t % 24 === 0 ? dm(t) : hm(t)}</span>`).join("") +
+      `<span class="g-nowlab" style="left:${L(tn)}">сейчас ${fmt(pct(doneTotal))}%</span></div></div>`;
+    STAGES.forEach((s, i) => {
+      const a = tp(s.start), b = tp(s.end), f = (100 * s.done / s.hours).toFixed(1);
+      const pos = `left:${L(a)};width:${Wd(a, b)}`;
+      const style = s.state === "run" ? `${pos};background:linear-gradient(90deg,var(--done) ${f}%,var(--run) ${f}%)` : pos;
+      const endDay = s.end.slice(0, 5) !== s.start.slice(0, 5) ? ` (${s.end.slice(0, 5)})` : "";
+      rows += `<div class="g-row ${s.state}"><div class="g-lab"><b>${i + 1}. ${esc(s.name)}</b><span>${fmt(s.hours)} ч · ${s.start.slice(6)} → ${s.end.slice(6)}${endDay}</span></div>` +
+        `<div class="g-track">${bg}<i class="g-base" style="left:${L(a)};width:${Wd(a, Math.min(t1, a + s.hours))}"></i><i class="g-bar ${s.state}" style="${style}"></i></div></div>`;
+    });
+    el.innerHTML = rows;
+  }
+
+  const drawViews = () => { document.querySelectorAll("[data-viz=burnup]").forEach(burnup); document.querySelectorAll("[data-viz=gantt]").forEach(gantt); };
+  drawViews();
+  let rv;
+  window.addEventListener("resize", () => { clearTimeout(rv); rv = setTimeout(drawViews, 120); });
+})();
 </script>

@@ -17,9 +17,17 @@ from pathlib import Path
 
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "template.html"
 TIME_RE = re.compile(r"^\d\d\.\d\d \d\d:\d\d$")
+# "updated" carries the year the page reads every "ДД.ММ ЧЧ:ММ" in.
+UPDATED_RE = re.compile(r"^(\d\d)\.(\d\d)\.(\d{4}) (\d\d):(\d\d)\b")
 STATES = {"done", "run", "wait"}
 SUB_STATES = {"d", "r", "w"}
 EPS = 1e-9
+
+
+def _key(t: str) -> tuple[int, int, int, int]:
+    """Sort key of 'ДД.ММ ЧЧ:ММ' within one year: (month, day, hour, minute)."""
+    day, month, hour, minute = int(t[0:2]), int(t[3:5]), int(t[6:8]), int(t[9:11])
+    return month, day, hour, minute
 
 
 def validate(plan: dict) -> list[str]:
@@ -33,6 +41,11 @@ def validate(plan: dict) -> list[str]:
     for key in ("start", "finish"):
         if not TIME_RE.match(plan[key]):
             errors.append(f"{key} must be 'ДД.ММ ЧЧ:ММ', got {plan[key]!r}")
+    if not UPDATED_RE.match(plan["updated"]):
+        errors.append(f"updated must start with 'ДД.ММ.ГГГГ ЧЧ:ММ', got {plan['updated']!r}")
+    window = plan.get("work_window", [10, 23])
+    if not (isinstance(window, list) and len(window) == 2 and all(isinstance(h, int) for h in window) and 0 <= window[0] < window[1] <= 24):
+        errors.append(f"work_window must be [start_hour, end_hour] with 0 <= start < end <= 24, got {window!r}")
     stages = plan["stages"]
     if not stages:
         return errors + ["stages is empty"]
@@ -55,6 +68,8 @@ def validate(plan: dict) -> list[str]:
         for key in ("start", "end"):
             if not TIME_RE.match(st.get(key, "")):
                 errors.append(f"{where}: {key} must be 'ДД.ММ ЧЧ:ММ'")
+        if TIME_RE.match(st.get("start", "")) and TIME_RE.match(st.get("end", "")) and _key(st["end"]) < _key(st["start"]):
+            errors.append(f"{where}: end is earlier than start")
         for sub in st.get("subs", []):
             if len(sub) != 2 or sub[0] not in SUB_STATES:
                 errors.append(f"{where}: sub-stage {sub!r} must be [d|r|w, text]")
@@ -84,6 +99,7 @@ def render(plan: dict) -> str:
     data = {k: plan[k] for k in ("updated", "start", "finish", "stages")}
     data["ann_label"] = plan.get("ann_label", "")
     data["ann_summary"] = plan.get("ann_summary", "")
+    data["work_window"] = plan.get("work_window", [10, 23])
     # "</" inside a <script> block would close it early.
     data_js = json.dumps(data, ensure_ascii=False, indent=1).replace("</", "<\\/")
     out = TEMPLATE.read_text(encoding="utf-8")

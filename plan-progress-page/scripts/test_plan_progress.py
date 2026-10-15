@@ -103,3 +103,20 @@ def test_find_start_ignores_injected_text_and_respects_since(tmp_path: Path) -> 
     since = datetime(2026, 10, 14, tzinfo=timezone.utc)
     hits = session_hours.find_start([log], "release", top=5, since=since)
     assert [h[0].hour for h in hits] == [15]
+
+
+def test_time_view_inputs_are_validated() -> None:
+    p = plan()
+    p["updated"] = "19:10 15.10"
+    p["work_window"] = [23, 10]
+    p["stages"][0]["end"] = "15.10 18:00"  # before its start 18:59
+    errors = "\n".join(render.validate(p))
+    assert "updated must start with" in errors
+    assert "work_window must be" in errors
+    assert "end is earlier than start" in errors
+
+
+def test_work_window_reaches_the_page() -> None:
+    p = plan()
+    p["work_window"] = [9, 21]
+    assert '"work_window": [\n  9,\n  21\n ]' in render.render(p)
