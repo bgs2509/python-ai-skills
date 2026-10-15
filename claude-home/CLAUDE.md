@@ -28,7 +28,7 @@
 
 ## Project Classification
 
-**Rule:** Every project MUST declare its type in its root CLAUDE.md/AGENTS.md:
+**Rule:** Every project MUST declare its type in its root `AGENTS.md` (the single real instruction file; `CLAUDE.md` is a symlink to it, `ln -s AGENTS.md CLAUDE.md`):
 - `project_type: dev` — software development (code, tests, infra)
 - `project_type: life` — life tracking (Health, Family, Study, Career, Home, Hobby, Budget data entry)
 

@@ -240,8 +240,8 @@ bd prime                # Refresh Beads context
 <!-- END BEADS CODEX SETUP -->
 
 > The sections below are hand-written and MUST stay outside the managed
-> `BEADS INTEGRATION` block above: `bd setup claude` rewrites everything between
-> its markers and would silently delete them. `Agent Context Profiles` and
+> `BEADS INTEGRATION` and `BEADS CODEX SETUP` blocks above: `bd init` and `bd setup codex` rewrite everything between
+> their markers (`bd setup claude` skips the `CLAUDE.md` symlink) and would silently delete them. `Agent Context Profiles` and
 > `Session Completion` are NOT hand-written — `bd` regenerates them inside the
 > block, so they must not be duplicated out here.
 

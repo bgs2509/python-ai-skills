@@ -1,6 +1,6 @@
 ---
 name: grace-init
-description: Bootstrap GRACE framework structure for a new project. Use when starting a new project with GRACE methodology - creates docs/ directory, AGENTS.md, and XML templates for requirements, technology, development plan, verification plan, knowledge graph, and operational packet contracts.
+description: Bootstrap GRACE framework structure for a new project. Use when starting a new project with GRACE methodology - creates docs/ directory, AGENTS.md with a `CLAUDE.md` symlink, and XML templates for requirements, technology, development plan, verification plan, knowledge graph, and operational packet contracts.
 ---
 
 Initialize GRACE framework structure for this project.
@@ -12,7 +12,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 
 | Template source                          | Target in project           |
 |------------------------------------------|-----------------------------|
-| `assets/AGENTS.md.template`              | `AGENTS.md` (project root)  |
+| `assets/AGENTS.md.template`              | `AGENTS.md` (project root) + `CLAUDE.md -> AGENTS.md` symlink |
 | `assets/docs/knowledge-graph.xml.template` | `docs/knowledge-graph.xml`  |
 | `assets/docs/requirements.xml.template`    | `docs/requirements.xml`     |
 | `assets/docs/technology.xml.template`      | `docs/technology.xml`       |
@@ -44,6 +44,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 3. **Create or verify `AGENTS.md` at project root:**
     - If `AGENTS.md` does not exist — read `assets/AGENTS.md.template`, fill in `$KEYWORDS` and `$ANNOTATION`, and write to project root
     - If `AGENTS.md` already exists — warn the user and ask whether to overwrite or keep the existing one
+    - Create the symlink `CLAUDE.md -> AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`) when `CLAUDE.md` is absent; when a regular `CLAUDE.md` exists, stop and ask the user to merge it into `AGENTS.md` first.
 
 4. **Print a summary** of all created files and suggest the next step:
     > "Run `$grace-plan` to design modules, data flows, and verification references. Then use `$grace-verification` to deepen tests, traces, and log-driven evidence before large execution waves. Use `docs/operational-packets.xml` as the canonical packet and delta reference during execution and refactors."

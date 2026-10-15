@@ -90,7 +90,7 @@ In this repo that is at minimum:
 
 - `CHANGELOG.md` — an entry under `## [Unreleased]`, in the right subsection
   (Added / Changed / Fixed / Removed), per Keep a Changelog.
-- `CLAUDE.md` — skill catalog rows, grouped lists and **counters**.
+- `AGENTS.md` — skill catalog rows, grouped lists and **counters** (`CLAUDE.md` is a symlink to it; Edit refuses the link).
 - `claude-home/CLAUDE.md` — the global counters, when the skill set changed.
 - `README.md` and any doc that describes behavior the session changed.
 

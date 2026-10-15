@@ -1,7 +1,7 @@
 ---
 name: _init
 description: >
-  Initialize a new Python project for Claude Code. Creates CLAUDE.md, CHANGELOG.md,
+  Initialize a new Python project for Claude Code. Creates AGENTS.md (plus a `CLAUDE.md -> AGENTS.md` symlink), CHANGELOG.md,
   docs/ structure. Invoke when starting a new project.
 disable-model-invocation: true
 ---
@@ -23,7 +23,7 @@ Before creating files, ask these questions:
 
 ## Files to Create
 
-### 1. CLAUDE.md (in project root)
+### 1. AGENTS.md (in project root) + `CLAUDE.md` symlink
 
 ```markdown
 # {Project Name}
@@ -40,6 +40,8 @@ Before creating files, ask these questions:
 ## Standards
 This project follows python-ai-skills standards (global skills).
 ```
+
+Then `ln -s AGENTS.md CLAUDE.md`. Claude Code reads the file through the link (a `CLAUDE.md` above the project, the user profile, otherwise hides a bare `AGENTS.md`); Codex reads `AGENTS.md`. Edit `AGENTS.md`, never the link.
 
 ### 2. CHANGELOG.md
 
