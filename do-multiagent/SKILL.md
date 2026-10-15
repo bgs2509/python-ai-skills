@@ -109,7 +109,8 @@ USER APPROVAL (Stage 1.4) presents:
 2. Within a wave, run in parallel only disjoint-write-scope groups, capped by `--max-parallel`.
 3. **Isolation:** each parallel subagent works in its own **git worktree** (dispatch via
    `Agent(isolation:"worktree")`, or an explicit `git worktree add <path> -b <branch>`).
-   Branch name: `do-multiagent/<bd_id>` (or `<epic>/<bd_id>`). The worktree is removed after merge.
+   Branch name: `<type>/branch-<bd_id>` per `~/.claude/CLAUDE.md` → Naming → N-BRANCH (or the
+   project's override). The worktree is removed after merge.
 4. Each subagent is **fresh** (no session reuse across beads). Give it a compact packet:
    its bead(s), the approved fork-decisions relevant to it, its branch/worktree path, exact
    write-scope, and the success criteria (what "done" means + verification commands).

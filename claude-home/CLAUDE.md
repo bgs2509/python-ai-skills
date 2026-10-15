@@ -69,6 +69,16 @@
 
 **Rule:** Commit messages in English. Commit without user confirmation when work is atomic and verified. This rule wins over the Beads block's `Conservative` "do not commit unless asked" default (user decision 2026-08-31; resolution recorded in `python-ai-skills/CLAUDE.md` → "Commit Authority"). It grants nothing for `push` — see Git Push Policy.
 
+## Naming
+
+**Rule:** This section is the single source of naming rules for every project. Each rule has an ID. A project changes a rule only for itself: its own `AGENTS.md` gets a `## Naming overrides` section with lines `<ID>: <project rule>`; a listed ID replaces the global rule in that project, unlisted IDs stay global. Skills and checks that name things read both.
+
+**Rule (N-BRANCH):** Every new git branch name contains `branch` as a separate segment (bounded by the start, the end, `-`, `/` or `_`), so a branch name is never mistaken for a made-up term. Form: `<type>/branch-<slug>` — `<type>` from Commit Convention above, `<slug>` short kebab-case English, e.g. `feat/branch-gigaam-asr`. Claude Code worktrees: pass that form as the worktree name; Claude Code prefixes it with `worktree-`. Existing branches are not renamed (bd `python-ai-skills-31d`).
+
+**Rule (N-DOCS):** Dev-project document names and the `docs/` tree — `CLAUDE-APPENDIX.md` → "File Structure (dev-projects)".
+
+**Rule (N-PY):** Python identifiers — `~/.claude/skills/_code-quality/reference/naming.md`.
+
 ## Documentation Retrieval Policy
 
 **Rule:** Use documentation MCP (Context7 via `resolve-library-id` → `query-docs`, or equivalent) for library API verification:
