@@ -330,6 +330,19 @@
           {
             "type": "command",
             "command": "'{{CLAUDE_HOME}}/hooks/rtk-announce.sh'"
+          },
+          {
+            "type": "command",
+            "command": "'{{CLAUDE_HOME}}/hooks/branch-name-check.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "EnterWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'{{CLAUDE_HOME}}/hooks/branch-name-check.sh'"
           }
         ]
       },

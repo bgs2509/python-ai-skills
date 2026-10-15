@@ -19,6 +19,7 @@ install-symlinks-force:
 # scripts on claude-home/scripts/, the principles guard on any *.md.
 test:
 	@python3 -m pytest claude-home/hooks/test_block_no_verify.py \
+	                   claude-home/hooks/test_branch_name_check.py \
 	                   claude-home/hooks/test_explanation_terms.py \
 	                   claude-home/hooks/test_delegation_pool_nudge.py \
 	                   claude-home/hooks/test_git_finish_router.py \
