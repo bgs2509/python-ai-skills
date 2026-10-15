@@ -47,6 +47,10 @@
 
 **Почему:** Conventional Commits — industry standard. Совместимость с release-please, semantic-changelog. MODULE_ID в scope сохраняет GRACE trace для git log.
 
+## Naming
+
+**Почему:** модели придумывают имена веток вроде `worktree-lazy-juggling-lovelace`, а хук `explanation-terms.sh` принимает такие имена за выдуманные термины. Отдельный сегмент `branch` в имени делает ветку узнаваемой без справки. Проверка стоит на `PreToolUse` (инструменты Bash и `EnterWorktree`), потому что только до вызова можно отказать, пока ветка не создана. Хук git (`pre-push`, `~/.git-template`) не подходит: в git 2.43.0 нет хуков через конфигурацию, а шаблон попадает только в новые репозитории. Хук `WorktreeCreate` не добавлен: рабочее дерево, созданное им, теряет встроенное удаление и периодическую очистку (code.claude.com/docs/en/worktrees). Граница сегмента включает `+`, потому что Claude Code заменяет `/` на `+` в имени ветки рабочего дерева. Имена `worktree-agent-<hex>` Claude Code создаёт сам для временных рабочих деревьев подагентов; правило на них не распространяется. Единственное машиночитаемое исключение — строка `N-BRANCH: off` в `## Naming overrides`: любой другой текст хук прочитать не может, поэтому проверка остаётся и сообщение об отказе говорит об этом (bd `python-ai-skills-31d`).
+
 ## Documentation Retrieval Policy
 
 **Почему:** LLM галлюцинируют API для middle-popularity libs (aiogram, SQLAlchemy 2.0 async) после version bump'ов. Just-in-time verification — SOTA anti-hallucination (Anthropic, Cursor docs).
