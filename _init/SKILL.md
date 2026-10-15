@@ -41,7 +41,7 @@ Before creating files, ask these questions:
 This project follows python-ai-skills standards (global skills).
 ```
 
-Then `ln -s AGENTS.md CLAUDE.md`. Claude Code reads the file through the link (a `CLAUDE.md` above the project, the user profile, otherwise hides a bare `AGENTS.md`); Codex reads `AGENTS.md`. Edit `AGENTS.md`, never the link.
+Then `ln -s AGENTS.md CLAUDE.md`. Claude Code reads the file through the link (a `CLAUDE.md` above the project, the user profile, otherwise hides a bare `AGENTS.md`); Codex reads `AGENTS.md`. Edit `AGENTS.md`, never the link. If `CLAUDE.md` already exists: a link to `AGENTS.md` stays as is; a regular file or any other link — stop and ask the user to merge it into `AGENTS.md` first.
 
 ### 2. CHANGELOG.md
 

@@ -217,7 +217,7 @@ on Finish:
 1. Step plan in `docs/superpowers/plans/.../step-NN-plan.md` exists and matches breakdown.xml.
 2. Result is **user-verifiable** — concrete artifact (file diff, test output, runnable command) listed
    in chunk's `verification` block.
-3. **Documentation updated** — at minimum: relevant `CLAUDE.md`, `requirements.xml`/`technology.xml` if
+3. **Documentation updated** — at minimum: relevant `AGENTS.md` (`CLAUDE.md` is a symlink to it), `requirements.xml`/`technology.xml` if
    frontmatter changed, `knowledge-graph.xml` via `grace-refresh` if module boundaries moved.
 4. **Commit** present, Conventional Commits + GRACE MODULE_ID scope, contains `bd_id` trailer.
 5. **Quality gates green:** project linters (ruff/format/mypy), `grace lint`, full test suite for

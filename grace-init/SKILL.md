@@ -44,7 +44,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 3. **Create or verify `AGENTS.md` at project root:**
     - If `AGENTS.md` does not exist — read `assets/AGENTS.md.template`, fill in `$KEYWORDS` and `$ANNOTATION`, and write to project root
     - If `AGENTS.md` already exists — warn the user and ask whether to overwrite or keep the existing one
-    - Create the symlink `CLAUDE.md -> AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`) when `CLAUDE.md` is absent; when a regular `CLAUDE.md` exists, stop and ask the user to merge it into `AGENTS.md` first.
+    - Create the symlink `CLAUDE.md -> AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`) when `CLAUDE.md` is absent; a link already pointing to `AGENTS.md` stays as is; when a regular `CLAUDE.md` or any other link exists, stop and ask the user to merge it into `AGENTS.md` first.
 
 4. **Print a summary** of all created files and suggest the next step:
     > "Run `$grace-plan` to design modules, data flows, and verification references. Then use `$grace-verification` to deepen tests, traces, and log-driven evidence before large execution waves. Use `docs/operational-packets.xml` as the canonical packet and delta reference during execution and refactors."

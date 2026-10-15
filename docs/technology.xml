@@ -181,4 +181,16 @@
       <Item>OQ-2 (user, 2026-10-14): coverage (06) takes the tests-dropped list shared with 14-17.</Item>
     </decisions>
   </Feature>
+  <Feature source="20261015-agents-md-migration-design.md" bd_id="python-ai-skills-lvt.2">
+    <feature>agents-md-migration</feature>
+    <date>2026-10-15</date>
+    <status>draft</status>
+    <risk>high</risk>
+    <risk_justification>38 repositories get a rename commit of the file every Claude Code and Codex session loads first; four need a hand merge; commit-time hooks in six repos rewrite or lint markdown; the write side runs with per-command sandbox bypass in sibling repos, so a wrong command lands outside the project that owns this task.</risk_justification>
+    <approach>manifest-script</approach>
+    <open_questions/>
+    <context7_verified/>
+    <context7_note>no external library is used; the script is Python 3 stdlib (`json`, `os`, `pathlib`, `subprocess`), the rest is `git`, `bd`, `pre-commit`, `codex` CLIs whose behaviour was probed in this session.</context7_note>
+    <requirements>docs/superpowers/specs/20261015-agents-md-migration-discovery.md (FR-1..FR-8, NFR-1..NFR-4, groups A-G, resolutions 1-6)</requirements>
+  </Feature>
 </Technology>

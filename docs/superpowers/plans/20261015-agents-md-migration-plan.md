@@ -2,7 +2,7 @@
 feature: agents-md-migration
 bd_id: python-ai-skills-lvt.2
 date: 2026-10-15
-status: draft
+status: executed
 risk: high
 discovery: docs/superpowers/specs/20261015-agents-md-migration-discovery.md
 design: docs/superpowers/specs/20261015-agents-md-migration-design.md
@@ -754,3 +754,13 @@ All are details the design left open or got wrong against observed behaviour; no
 - [x] **No placeholders:** the full script and manifest are inline; every command has an expected output; the only variable parts are the directory names, listed explicitly per task. Task 8 gives old and new text for every edit.
 - [x] **Reverse traceability:** `plan`/`apply`/`check` -> Tasks 2-9; `manifest` fields `group`, `git`, `merged_file`, `oversize_ok` -> design group table and resolutions 1-6; `branch` -> design precondition; `codex` -> design check 6 sample list; `manual` -> the brief (group C marking); `dropped.txt` -> design "user-approved dropped list"; `bd.base` -> Deviation 5; `EXPECT` -> Deviation 1; each function in the script serves one of: state detection (NFR-3), assembly (FR-3), content check (FR-2..FR-4), markers/bd/size/Codex checks (FR-7, NFR-1, NFR-4).
 - [x] **Excess-code check (`_code-quality/principles.md`) on `migrate.py`:** deletion test per piece: `apply_plain` (one non-git directory), `carried`/`assemble` (groups B/D), `EXPECT` (commit-path assertion), `codex` (NFR-4), `bd_status` (FR-7) each remove a requirement if deleted; no option flags beyond the three commands, no classes besides the exception, no abstraction with one implementation, no guard against a state the callers cannot produce except the `index.lock`/branch/staged-path preconditions the design names.
+
+## Execution outcome (2026-10-15)
+
+Step checkboxes above are left as written; this section records what actually happened.
+
+- Final `check` over 38 manifest rows: 36 PASS, 2 known FAIL. `bge-m3-api`: migrated (`9ae7f734c8`, content byte-identical, Codex OK); only `bd setup claude --check` moved from `none` to `stale`, because the pre-existing stale block became visible through the new link. `Local_LLM_selection`: not migrated by user decision; its `vocab-check` hook reads `CLAUDE.md` from the git index, fix tracked as `llm-2nr` in that repo.
+- Pre-existing pre-commit breakage fixed by user decision before migrating: `Prognosis` `6c46a74` (ruff hooks from `astral-sh/ruff-pre-commit`, new `.secrets.baseline` with 3 placeholder findings); `free-ai-selector` `d66855d` (root `AGENTS.md`/`CLAUDE.md` excluded from markdownlint).
+- Group C hand merges approved by the user before `apply`: `ai-generator-asyncmicroservices` and `VPS-VPN-Home-Server-Guide` concatenated (`CLAUDE.md` then `AGENTS.md`); `Sinayara-Indonesia` assembled like group B with 15 old bd-template lines approved in `dropped.txt`.
+- Outside the sandbox `TMPDIR` is `/tmp`; every `apply` ran with `TMPDIR=/tmp/claude-1000` exported. Group A was applied in loops that stop on the first FAIL instead of one call per repo.
+- Step 12 external review (`gpt-sol-xhigh`, verdict NOT READY): findings on `migrate.py` (resume may overwrite an edited `AGENTS.md`, set-based content check, commit before checks, `check` reads the migration commit, blanket ` M AGENTS.md` allowance, unknown `bd` output read as `none`) are latent in the throwaway script and did not fire in this run: only `2025_Noveo` has an uncommitted `AGENTS.md` edit (intended), and an ordered check with repeats confirms every old line in all 9 merged repos. The one future run (`Local_LLM_selection`) requires `git status --porcelain -- CLAUDE.md AGENTS.md` to be empty first (noted in `llm-2nr`). Fixed in text: `_init`/`grace-init` handling of an existing `CLAUDE.md`, `do-autopilot` doc list.

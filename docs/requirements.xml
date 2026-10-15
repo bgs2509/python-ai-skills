@@ -658,4 +658,15 @@
       </later>
     </scope>
   </Feature>
+  <Feature source="20261015-agents-md-migration-discovery.md" bd_id="python-ai-skills-lvt.2">
+    <feature>agents-md-migration</feature>
+    <date>2026-10-15</date>
+    <status>approved</status>
+    <risk>high</risk>
+    <risk_justification>38 repositories change the file every Claude Code and Codex session loads first; the change is a git rename plus a committed symlink per repo, three repos need a hand merge, and two tools (Codex 32 KiB cap, Claude Code default instruction mode) silently drop or truncate content when the layout is wrong.</risk_justification>
+    <evidence>strong</evidence>
+    <evidence_justification>per-directory `git -C` inventory of all 90 dirs (2026-10-15); code.claude.com/docs/en/memory#agents-md fetched (lines quoted below); bd 1.2.2 behaviour from the issue notes (Q3, verified in a temp repo); merged sizes computed with `stat`/`awk`/`wc -c`; `~/.codex/config.toml` has no `project_doc_*` key (grep empty) so the 32 KiB default from the Q4 note applies.</evidence_justification>
+    <open_questions/>
+    <status_note>approved at gate 3 on 2026-10-15; resolutions below</status_note>
+  </Feature>
 </Requirements>
