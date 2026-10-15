@@ -62,7 +62,7 @@ Read this section before the first step. Each item is a machine fact verified by
 
 **Serves:** evidence baseline (constraint 8).
 
-- [ ] **Step 1: claim the bead and confirm the tree.**
+- [x] **Step 1: claim the bead and confirm the tree.**
 
 ```bash
 bd update python-ai-skills-31d --claim
@@ -76,7 +76,7 @@ git status --short
 
 Expected: `?? docs/superpowers/specs/20261015-branch-name-check-design.md`, `?? docs/superpowers/specs/20261015-branch-name-check-discovery.md`, `?? docs/superpowers/plans/20261015-branch-name-check-plan.md`, the modified `docs/requirements.xml` and `docs/technology.xml`, and the untracked noise `off.err`, `off.json`, `reports/`, `research_notes/`. Branch `main`. None of the three new files `claude-home/hooks/branch-name-check.*` / `test_branch_name_check.py` exists yet; confirm with `ls claude-home/hooks/branch-name-check.sh` (expected: `No such file or directory`).
 
-- [ ] **Step 2: record the baseline.**
+- [x] **Step 2: record the baseline.**
 
 ```bash
 make test
@@ -90,7 +90,7 @@ ruff check claude-home/hooks/
 
 Expected: `Found 1 error.` (pre-existing F401 in `test_big_read_nudge.py:22`; not fixed here, out of scope). Write the count down.
 
-- [ ] **Step 3: confirm the bd notes flag.**
+- [x] **Step 3: confirm the bd notes flag.**
 
 ```bash
 bd update --help
@@ -98,7 +98,7 @@ bd update --help
 
 Expected: the list contains `--append-notes string`. Use exactly that flag wherever a step says "record in bd notes".
 
-- [ ] **Step 4: commit the approved Discovery, Design and this plan.**
+- [x] **Step 4: commit the approved Discovery, Design and this plan.**
 
 ```bash
 git add docs/superpowers/specs/20261015-branch-name-check-discovery.md docs/superpowers/specs/20261015-branch-name-check-design.md docs/superpowers/plans/20261015-branch-name-check-plan.md
@@ -116,7 +116,7 @@ Expected: pre-commit passes (gitleaks; `principles-ssot` runs on `*.md`); one co
 
 **Serves:** FR-1 (forms 1, 2; prefixes, global options, chains), FR-3 (deny text), FR-4 (journal), FR-5 (non-creating and text cases, unparsable input), FR-9 (test harness), NFR-2, NFR-3, NFR-4, NFR-5.
 
-- [ ] **Step 1 (RED): write the test file** with the Write tool, file `claude-home/hooks/test_branch_name_check.py`, exactly this content.
+- [x] **Step 1 (RED): write the test file** with the Write tool, file `claude-home/hooks/test_branch_name_check.py`, exactly this content.
 
 ```python
 """Regression suite for the branch-name-check PreToolUse hook.
@@ -271,7 +271,7 @@ def test_other_tools_are_ignored(repo, home):
     assert run_hook(payload, home).returncode == 0
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -279,7 +279,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `40 failed` and no passed test. Reason: `bash` cannot open `claude-home/hooks/branch-name-check.sh` (return code 127), so every `returncode` assertion fails; `test_deny_is_journaled` fails at the unpacking of an empty journal.
 
-- [ ] **Step 3 (GREEN): write the launcher** with the Write tool, file `claude-home/hooks/branch-name-check.sh`, exactly this content (3 lines).
+- [x] **Step 3 (GREEN): write the launcher** with the Write tool, file `claude-home/hooks/branch-name-check.sh`, exactly this content (3 lines).
 
 ```bash
 #!/usr/bin/env bash
@@ -287,7 +287,7 @@ Expected: `40 failed` and no passed test. Reason: `bash` cannot open `claude-hom
 exec /usr/bin/env python3 -I "$(dirname "$0")/branch-name-check.py"
 ```
 
-- [ ] **Step 4 (GREEN): write the hook** with the Write tool, file `claude-home/hooks/branch-name-check.py`, exactly this content. This slice implements `checkout` and `switch`; later tasks extend it with Edit.
+- [x] **Step 4 (GREEN): write the hook** with the Write tool, file `claude-home/hooks/branch-name-check.py`, exactly this content. This slice implements `checkout` and `switch`; later tasks extend it with Edit.
 
 ```python
 """PreToolUse hook: deny creating a git branch whose name has no `branch` segment.
@@ -458,7 +458,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 5: see GREEN.**
+- [x] **Step 5: see GREEN.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -466,7 +466,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `40 passed`.
 
-- [ ] **Step 6: lint.**
+- [x] **Step 6: lint.**
 
 ```bash
 ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -474,7 +474,7 @@ ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_
 
 Expected: `All checks passed!`
 
-- [ ] **Step 7: commit.**
+- [x] **Step 7: commit.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.sh claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -492,7 +492,7 @@ Expected: pre-commit passes (`hook-regression-tests` runs the whole `claude-home
 
 **Serves:** FR-1 (forms 3, 4, 5, 6), FR-5 (`branch -d/-D/--list/-u/--show-current`, `worktree remove/list/--detach`, `worktree add <path> <commit-ish>`).
 
-- [ ] **Step 1 (RED): extend the lists in `claude-home/hooks/test_branch_name_check.py`** with the Edit tool (two edits).
+- [x] **Step 1 (RED): extend the lists in `claude-home/hooks/test_branch_name_check.py`** with the Edit tool (two edits).
 
 Edit 1, `old_string`:
 
@@ -549,7 +549,7 @@ Edit 2, `old_string`:
 ]
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -557,7 +557,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `9 failed, 54 passed`. The 9 failures are the new `BLOCKED` entries (`assert 0 == 2`: the hook still allows them); the new `ALLOWED` entries already pass and stay as the regression guard of the GREEN step.
 
-- [ ] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (three edits).
+- [x] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (three edits).
 
 Edit 1 (constants), `old_string`:
 
@@ -645,7 +645,7 @@ Edit 3 (dispatch), `old_string`:
     return None
 ```
 
-- [ ] **Step 4: see GREEN and lint.**
+- [x] **Step 4: see GREEN and lint.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -659,7 +659,7 @@ ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_
 
 Expected: `All checks passed!`
 
-- [ ] **Step 5: commit.**
+- [x] **Step 5: commit.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -677,7 +677,7 @@ Expected: pre-commit passes; one commit with 2 files.
 
 **Serves:** FR-2, FR-4 (`kind` `enter-worktree`), FR-5 (other tool names).
 
-- [ ] **Step 1 (RED): add the helper and the tests** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool (two edits).
+- [x] **Step 1 (RED): add the helper and the tests** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool (two edits).
 
 Edit 1 (helper), `old_string`:
 
@@ -726,7 +726,7 @@ def test_worktree_deny_is_journaled(repo, home):
     assert record["command"] == "lazy-fox"
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -734,7 +734,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `4 failed, 66 passed`. The failures: the 3 `test_worktree_without_segment_is_denied` cases (`assert 0 == 2`) and `test_worktree_deny_is_journaled` (empty journal). The 3 allowed cases pass already (the hook ignores the tool) and guard the GREEN step.
 
-- [ ] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (three edits).
+- [x] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (three edits).
 
 Edit 1 (the checker), `old_string`:
 
@@ -791,7 +791,7 @@ Edit 3 (journal kind), `old_string`:
     log_block(kind, text)
 ```
 
-- [ ] **Step 4: see GREEN and lint.**
+- [x] **Step 4: see GREEN and lint.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -805,7 +805,7 @@ ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_
 
 Expected: `All checks passed!`
 
-- [ ] **Step 5: commit.**
+- [x] **Step 5: commit.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -823,7 +823,7 @@ Expected: pre-commit passes; one commit with 2 files.
 
 **Serves:** FR-6, NFR-1 (git subprocess only after an offending name, `timeout=5`), NFR-2 (lookup failure keeps the check), NFR-5.
 
-- [ ] **Step 1 (RED): add the override tests** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool, `old_string`:
+- [x] **Step 1 (RED): add the override tests** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool, `old_string`:
 
 ```text
     assert record["command"] == "lazy-fox"
@@ -875,7 +875,7 @@ def test_outside_a_repository_the_check_still_applies(tmp_path, home):
     assert run_hook(bash("git checkout -b lazy-fox", tmp_path), home).returncode == 2
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -883,7 +883,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `3 failed, 72 passed`. The failures: `test_override_off_allows_and_leaves_no_journal` (`assert 2 == 0`), `test_other_override_text_keeps_the_check_and_says_so` (the note is missing from stderr), `test_override_is_read_from_the_repository_root` (`assert 2 == 0`). The other two new tests pass already and guard the GREEN step.
 
-- [ ] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (six edits).
+- [x] **Step 3 (GREEN): extend `claude-home/hooks/branch-name-check.py`** with the Edit tool (six edits).
 
 Edit 1 (imports), `old_string`:
 
@@ -1003,7 +1003,7 @@ Edit 6 (the note in the message), `old_string`:
     sys.stderr.write(message)
 ```
 
-- [ ] **Step 4: see GREEN and lint.**
+- [x] **Step 4: see GREEN and lint.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -1017,7 +1017,7 @@ ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_
 
 Expected: `All checks passed!`
 
-- [ ] **Step 5: commit.**
+- [x] **Step 5: commit.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -1035,7 +1035,7 @@ Expected: pre-commit passes; one commit with 2 files.
 
 **Serves:** FR-1 ("finds every `git` invocation"), FR-5 (heredoc bodies and text inside quotes stay unchecked), risk 2 and 3 of the Discovery. This slice is deviation D1 (design 2.3 does not mention newlines; `shlex.split` treats a newline as a space, so `cd repo⏎git checkout -b x` would be one segment starting with `cd` and the creation would pass unseen).
 
-- [ ] **Step 1 (RED): add the cases** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool (two edits).
+- [x] **Step 1 (RED): add the cases** to `claude-home/hooks/test_branch_name_check.py` with the Edit tool (two edits).
 
 Edit 1, `old_string`:
 
@@ -1073,7 +1073,7 @@ Edit 2, `old_string`:
 ]
 ```
 
-- [ ] **Step 2: run it and see RED.**
+- [x] **Step 2: run it and see RED.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -1081,7 +1081,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `2 failed, 79 passed`. The failures are the first two new `BLOCKED` entries (`assert 0 == 2`). The third (`git checkout \\\n  -b x`, a backslash line continuation) and the 3 new `ALLOWED` entries pass already: `shlex` joins a continued line, and without a newline split the heredoc line starts with `cat`. They guard the GREEN step.
 
-- [ ] **Step 3 (GREEN-a): split lines.** Extend `claude-home/hooks/branch-name-check.py` with the Edit tool (two edits).
+- [x] **Step 3 (GREEN-a): split lines.** Extend `claude-home/hooks/branch-name-check.py` with the Edit tool (two edits).
 
 Edit 1, `old_string`:
 
@@ -1136,7 +1136,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `1 failed, 80 passed`. The failure is the heredoc case `cat <<EOF\ngit checkout -b x\nEOF` (`assert 2 == 0`): once newlines become separators, the heredoc body line is read as a command. The multi-line `BLOCKED` entries now pass.
 
-- [ ] **Step 4 (GREEN-b): stop at the heredoc.** Edit `claude-home/hooks/branch-name-check.py`, `old_string`:
+- [x] **Step 4 (GREEN-b): stop at the heredoc.** Edit `claude-home/hooks/branch-name-check.py`, `old_string`:
 
 ```text
     for segment in segments(tokens):
@@ -1155,7 +1155,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `81 passed`.
 
-- [ ] **Step 5: lint.**
+- [x] **Step 5: lint.**
 
 ```bash
 ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -1163,7 +1163,7 @@ ruff check claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_
 
 Expected: `All checks passed!`
 
-- [ ] **Step 6: commit.**
+- [x] **Step 6: commit.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.py claude-home/hooks/test_branch_name_check.py
@@ -1181,11 +1181,11 @@ Expected: pre-commit passes; one commit with 2 files.
 
 **Serves:** FR-7 (settings run the launcher by path), constraint 1.2.
 
-- [ ] **Step 1: report to the orchestrator and wait.** Send exactly this request and do not continue until the orchestrator confirms:
+- [x] **Step 1: report to the orchestrator and wait.** Send exactly this request and do not continue until the orchestrator confirms:
 
 > Run with the sandbox disabled: `chmod 755 /home/bgs/ai-steward/Gena_Beeline_Local/python-ai-skills/claude-home/hooks/branch-name-check.sh`. Tasks 1-6 are committed (81 tests pass); Batch B needs the mode bit.
 
-- [ ] **Step 2: confirm the mode.**
+- [x] **Step 2: confirm the mode.**
 
 ```bash
 ls -l claude-home/hooks/branch-name-check.sh
@@ -1193,7 +1193,7 @@ ls -l claude-home/hooks/branch-name-check.sh
 
 Expected: `-rwxr-xr-x`.
 
-- [ ] **Step 3: stage and check the index mode.**
+- [x] **Step 3: stage and check the index mode.**
 
 ```bash
 git add claude-home/hooks/branch-name-check.sh
@@ -1205,7 +1205,7 @@ git ls-files -s claude-home/hooks/branch-name-check.sh
 
 Expected: mode `100755`.
 
-- [ ] **Step 4: commit.**
+- [x] **Step 4: commit.**
 
 ```bash
 git commit -m "chore(branch-name-check): make the launcher executable" -m "Settings run the hook by its path. Refs: python-ai-skills-31d"
@@ -1213,7 +1213,7 @@ git commit -m "chore(branch-name-check): make the launcher executable" -m "Setti
 
 Expected: one commit with 1 file (`mode change 100644 => 100755`).
 
-- [ ] **Step 5: batch report.** Report to the orchestrator: Tasks 1-7 done, `81 passed`, 7 commits so far (1 docs, 5 feat, 1 chore; the count includes Task 1). Stop; Batch B starts on the orchestrator's go.
+- [x] **Step 5: batch report.** Report to the orchestrator: Tasks 1-7 done, `81 passed`, 7 commits so far (1 docs, 5 feat, 1 chore; the count includes Task 1). Stop; Batch B starts on the orchestrator's go.
 
 ---
 
@@ -1223,7 +1223,7 @@ Expected: one commit with 1 file (`mode change 100644 => 100755`).
 
 **Serves:** FR-7, FR-9 (Makefile list), NFR-6 (installer keeps the Codex link; unchanged).
 
-- [ ] **Step 1: Makefile.** Read `Makefile` lines 20-24, then Edit. The continuation lines are one TAB followed by 19 spaces. `old_string`:
+- [x] **Step 1: Makefile.** Read `Makefile` lines 20-24, then Edit. The continuation lines are one TAB followed by 19 spaces. `old_string`:
 
 ```text
 claude-home/hooks/test_explanation_terms.py \
@@ -1242,7 +1242,7 @@ cat -A Makefile | sed -n 20,24p
 
 Expected: the new line sits between the `test_block_no_verify.py` and `test_explanation_terms.py` lines, starts with `^I` followed by 19 spaces and ends with `\$`.
 
-- [ ] **Step 2: template.** Read `claude-home/settings.json.template` lines 316-336, then Edit. `old_string`:
+- [x] **Step 2: template.** Read `claude-home/settings.json.template` lines 316-336, then Edit. `old_string`:
 
 ```text
             "command": "'{{CLAUDE_HOME}}/hooks/rtk-announce.sh'"
@@ -1279,7 +1279,7 @@ Expected: the new line sits between the `test_block_no_verify.py` and `test_expl
 
 If the Edit tool reports the `old_string` is not unique, extend it by the lines that precede `"command": "'{{CLAUDE_HOME}}/hooks/rtk-announce.sh'"` copied exactly from the Read output.
 
-- [ ] **Step 3: the template is valid JSON with the expected counts.**
+- [x] **Step 3: the template is valid JSON with the expected counts.**
 
 ```bash
 python3 -m json.tool claude-home/settings.json.template > /dev/null
@@ -1293,7 +1293,7 @@ jq '[.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks | length] , [.hooks
 
 Expected: `[4]` and `[1]`.
 
-- [ ] **Step 4: installer tests and the suite** (`test_every_hook_path_is_one_shell_word` now covers both entries and needs the launcher file, which exists).
+- [x] **Step 4: installer tests and the suite** (`test_every_hook_path_is_one_shell_word` now covers both entries and needs the launcher file, which exists).
 
 ```bash
 python3 -m pytest scripts/test_install_claude_symlinks.py -q
@@ -1307,7 +1307,7 @@ make test
 
 Expected: the sum of the passed counts is `BASELINE + 81` (Task 1), no failures.
 
-- [ ] **Step 5: commit.**
+- [x] **Step 5: commit.**
 
 ```bash
 git add Makefile claude-home/settings.json.template
@@ -1325,7 +1325,7 @@ Expected: pre-commit passes (`settings-template-json`, `settings-render-tests`);
 
 **Serves:** FR-8, NFR-3 (the rule text has one home), constraint 3 of the Discovery. Edit tool only (sandbox-protected file).
 
-- [ ] **Step 1 (RED check): the new wording is absent.**
+- [x] **Step 1 (RED check): the new wording is absent.**
 
 ```bash
 grep -c 'worktree-agent-<hex>' claude-home/CLAUDE.md
@@ -1333,7 +1333,7 @@ grep -c 'worktree-agent-<hex>' claude-home/CLAUDE.md
 
 Expected: `0`.
 
-- [ ] **Step 2: read** `claude-home/CLAUDE.md` lines 83-90, then make two Edits.
+- [x] **Step 2: read** `claude-home/CLAUDE.md` lines 83-90, then make two Edits.
 
 Edit 1 (the boundary list), `old_string`:
 
@@ -1359,7 +1359,7 @@ Claude Code prefixes it with `worktree-`. Existing branches are not renamed
 Claude Code prefixes it with `worktree-` and replaces `/` with `+` (`worktree-feat+branch-gigaam-asr`). Temporary subagent worktree branches Claude Code generates itself (`worktree-agent-<hex>`) are outside the rule. Enforced by the PreToolUse hook `hooks/branch-name-check.sh` on Bash git commands and `EnterWorktree`; the only machine-readable override is the line `N-BRANCH: off` in a project's `## Naming overrides`. Existing branches are not renamed
 ```
 
-- [ ] **Step 3 (GREEN check): the paragraph reads as designed (design 2.5).**
+- [x] **Step 3 (GREEN check): the paragraph reads as designed (design 2.5).**
 
 ```bash
 grep -n 'N-BRANCH' claude-home/CLAUDE.md
@@ -1373,7 +1373,7 @@ python3 -m pytest claude-home/hooks/test_principles_ssot.py claude-home/hooks/te
 
 Expected: all passed (the instruction-file guards still hold).
 
-- [ ] **Step 4: commit.**
+- [x] **Step 4: commit.**
 
 ```bash
 git add claude-home/CLAUDE.md
@@ -1391,7 +1391,7 @@ Expected: pre-commit passes (`principles-ssot`); one commit with 1 file.
 
 **Serves:** scope IN of the Discovery ("Почему" paragraph; the file's convention is one paragraph per heading, in the order of `claude-home/CLAUDE.md`).
 
-- [ ] **Step 1 (RED check).**
+- [x] **Step 1 (RED check).**
 
 ```bash
 grep -c '^## Naming' claude-home/CLAUDE-APPENDIX.md
@@ -1399,7 +1399,7 @@ grep -c '^## Naming' claude-home/CLAUDE-APPENDIX.md
 
 Expected: `0`.
 
-- [ ] **Step 2: read** `claude-home/CLAUDE-APPENDIX.md` lines 44-52, then Edit (new heading between "Commit Convention" and "Documentation Retrieval Policy"). `old_string`:
+- [x] **Step 2: read** `claude-home/CLAUDE-APPENDIX.md` lines 44-52, then Edit (new heading between "Commit Convention" and "Documentation Retrieval Policy"). `old_string`:
 
 ```text
 ## Documentation Retrieval Policy
@@ -1419,7 +1419,7 @@ Expected: `0`.
 **Почему:** LLM галлюцинируют
 ````
 
-- [ ] **Step 3 (GREEN check).**
+- [x] **Step 3 (GREEN check).**
 
 ```bash
 grep -c '^## Naming$' claude-home/CLAUDE-APPENDIX.md
@@ -1433,7 +1433,7 @@ python3 -m pytest claude-home/hooks/test_principles_ssot.py -q
 
 Expected: all passed.
 
-- [ ] **Step 4: commit.**
+- [x] **Step 4: commit.**
 
 ```bash
 git add claude-home/CLAUDE-APPENDIX.md
@@ -1451,7 +1451,7 @@ Expected: pre-commit passes; one commit with 1 file.
 
 **Serves:** FR-10, NFR-1, FR-9 (suite), design 2.9 steps 1-2.
 
-- [ ] **Step 1: CHANGELOG, `Added`.** Read `CHANGELOG.md` lines 6-16, then Edit. `old_string`:
+- [x] **Step 1: CHANGELOG, `Added`.** Read `CHANGELOG.md` lines 6-16, then Edit. `old_string`:
 
 ```text
 ### Added
@@ -1466,7 +1466,7 @@ Expected: pre-commit passes; one commit with 1 file.
 - `claude-home/CLAUDE.md`: new `## Questions and Numbers` section
 ````
 
-- [ ] **Step 2: CHANGELOG, `Changed`.** Edit, `old_string`:
+- [x] **Step 2: CHANGELOG, `Changed`.** Edit, `old_string`:
 
 ```text
 ### Changed
@@ -1481,7 +1481,7 @@ Expected: pre-commit passes; one commit with 1 file.
 - `best-recommend`, `best-rank`,
 ```
 
-- [ ] **Step 3: the test count in the CHANGELOG is the real one.**
+- [x] **Step 3: the test count in the CHANGELOG is the real one.**
 
 ```bash
 python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
@@ -1489,7 +1489,7 @@ python3 -m pytest claude-home/hooks/test_branch_name_check.py -q
 
 Expected: `81 passed`. If the number differs, correct the sentence "81 tests" in the new `Added` bullet to the real number.
 
-- [ ] **Step 4: full gate.**
+- [x] **Step 4: full gate.**
 
 ```bash
 make test
@@ -1509,7 +1509,7 @@ ruff check claude-home/hooks/
 
 Expected: `Found 1 error.` (the same pre-existing F401 as in Task 1; none from the new files).
 
-- [ ] **Step 5: NFR-1, hook runtime (limit 0.10 s per call).** Run as one Bash call; the script is a throw-away (nothing is written to the repository; the journal goes to a temporary `HOME`).
+- [x] **Step 5: NFR-1, hook runtime (limit 0.10 s per call).** Run as one Bash call; the script is a throw-away (nothing is written to the repository; the journal goes to a temporary `HOME`).
 
 ```bash
 python3 - <<'PY'
@@ -1542,7 +1542,7 @@ PY
 
 Expected: exit codes `0`, `0`, `2` in that order; `worst of 30 runs` at most `0.100 s`. Machine load varies: three scratch runs of this script gave a worst of 0.268 s, 0.304 s and 0.096 s (the deny path starts one `git` process). If the first run is above the limit, run the script up to 2 more times and take the best of the 3 `worst` values; if that is still above 0.100 s, stop and report all numbers to the orchestrator instead of changing the design.
 
-- [ ] **Step 6: whitespace check.**
+- [x] **Step 6: whitespace check.**
 
 ```bash
 git diff --check
@@ -1550,7 +1550,7 @@ git diff --check
 
 Expected: no output, exit 0 (unstaged edits: the CHANGELOG).
 
-- [ ] **Step 7: commit.**
+- [x] **Step 7: commit.**
 
 ```bash
 git add CHANGELOG.md
@@ -1574,11 +1574,11 @@ Expected: pre-commit passes; one commit with 1 file.
 
 **Serves:** design 2.9 steps 2-3, the live acceptance of FR-7, FR-1..FR-3.
 
-- [ ] **Step 1: hand-off to the orchestrator and wait.** Send exactly this request:
+- [x] **Step 1: hand-off to the orchestrator and wait.** Send exactly this request:
 
 > Run with the sandbox disabled, as its own Bash call: `make install-symlinks` (re-renders `~/.claude/settings.json` from the template; the template now carries the hook; the launcher is already mode 755). Then tell me it ended without error.
 
-- [ ] **Step 2: the live settings carry the hook (read-only).**
+- [x] **Step 2: the live settings carry the hook (read-only).**
 
 ```bash
 jq '[.hooks.PreToolUse[] | select(.matcher=="Bash") | .hooks | length], [.hooks.PreToolUse[] | select(.matcher=="EnterWorktree") | .hooks | length]' ~/.claude/settings.json
@@ -1592,7 +1592,7 @@ ls -l ~/.claude/hooks/branch-name-check.sh ~/.claude/hooks/branch-name-check.py
 
 Expected: both exist (symlinks into the repository; the `.sh` resolves to mode `-rwxr-xr-x`).
 
-- [ ] **Step 3: live check, installed path, sample PreToolUse JSON.** `HOME` is redirected so the deny does not reach the real journal; `$HOME` in the path expands before `env` runs.
+- [x] **Step 3: live check, installed path, sample PreToolUse JSON.** `HOME` is redirected so the deny does not reach the real journal; `$HOME` in the path expands before `env` runs.
 
 ```bash
 mkdir -p "$TMPDIR/live-home"
@@ -1622,7 +1622,7 @@ echo '{"tool_name":"EnterWorktree","tool_input":{"name":"lazy-fox"},"cwd":"/tmp"
 
 Expected: `exit=2`.
 
-- [ ] **Step 4: smoke run in a temporary repository** (scope IN of the Discovery) with an override.
+- [x] **Step 4: smoke run in a temporary repository** (scope IN of the Discovery) with an override.
 
 ```bash
 git init -q "$TMPDIR/smoke-repo"
@@ -1650,7 +1650,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"git switch -c lazy-fox"},"cwd
 
 Expected: `exit=0`.
 
-- [ ] **Step 5: record in bd notes** (append, never replace; replace the bracketed facts with the observed ones, copy the 30-run numbers from Task 11 Step 5).
+- [x] **Step 5: record in bd notes** (append, never replace; replace the bracketed facts with the observed ones, copy the 30-run numbers from Task 11 Step 5).
 
 ```bash
 bd update python-ai-skills-31d --append-notes "branch-name-check live check 2026-10-15: installed hook exit=2 for 'git checkout -b foo' and EnterWorktree name=lazy-fox, exit=0 for 'git checkout -b feat/branch-foo'; smoke repo: exit=2 without AGENTS.md override, exit=0 with 'N-BRANCH: off'. NFR-1: worst of 30 runs <WORST> s (limit 0.100 s). make test: <SUM> passed (baseline <BASELINE> + 81). Not run: a denied call through the real Bash tool and PreToolUse in a backgrounded session (needs a fresh session; open)."
@@ -1658,9 +1658,9 @@ bd update python-ai-skills-31d --append-notes "branch-name-check live check 2026
 
 Expected: the note is saved. (`<WORST>`, `<SUM>`, `<BASELINE>` are observed values written into the note text only; they do not exist before the commands run.)
 
-- [ ] **Step 6 (orchestrator, fresh session, optional now): the real Bash tool.** In a session started after the install, `git checkout -b lazy-fox` through the Bash tool in a throw-away repository must be refused with the text of Step 3, and `git checkout -b feat/branch-smoke` must pass. This needs a new session (hook settings are read at start); closing the bead (`bd close`) belongs to the Finish step of `do-feature`, not to this plan.
+- [x] **Step 6 (orchestrator, fresh session, optional now): the real Bash tool.** In a session started after the install, `git checkout -b lazy-fox` through the Bash tool in a throw-away repository must be refused with the text of Step 3, and `git checkout -b feat/branch-smoke` must pass. This needs a new session (hook settings are read at start); closing the bead (`bd close`) belongs to the Finish step of `do-feature`, not to this plan.
 
-- [ ] **Step 7: batch report.** Report to the orchestrator: Tasks 8-12 done; commits made (list the 11 commits: `git log --oneline -12`); `make test` sum; ruff result; NFR-1 numbers; live-check exit codes; open items (Step 6).
+- [x] **Step 7: batch report.** Report to the orchestrator: Tasks 8-12 done; commits made (list the 11 commits: `git log --oneline -12`); `make test` sum; ruff result; NFR-1 numbers; live-check exit codes; open items (Step 6).
 
 ---
 
