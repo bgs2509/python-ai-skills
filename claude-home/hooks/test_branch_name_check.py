@@ -101,6 +101,8 @@ BLOCKED = [
     "git status&&git checkout -b bad",
     "git status;git checkout -b bad",
     "true|git checkout -b bad",
+    # a here-string is one word: the rest of the line is still checked
+    "printf foo <<< bar && git switch -c bad",
 ]
 
 ALLOWED = [
@@ -149,6 +151,7 @@ ALLOWED = [
     "git branch -d old",
     "git branch -D old",
     "git worktree add --detach x",
+    'cat <<< "git checkout -b x"',
 ]
 
 

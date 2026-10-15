@@ -196,8 +196,16 @@ def offending_bash(command):
     except ValueError:
         return []
     names = []
-    cut = next((i for i, tok in enumerate(tokens) if tok.startswith("<<")), len(tokens))
-    for segment in segments(tokens[:cut]):  # a heredoc or here-string body is text: unchecked
+    words, i = [], 0
+    while i < len(tokens):
+        if tokens[i] == "<<<":  # a here-string is the one following word: text, unchecked
+            i += 2
+        elif tokens[i] == "<<":  # a heredoc body follows on the next lines: text, unchecked
+            break
+        else:
+            words.append(tokens[i])
+            i += 1
+    for segment in segments(words):
         found = git_subcommand(segment)
         name = new_branch_name(*found) if found else None
         if name and not SEGMENT.search(name):
