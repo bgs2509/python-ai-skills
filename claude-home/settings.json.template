@@ -423,6 +423,11 @@
             "type": "command",
             "command": "'{{CLAUDE_HOME}}/hooks/git-finish-router.sh'",
             "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "'{{CLAUDE_HOME}}/hooks/question-memo-inject.sh'",
+            "timeout": 3
           }
         ]
       }
