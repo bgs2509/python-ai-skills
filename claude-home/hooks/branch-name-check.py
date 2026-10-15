@@ -64,6 +64,29 @@ DENY_NOTE = (
 )
 
 
+def newlines_to_separators(command):
+    """Replace each newline outside quotes by ` ; ` (shlex treats a newline as a space)."""
+    out, quote, i = [], "", 0
+    while i < len(command):
+        ch = command[i]
+        if ch == "\\" and quote != "'":  # an escaped character, a newline included, is never a separator
+            out.append(command[i:i + 2])
+            i += 2
+            continue
+        if quote:
+            if ch == quote:
+                quote = ""
+        elif ch in "'\"":
+            quote = ch
+        elif ch == "\n":
+            out.append(" ; ")
+            i += 1
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
 def segments(tokens):
     """Split a token list into the commands of one shell line."""
     cur = []
@@ -171,11 +194,12 @@ def offending_bash(command):
     if "git" not in command:
         return []
     try:
-        tokens = shlex.split(command, posix=True)
+        tokens = shlex.split(newlines_to_separators(command), posix=True)
     except ValueError:
         return []
     names = []
-    for segment in segments(tokens):
+    cut = next((i for i, tok in enumerate(tokens) if tok.startswith("<<")), len(tokens))
+    for segment in segments(tokens[:cut]):  # a heredoc or here-string body is text: unchecked
         found = git_subcommand(segment)
         name = new_branch_name(*found) if found else None
         if name and not SEGMENT.search(name):

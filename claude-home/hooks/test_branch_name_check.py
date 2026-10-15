@@ -93,6 +93,10 @@ BLOCKED = [
     "git worktree add ../lazy-fox",
     "git worktree add --orphan ../lazy-fox",
     "git worktree add --reason r ../lazy-fox",
+    # several lines
+    "cd /tmp/r\ngit checkout -b x",
+    "git status\ngit switch -c lazy-fox",
+    "git checkout \\\n  -b x",
 ]
 
 ALLOWED = [
@@ -131,6 +135,10 @@ ALLOWED = [
     "git worktree add --detach ../wt",
     "git worktree add ../wt lazy-fox",
     "git worktree list",
+    # several lines: a quoted newline and a heredoc body are text
+    'git commit -m "first line\ngit checkout -b x"',
+    "cat <<EOF\ngit checkout -b x\nEOF",
+    "echo hi\ngit status",
 ]
 
 
