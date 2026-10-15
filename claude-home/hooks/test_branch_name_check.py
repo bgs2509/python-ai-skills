@@ -65,6 +65,8 @@ def journal(home):
 
 
 BLOCKED = [
+    # a redirection does not hide the new name
+    "git branch -m old lazy-fox 2>&1",
     # checkout / switch
     "git checkout -b feat/gigaam",
     "git checkout -B hotfix",
@@ -115,6 +117,9 @@ ALLOWED = [
     # names with the segment
     "git checkout -b feat/branch-x",
     "git switch -c fix/branch-y",
+    # redirections are not arguments
+    "git branch -m old feat/branch-new 2>&1",
+    "git branch -c old feat/branch-new > /dev/null",
     # not creating
     "git checkout main",
     "git checkout -- file",

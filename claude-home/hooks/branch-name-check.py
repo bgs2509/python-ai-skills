@@ -218,6 +218,11 @@ def offending_bash(command):
             i += 2
         elif tokens[i] == "<<":  # a heredoc body follows on the next lines: text, unchecked
             break
+        elif set(tokens[i]) <= set("<>&") and set(tokens[i]) & set("<>"):
+            # a redirection (`>`, `2>&1`, `&>`): drop the operator, its target and the fd number
+            if words and words[-1].isdigit():
+                words.pop()
+            i += 2
         else:
             words.append(tokens[i])
             i += 1
