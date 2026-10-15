@@ -174,6 +174,14 @@ def offending_bash(command):
     return names
 
 
+def offending_worktree(tool_input):
+    """EnterWorktree: the name must carry the segment; `path` alone enters an existing worktree."""
+    name = tool_input.get("name")
+    if not name:
+        return [] if tool_input.get("path") else ["<generated>"]
+    return [] if SEGMENT.search(name) else [name]
+
+
 def log_block(kind, text):
     """Append one record to the block journal; a write error never changes the verdict."""
     try:
@@ -195,16 +203,21 @@ def log_block(kind, text):
 def main():
     try:
         data = json.load(sys.stdin)
-        if data["tool_name"] != "Bash":
+        tool, tool_input = data["tool_name"], data["tool_input"]
+        if tool == "Bash":
+            kind, text = "bash-git", tool_input["command"]
+            names = offending_bash(text)
+        elif tool == "EnterWorktree":
+            kind, text = "enter-worktree", tool_input.get("name") or "<generated>"
+            names = offending_worktree(tool_input)
+        else:
             return 0
-        text = data["tool_input"]["command"]
-        names = offending_bash(text)
         if not names:
             return 0
         toplevel = data.get("cwd") or os.getcwd()
     except Exception:  # fail open on anything unexpected: only a verified name is denied
         return 0
-    log_block("bash-git", text)
+    log_block(kind, text)
     message = DENY.format(names=", ".join(names), form=FORM, types=", ".join(TYPES), toplevel=toplevel)
     sys.stderr.write(message)
     return 2

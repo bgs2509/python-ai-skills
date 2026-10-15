@@ -55,6 +55,10 @@ def bash(command, cwd):
     return {"tool_name": "Bash", "tool_input": {"command": command}, "cwd": str(cwd)}
 
 
+def enter_worktree(tool_input, cwd):
+    return {"tool_name": "EnterWorktree", "tool_input": tool_input, "cwd": str(cwd)}
+
+
 def journal(home):
     path = home / ".claude" / "hook-stats" / "blocks.jsonl"
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
@@ -175,3 +179,22 @@ def test_malformed_input_is_allowed(stdin, home):
 def test_other_tools_are_ignored(repo, home):
     payload = {"tool_name": "Read", "tool_input": {"command": "git checkout -b x", "name": "x"}, "cwd": str(repo)}
     assert run_hook(payload, home).returncode == 0
+
+
+@pytest.mark.parametrize("tool_input", [{"name": "lazy-fox"}, {}, {"name": ""}])
+def test_worktree_without_segment_is_denied(tool_input, repo, home):
+    result = run_hook(enter_worktree(tool_input, repo), home)
+    assert result.returncode == 2
+    assert "EnterWorktree" in result.stderr
+
+
+@pytest.mark.parametrize("tool_input", [{"name": "feat/branch-x"}, {"name": "feat+branch-x"}, {"path": "/tmp/wt"}])
+def test_worktree_with_segment_or_path_is_allowed(tool_input, repo, home):
+    assert run_hook(enter_worktree(tool_input, repo), home).returncode == 0
+
+
+def test_worktree_deny_is_journaled(repo, home):
+    run_hook(enter_worktree({"name": "lazy-fox"}, repo), home)
+    (record,) = journal(home)
+    assert record["kind"] == "enter-worktree"
+    assert record["command"] == "lazy-fox"
