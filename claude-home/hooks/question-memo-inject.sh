@@ -7,8 +7,8 @@
 # copy. CLAUDE.md is read only at session start, so a session older than the rule
 # would never learn it — a hook fires in running sessions too (see
 # task-level-inject.sh and delegation-pool-nudge.sh). No post-answer (Stop) check:
-# it would make the model write a second message. A per-project glossary delivery
-# (bd python-ai-skills-du5) may reuse this hook later; it is not built.
+# it would make the model write a second message. The per-project glossary delivery
+# (bd python-ai-skills-du5) is `glossary.py memo`, a sibling handler, not this hook.
 #
 # Contract:
 #   - stdin: JSON object (UserPromptSubmit input); the prompt text is not used

@@ -419,6 +419,11 @@
             "type": "command",
             "command": "'{{CLAUDE_HOME}}/hooks/explanation-terms.sh'",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' stop",
+            "timeout": 10
           }
         ]
       }
@@ -440,6 +445,11 @@
           {
             "type": "command",
             "command": "'{{CLAUDE_HOME}}/hooks/question-memo-inject.sh'",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' memo",
             "timeout": 3
           }
         ]

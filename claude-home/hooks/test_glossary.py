@@ -604,3 +604,10 @@ def test_stop_reports_the_latin_form_the_coined_term_hook_leaves_out(home, tmp_p
     root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n- «drift-guard» → **сверка отрисовки**\n"})
     context = context_of(stop(home, root, LONG_RU + "Проверка drift-guard здесь."), "Stop")
     assert "«drift-guard» → «сверка отрисовки»" in context
+
+
+def test_settings_template_wires_both_modes():
+    hooks = json.loads((REPO / "claude-home" / "settings.json.template").read_text(encoding="utf-8"))["hooks"]
+    commands = {event: [h["command"] for group in groups for h in group["hooks"]] for event, groups in hooks.items()}
+    assert "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' stop" in commands["Stop"]
+    assert "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' memo" in commands["UserPromptSubmit"]
