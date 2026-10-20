@@ -232,6 +232,27 @@ Automatic checks before every commit. Installation: `pip install pre-commit && p
       pass_filenames: false
 ```
 
+### Project glossary (forbidden synonyms)
+
+A project with a `## Glossary` section in its `AGENTS.md` checks the changed lines of every commit against it
+(bd `python-ai-skills-du5`). A repository created from `~/.git-template` already runs the check from the bootstrap
+hook. A repository that has a `.pre-commit-config.yaml` but no copy of the bootstrap hook declares it as a local hook;
+the machine needs `make install-symlinks` first, because the entry runs `~/.claude/hooks/glossary.py`. pre-commit does
+not expand `~` or `$HOME` in `entry`, hence `bash -c`:
+
+```yaml
+- repo: local
+  hooks:
+    - id: glossary-check
+      name: glossary (forbidden synonyms in changed lines)
+      entry: bash -c 'exec python3 "$HOME/.claude/hooks/glossary.py" --staged'
+      language: system
+      pass_filenames: false
+      always_run: true
+```
+
+The check exits 0 clean (and in a project without the section), 1 with findings, 2 when the glossary is unreadable.
+
 ### Docker: Dockerfile Linting
 
 ```yaml

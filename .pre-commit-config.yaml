@@ -63,3 +63,14 @@ repos:
         language: system
         files: ^claude-home/scripts/
         pass_filenames: false
+
+      # Project glossary (bd python-ai-skills-du5): forbidden synonyms in the changed lines of the
+      # staged files. The bootstrap hook (claude-home/git-template/pre-commit) runs the same check
+      # first, so a commit here runs it twice; this entry is the documented form for a repository
+      # that has a config but no copy of the bootstrap hook (_linters/reference/linters.md).
+      - id: glossary-check
+        name: glossary (forbidden synonyms in changed lines)
+        entry: bash -c 'exec python3 "$HOME/.claude/hooks/glossary.py" --staged'
+        language: system
+        pass_filenames: false
+        always_run: true

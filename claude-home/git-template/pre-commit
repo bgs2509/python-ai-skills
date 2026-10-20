@@ -22,6 +22,14 @@ export PATH="$HOME/.bun/bin:$HOME/.local/bin:$HOME/bin:$PATH"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "")"
 [ -z "$REPO_ROOT" ] && exit 0
 
+# Project glossary (bd python-ai-skills-du5): forbidden synonyms in the changed lines of the
+# staged files. Exit 0 at once when the repository has no `## Glossary` section.
+GLOSSARY_CHECK="$HOME/.claude/hooks/glossary.py"
+if [ -f "$GLOSSARY_CHECK" ] && ! python3 "$GLOSSARY_CHECK" --staged; then
+  echo "pre-commit (template): glossary check failed — commit refused" >&2
+  exit 1
+fi
+
 # Run pre-commit framework if config exists and tool available
 if [ -f "$REPO_ROOT/.pre-commit-config.yaml" ]; then
   if command -v pre-commit >/dev/null 2>&1; then

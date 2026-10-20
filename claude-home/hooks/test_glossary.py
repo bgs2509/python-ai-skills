@@ -111,7 +111,7 @@ def test_ml_sobes_form_fixture_of_twelve_rows():
 
 
 def sh(cwd, *args):
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args], cwd=cwd, check=True, capture_output=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", *args], cwd=cwd, check=True, capture_output=True)
 
 
 @pytest.fixture
@@ -611,3 +611,43 @@ def test_settings_template_wires_both_modes():
     commands = {event: [h["command"] for group in groups for h in group["hooks"]] for event, groups in hooks.items()}
     assert "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' stop" in commands["Stop"]
     assert "python3 '{{CLAUDE_HOME}}/hooks/glossary.py' memo" in commands["UserPromptSubmit"]
+
+
+TEMPLATE_HOOK = REPO / "claude-home" / "git-template" / "pre-commit"
+
+
+def run_template_hook(home, root):
+    (home / ".claude" / "hooks").mkdir(parents=True)
+    (home / ".claude" / "hooks" / "glossary.py").symlink_to(HOOK)
+    return subprocess.run(
+        ["bash", str(TEMPLATE_HOOK)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=root,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(home)},
+    )
+
+
+def test_bootstrap_hook_refuses_a_commit_with_a_new_forbidden_form(home, committed):
+    (committed / "notes.md").write_text("Старая фича в тексте.\nВторая строка.\nНовый лог добавлен.\n")
+    sh(committed, "add", "notes.md")
+    result = run_template_hook(home, committed)
+    assert result.returncode == 1
+    assert "notes.md:3: «лог» → «журнал»" in result.stdout and "glossary check failed" in result.stderr
+
+
+def test_bootstrap_hook_lets_a_clean_commit_through(home, committed):
+    (committed / "notes.md").write_text("Старая фича в тексте.\nВторая строка изменена.\n")
+    sh(committed, "add", "notes.md")
+    assert run_template_hook(home, committed).returncode == 0
+
+
+def test_bootstrap_hook_runs_the_glossary_step_before_the_framework_delegation():
+    text = TEMPLATE_HOOK.read_text(encoding="utf-8")
+    assert 0 < text.index("glossary.py") < text.index("exec pre-commit")
+
+
+def test_repository_config_declares_the_glossary_check():
+    config = (REPO / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+    assert "id: glossary-check" in config and 'glossary.py" --staged' in config
