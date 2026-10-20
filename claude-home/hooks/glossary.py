@@ -14,6 +14,7 @@ memo and stop are advisory (exit 0 on every path, no `decision`, silent without 
 See ~/.claude/CLAUDE.md -> "Explanation Protocol".
 """
 import re
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -96,3 +97,58 @@ def parse_section(lines, label):
         else:
             raise GlossaryError(f"{label}: section line {number}: bullet matches no glossary form: {line}")
     return tuple(groups), tuple(exceptions), None
+
+
+def git(root, *args):
+    return subprocess.run(["git", *args], cwd=root, capture_output=True, timeout=GIT_TIMEOUT_S)
+
+
+def project_root(cwd):
+    """The git work tree of cwd, else cwd itself (a worktree resolves to its own root)."""
+    try:
+        result = git(cwd or ".", "rev-parse", "--show-toplevel")
+        if result.returncode == 0 and result.stdout.strip():
+            return Path(result.stdout.decode().strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return Path(cwd or ".")
+
+
+def read_source(root, name, staged):
+    """Text of a file: from the git index under `staged` (falling back to disk), else from disk; None if unreadable."""
+    if staged:
+        result = git(root, "show", f":{name}")
+        if result.returncode == 0:
+            return result.stdout.decode("utf-8", "replace")
+    try:
+        return (Path(root) / name).read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def load_glossary(root, staged=False):
+    """The glossary of the project at root; None when it has none; GlossaryError when it is unreadable."""
+    for name in INSTRUCTION_FILES:
+        text = read_source(root, name, staged)
+        if text is not None:
+            break
+    else:
+        return None
+    label = str(Path(root) / name)
+    section = cut_section(text, label)
+    if section is None:
+        return None
+    groups, exceptions, pointer = parse_section(section, label)
+    if pointer is None:
+        return Glossary(label, groups, exceptions, section, False)
+    target = str(Path(root) / pointer)
+    pointed_text = read_source(root, pointer, staged)
+    if pointed_text is None:
+        raise GlossaryError(f"{label}: pointed file {target} is unreadable")
+    section = cut_section(pointed_text, target)
+    if section is None:
+        raise GlossaryError(f"{target}: no '{GLOSSARY_HEADING}' heading")
+    groups, exceptions, again = parse_section(section, target)
+    if again:
+        raise GlossaryError(f"{target}: a pointed glossary must not point further")
+    return Glossary(target, groups, exceptions, section, True)

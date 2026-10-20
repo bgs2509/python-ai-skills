@@ -7,6 +7,7 @@ one (bd python-ai-skills-du5). Isolation as in test_explanation_terms.py: a fake
 temporary git repository per test; fixtures are inline strings.
 """
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -106,3 +107,95 @@ def test_ml_sobes_form_fixture_of_twelve_rows():
     groups, _, _ = parse(rows)
     assert len(groups) == 12
     assert sum(len(g.forms) for g in groups) == 10
+
+
+def sh(cwd, *args):
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args], cwd=cwd, check=True, capture_output=True)
+
+
+@pytest.fixture
+def home(tmp_path):
+    path = tmp_path / "home"
+    (path / ".claude").mkdir(parents=True)
+    return path
+
+
+def make_project(tmp_path, files, git=True):
+    root = tmp_path / "project"
+    root.mkdir()
+    for name, text in files.items():
+        (root / name).parent.mkdir(parents=True, exist_ok=True)
+        (root / name).write_text(text)
+    if git:
+        sh(root, "init", "-q")
+    return root
+
+
+GLOSSARY_MD = "# Project\n\n## Glossary\n\n- «фича» → **признак** — столбец данных\n- «лог» → **журнал**\n"
+
+
+def test_lookup_reads_agents_md_at_the_root(tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": GLOSSARY_MD})
+    found = glossary.load_glossary(root)
+    assert [g.canonical for g in found.groups] == ["признак", "журнал"]
+    assert (found.path, found.pointed) == (str(root / "AGENTS.md"), False)
+
+
+def test_lookup_falls_back_to_claude_md_and_prefers_agents_md(tmp_path):
+    only_claude = make_project(tmp_path, {"CLAUDE.md": GLOSSARY_MD})
+    assert glossary.load_glossary(only_claude).path == str(only_claude / "CLAUDE.md")
+    both = tmp_path / "both"
+    both.mkdir()
+    (both / "AGENTS.md").write_text("# P\n\nno glossary here\n")
+    (both / "CLAUDE.md").write_text(GLOSSARY_MD)
+    assert glossary.load_glossary(both) is None  # the first regular file wins, even without a glossary
+
+
+def test_lookup_skips_a_directory_named_like_an_instruction_file(tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md/keep": "x", "CLAUDE.md": GLOSSARY_MD})
+    assert glossary.load_glossary(root).path == str(root / "CLAUDE.md")
+
+
+@pytest.mark.parametrize("files", [{}, {"AGENTS.md": "# P\n\n## Other\n\ntext\n"}])
+def test_no_instruction_file_or_no_heading_means_no_glossary(tmp_path, files):
+    assert glossary.load_glossary(make_project(tmp_path, files)) is None
+
+
+def test_relative_pointer_reads_the_pointed_file(tmp_path):
+    root = make_project(tmp_path, {
+        "AGENTS.md": "# P\n\n## Glossary\n\nGlossary file: `glossary.md`\n",
+        "glossary.md": "# G\n\nheader\n\n" + GLOSSARY_MD.split("# Project\n\n")[1] + "\n## Спорные выборы\n\n1. проза\n",
+    })
+    found = glossary.load_glossary(root)
+    assert found.pointed and found.path == str(root / "glossary.md")
+    assert [g.canonical for g in found.groups] == ["признак", "журнал"]
+
+
+def test_absolute_pointer_reaches_another_domain(tmp_path):
+    shared = tmp_path / "shared.md"
+    shared.write_text(GLOSSARY_MD)
+    root = make_project(tmp_path, {"AGENTS.md": f"## Glossary\n\nGlossary file: `{shared}`\n"})
+    assert glossary.load_glossary(root).path == str(shared)
+
+
+@pytest.mark.parametrize(
+    ("pointed", "reason"),
+    [(None, "unreadable"), ("# G\n\nno heading\n", "no '## Glossary' heading"), ("## Glossary\n\nGlossary file: `x.md`\n", "must not point further")],
+)
+def test_broken_pointer_is_a_contract_error(tmp_path, pointed, reason):
+    files = {"AGENTS.md": "## Glossary\n\nGlossary file: `glossary.md`\n"}
+    if pointed is not None:
+        files["glossary.md"] = pointed
+    with pytest.raises(glossary.GlossaryError, match=reason):
+        glossary.load_glossary(make_project(tmp_path, files))
+
+
+def test_project_root_of_a_subdirectory_is_the_git_root(tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": GLOSSARY_MD, "sub/x.txt": "x"})
+    assert glossary.project_root(str(root / "sub")) == root.resolve()
+
+
+def test_project_root_outside_git_is_the_directory_itself(tmp_path):
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    assert glossary.project_root(str(plain)) == plain
