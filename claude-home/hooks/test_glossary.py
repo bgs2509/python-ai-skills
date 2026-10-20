@@ -498,3 +498,94 @@ def test_stop_still_answers_when_the_journal_cannot_be_written(home, project):
 def test_stop_with_a_broken_pointer_is_silent(home, tmp_path):
     root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\nGlossary file: `absent.md`\n"})
     silent(stop(home, root, LONG_RU + "Фича."))
+
+
+def staged(home, root):
+    return subprocess.run(
+        ["python3", str(HOOK), "--staged"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=root,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(home)},
+    )
+
+
+@pytest.fixture
+def committed(tmp_path):
+    """A project whose HEAD holds the glossary and a notes file with one old forbidden form."""
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + FORMS_BODY, "notes.md": "Старая фича в тексте.\nВторая строка.\n"})
+    sh(root, "add", "-A")
+    sh(root, "commit", "-q", "-m", "init")
+    return root
+
+
+def test_staged_reports_only_the_new_forbidden_line_and_exits_1(home, committed):
+    (committed / "notes.md").write_text("Старая фича в тексте.\nВторая строка.\nНовый лог добавлен.\n")
+    sh(committed, "add", "notes.md")
+    result = staged(home, committed)
+    assert (result.returncode, result.stdout, result.stderr) == (1, "notes.md:3: «лог» → «журнал»\n", "")
+    record = json.loads((home / ".claude" / "hook-stats" / "blocks.jsonl").read_text().splitlines()[-1])
+    assert (record["hook"], record["mode"], record["findings"]) == ("glossary", "staged", [["notes.md", 3, "лог", "журнал"]])
+
+
+def test_staged_without_a_new_forbidden_form_passes_silently(home, committed):
+    (committed / "notes.md").write_text("Старая фича в тексте.\nВторая строка изменена.\n")
+    sh(committed, "add", "notes.md")
+    result = staged(home, committed)
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+
+
+def test_staged_new_file_is_scanned_in_full(home, committed):
+    (committed / "new.md").write_text("Строка раз.\nЛог тут.\n")
+    sh(committed, "add", "new.md")
+    assert staged(home, committed).stdout == "new.md:2: «лог» → «журнал»\n"
+
+
+def test_staged_binary_file_is_skipped(home, committed):
+    (committed / "blob.bin").write_bytes(b"\x00\xff\xfe" + "фича".encode())
+    sh(committed, "add", "blob.bin")
+    assert staged(home, committed).returncode == 0
+
+
+def test_staged_reads_the_glossary_from_the_index_not_the_working_tree(home, committed):
+    (committed / "AGENTS.md").write_text("## Glossary\n\n" + FORMS_BODY + "- «шина» → **канал**\n")  # edited, not staged
+    (committed / "bus.md").write_text("Слово шина тут.\n")
+    sh(committed, "add", "bus.md")
+    assert staged(home, committed).returncode == 0
+
+
+def test_staged_without_a_glossary_exits_0_silently(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "# P\n\nplain\n", "a.md": "Фича.\n"})
+    sh(root, "add", "-A")
+    result = staged(home, root)
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+    assert not (home / ".claude" / "hook-stats").exists()
+
+
+def test_staged_contract_error_exits_2_with_the_reason(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n- «x» → без звёздочек\n"})
+    sh(root, "add", "-A")
+    result = staged(home, root)
+    assert result.returncode == 2 and result.stdout.startswith("glossary: ") and "matches no glossary form" in result.stdout
+
+
+def test_staged_broken_pointer_exits_2(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\nGlossary file: `absent.md`\n"})
+    sh(root, "add", "-A")
+    assert staged(home, root).returncode == 2
+
+
+def test_staged_checks_the_glossary_file_itself_for_foreign_forbidden_forms(home, tmp_path):
+    body = "- «лог» → **журнал** — то же, что фича\n- «фича» → **признак**\n"
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + body})
+    sh(root, "add", "-A")
+    assert staged(home, root).stdout == "AGENTS.md:3: «фича» → «признак»\n"
+
+
+def test_staged_follows_an_absolute_pointer_outside_the_repository(home, tmp_path):
+    shared = tmp_path / "shared.md"
+    shared.write_text("## Glossary\n\n" + FORMS_BODY)
+    root = make_project(tmp_path, {"AGENTS.md": f"## Glossary\n\nGlossary file: `{shared}`\n", "a.md": "Новая фича.\n"})
+    sh(root, "add", "-A")
+    assert staged(home, root).stdout == "a.md:1: «фича» → «признак»\n"

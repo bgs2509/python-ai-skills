@@ -333,11 +333,43 @@ def run_stop(data):
     return 0
 
 
+def run_staged():
+    """pre-commit: forbidden forms in the changed lines of the staged files; exit 0 clean, 1 findings, 2 glossary unreadable."""
+    root = project_root(os.getcwd())
+    try:
+        glossary = load_glossary(root, staged=True)
+    except GlossaryError as exc:
+        print(f"glossary: {exc}")
+        return 2
+    if glossary is None:
+        return 0
+    names = git(root, "diff", "--cached", "--name-only", "--diff-filter=AM", "-z").stdout.decode().split("\0")
+    found = []
+    for name in filter(None, names):
+        staged = git(root, "show", f":{name}")
+        if staged.returncode != 0 or b"\0" in staged.stdout:
+            continue
+        try:
+            new_text = staged.stdout.decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        head = git(root, "show", f"HEAD:{name}")
+        old_text = head.stdout.decode("utf-8", "replace") if head.returncode == 0 else None
+        for f in scan_text(new_text, glossary, changed_lines(old_text, new_text)):
+            found.append((name, f))
+            print(f"{name}:{f.line_no}: «{f.form}» → «{f.canonical}»")
+    if found:
+        log_record({"mode": "staged", "glossary": glossary.path, "findings": [[n, f.line_no, f.form, f.canonical] for n, f in found]})
+    return 1 if found else 0
+
+
 HOOKS = {"memo": run_memo, "stop": run_stop}
 
 
 def main(argv):
     mode = argv[1] if len(argv) > 1 else ""
+    if mode == "--staged":
+        return run_staged()
     if mode not in HOOKS:
         print("usage: glossary.py memo | stop | --staged", file=sys.stderr)
         return 2
