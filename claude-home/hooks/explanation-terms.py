@@ -41,6 +41,8 @@ import re
 import subprocess
 import sys
 
+import glossary
+
 
 def log_block(detail: dict) -> None:
     """Append one JSONL record to the hook journal for monthly review."""
@@ -240,6 +242,10 @@ def main() -> int:
         return 0
 
     candidates = collect_candidates(text)
+    try:
+        candidates -= glossary.forbidden_latin_forms(data.get("cwd") or "")
+    except Exception:  # a glossary problem never silences the coined-term check
+        pass
     if not candidates:
         return 0
 

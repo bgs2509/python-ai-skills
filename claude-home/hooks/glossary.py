@@ -254,6 +254,12 @@ def changed_lines(head_text, new_text):
     return changed
 
 
+def forbidden_latin_forms(cwd):
+    """Forbidden forms without a Cyrillic letter, verbatim; empty when the project has no glossary."""
+    found = load_glossary(project_root(cwd))
+    return {form for group in found.groups for form in group.forms if not CYRILLIC.search(form)} if found else set()
+
+
 def log_record(detail):
     """Append one JSONL record to the hook journal (the explanation-terms.py shape); never raises."""
     try:

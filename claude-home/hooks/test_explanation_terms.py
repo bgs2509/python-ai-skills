@@ -173,3 +173,14 @@ def test_english_text_is_not_checked(home, workdir, tmp_path):
     message = "This English answer mentions read-nudge and many other words. " * 5
     result = run(home, workdir, message, [], tmp_path)
     silent(result)
+
+
+def test_a_form_the_project_glossary_forbids_is_left_to_the_glossary_hook(home, workdir, tmp_path):
+    # The glossary sits in a file outside the repository, so no evidence marks `drift-guard` as real;
+    # the coined-term hook must not ask about a word that glossary.py already reports with its canonical term.
+    shared = tmp_path / "shared-glossary.md"
+    shared.write_text("## Glossary\n\n- «drift-guard» → **сверка отрисовки**\n")
+    (workdir / "AGENTS.md").write_text(f"## Glossary\n\nGlossary file: `{shared}`\n")
+    subprocess.run(["git", "init", "-q"], cwd=workdir, check=True)
+    result = run(home, workdir, PROSE + "Проверка drift-guard здесь.", [], tmp_path)
+    silent(result)

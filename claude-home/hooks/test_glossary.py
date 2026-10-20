@@ -589,3 +589,18 @@ def test_staged_follows_an_absolute_pointer_outside_the_repository(home, tmp_pat
     root = make_project(tmp_path, {"AGENTS.md": f"## Glossary\n\nGlossary file: `{shared}`\n", "a.md": "Новая фича.\n"})
     sh(root, "add", "-A")
     assert staged(home, root).stdout == "a.md:1: «фича» → «признак»\n"
+
+
+def test_forbidden_latin_forms_are_the_forms_without_a_cyrillic_letter(tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n- «OOF», «фича», «k-fold» → **x**\n"})
+    assert glossary.forbidden_latin_forms(str(root)) == {"OOF", "k-fold"}
+
+
+def test_forbidden_latin_forms_without_a_glossary_is_empty(tmp_path):
+    assert glossary.forbidden_latin_forms(str(make_project(tmp_path, {}))) == set()
+
+
+def test_stop_reports_the_latin_form_the_coined_term_hook_leaves_out(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n- «drift-guard» → **сверка отрисовки**\n"})
+    context = context_of(stop(home, root, LONG_RU + "Проверка drift-guard здесь."), "Stop")
+    assert "«drift-guard» → «сверка отрисовки»" in context
