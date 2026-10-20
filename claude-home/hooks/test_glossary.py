@@ -674,3 +674,9 @@ def test_both_generators_reference_the_asset():
 def test_grace_agents_template_carries_the_asset_verbatim():
     template = (REPO / "grace-init" / "assets" / "AGENTS.md.template").read_text(encoding="utf-8")
     assert ASSET.read_text(encoding="utf-8").strip() in template
+
+
+def test_this_repository_glossary_fits_the_section_form():
+    found = glossary.load_glossary(REPO)
+    assert found is not None and not found.pointed and len(found.groups) >= 1
+    assert len(found.lines) <= glossary.SECTION_MAX_LINES and len("\n".join(found.lines)) <= glossary.MEMO_MAX_CHARS

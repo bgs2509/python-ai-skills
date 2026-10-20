@@ -135,6 +135,12 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 **Version**: 3.7
 
+## Glossary
+
+- «лог» → **журнал** — файл записей о событиях, например `~/.claude/hook-stats/blocks.jsonl` (источник: подсчёт употреблений, bd python-ai-skills-du5)
+- «симлинк» → **символическая ссылка** — файл, указывающий на другой путь; `make install-symlinks` создаёт такие ссылки в `~/.claude` (источник: подсчёт употреблений, bd python-ai-skills-du5)
+- «подагент», «сабагент» → **субагент** — агент, которого основной агент запускает инструментом `Agent` (источник: подсчёт употреблений, bd python-ai-skills-du5)
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
