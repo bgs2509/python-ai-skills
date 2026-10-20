@@ -651,3 +651,8 @@ def test_bootstrap_hook_runs_the_glossary_step_before_the_framework_delegation()
 def test_repository_config_declares_the_glossary_check():
     config = (REPO / ".pre-commit-config.yaml").read_text(encoding="utf-8")
     assert "id: glossary-check" in config and 'glossary.py" --staged' in config
+
+
+def test_global_instructions_name_the_glossary_mechanism_once():
+    text = (REPO / "claude-home" / "CLAUDE.md").read_text(encoding="utf-8")
+    assert text.count("`## Glossary`") == 1 and text.count("glossary.py") == 1
