@@ -591,6 +591,34 @@ def test_staged_follows_an_absolute_pointer_outside_the_repository(home, tmp_pat
     assert staged(home, root).stdout == "a.md:1: «фича» → «признак»\n"
 
 
+def test_staged_git_failure_exits_2_not_0(home, committed):
+    (committed / "notes.md").write_text("Новый лог добавлен.\n")
+    sh(committed, "add", "notes.md")
+    (committed / ".git" / "index").write_bytes(b"garbage" * 100)
+    result = staged(home, committed)
+    assert result.returncode == 2 and result.stdout.startswith("glossary: git diff failed: ")
+
+
+LONG_NOTES = "".join(f"Строка номер {i} с обычным русским текстом.\n" for i in range(12))
+
+
+def test_staged_renamed_file_reports_only_the_added_line(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + FORMS_BODY, "notes.md": LONG_NOTES})
+    sh(root, "add", "-A")
+    sh(root, "commit", "-q", "-m", "init")
+    sh(root, "mv", "notes.md", "moved.md")
+    (root / "moved.md").write_text(LONG_NOTES + "Новый лог добавлен.\n")
+    sh(root, "add", "-A")
+    result = staged(home, root)
+    assert (result.returncode, result.stdout, result.stderr) == (1, "moved.md:13: «лог» → «журнал»\n", "")
+
+
+def test_staged_pure_rename_of_a_file_with_an_old_forbidden_form_passes(home, committed):
+    sh(committed, "mv", "notes.md", "moved.md")
+    result = staged(home, committed)
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+
+
 def test_forbidden_latin_forms_are_the_forms_without_a_cyrillic_letter(tmp_path):
     root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n- «OOF», «фича», «k-fold» → **x**\n"})
     assert glossary.forbidden_latin_forms(str(root)) == {"OOF", "k-fold"}

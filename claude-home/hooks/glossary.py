@@ -109,6 +109,10 @@ def git(root, *args):
     return subprocess.run(["git", *args], cwd=root, capture_output=True, timeout=GIT_TIMEOUT_S)
 
 
+def first_line(stderr):
+    return (stderr.decode("utf-8", "replace").splitlines() or [""])[0]
+
+
 def project_root(cwd):
     """The git work tree of cwd, else cwd itself (a worktree resolves to its own root)."""
     try:
@@ -341,7 +345,7 @@ def run_stop(data):
 
 
 def run_staged():
-    """pre-commit: forbidden forms in the changed lines of the staged files; exit 0 clean, 1 findings, 2 glossary unreadable."""
+    """pre-commit: forbidden forms in the changed lines of the staged files; exit 0 clean, 1 findings, 2 glossary unreadable or git failed."""
     root = project_root(os.getcwd())
     try:
         glossary = load_glossary(root, staged=True)
@@ -350,17 +354,26 @@ def run_staged():
         return 2
     if glossary is None:
         return 0
-    names = git(root, "diff", "--cached", "--name-only", "--diff-filter=AM", "-z").stdout.decode().split("\0")
+    listing = git(root, "diff", "--cached", "--name-status", "-M", "-z", "--diff-filter=AMR")
+    if listing.returncode != 0:
+        print(f"glossary: git diff failed: {first_line(listing.stderr)}")
+        return 2
+    records = iter(filter(None, listing.stdout.decode().split("\0")))
     found = []
-    for name in filter(None, names):
+    for status in records:  # `A\0path`, `M\0path`, `R<score>\0old\0new`
+        old_name = next(records)
+        name = next(records) if status[0] == "R" else old_name
         staged = git(root, "show", f":{name}")
-        if staged.returncode != 0 or b"\0" in staged.stdout:
+        if staged.returncode != 0:
+            print(f"glossary: git show :{name} failed: {first_line(staged.stderr)}")
+            return 2
+        if b"\0" in staged.stdout:
             continue
         try:
             new_text = staged.stdout.decode("utf-8")
         except UnicodeDecodeError:
             continue
-        head = git(root, "show", f"HEAD:{name}")
+        head = git(root, "show", f"HEAD:{old_name}")
         old_text = head.stdout.decode("utf-8", "replace") if head.returncode == 0 else None
         for f in scan_text(new_text, glossary, changed_lines(old_text, new_text)):
             found.append((name, f))
