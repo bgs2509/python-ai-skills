@@ -199,3 +199,124 @@ def test_project_root_outside_git_is_the_directory_itself(tmp_path):
     plain = tmp_path / "plain"
     plain.mkdir()
     assert glossary.project_root(str(plain)) == plain
+
+
+MATCH_BODY = "\n".join([
+    "- «реестр», «регистр» → **таблица**",
+    "- «запись» → **строка**",
+    "- «OOF» → **out-of-fold**",
+    "- «k-fold» → **блочная проверка**",
+    "- «TP» → **истинно положительный**",
+    "- «K» → **ключ**",
+    "- «dev set» → **отложенная выборка**",
+    "- «кросс-валидация» → **перекрёстная проверка**",
+    "- «валидация» → **проверка**",
+    "- «scale_pos_weight» → **вес класса**",
+    "- Исключение: «реестр моделей» — источник: model-registry.json",
+])
+
+
+def matcher():
+    groups, exceptions, _ = parse(MATCH_BODY)
+    return glossary.Glossary("test", groups, exceptions, section_of(MATCH_BODY), False)
+
+
+def forms_in(text):
+    return [f.form for f in glossary.scan_text(text, matcher())]
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["Это реестр данных", "Реестр данных", "в реестре", "реестром", "реестры", "о реестрах", "из реестра"],
+)
+def test_cyrillic_form_matches_case_and_endings(text):
+    assert forms_in(text) == ["реестр"]
+
+
+@pytest.mark.parametrize("text", ["записать данные", "записка автору", "табличный вид", "реестровый номер"])
+def test_near_words_do_not_match(text):
+    assert forms_in(text) == []
+
+
+def test_form_with_final_vowel_keeps_its_case_endings():
+    assert forms_in("новая запись, две записи, о записях, записью") == ["запись", "запись", "запись", "запись"]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("слово OOF здесь", ["OOF"]),
+        ("слово OOFS здесь", []),
+        ("слово oof здесь", []),
+        ("слово k-fold здесь", ["k-fold"]),
+        ("слово k-folds здесь", []),
+        ("слово K-fold здесь", []),
+        ("слово TP здесь", ["TP"]),
+        ("слово tp и TPU здесь", []),
+        ("слово Q, K, V здесь", ["K"]),
+        ("слово K=5 здесь", ["K"]),
+        ("слово Ключ здесь", []),
+        ("слово dev set здесь", ["dev set"]),
+        ("слово dev sets и Dev Set здесь", []),
+        ("слово dev   set здесь", ["dev set"]),
+    ],
+)
+def test_latin_forms_are_literal_and_short_ones_whole_token(text, expected):
+    assert forms_in(text) == expected
+
+
+@pytest.mark.parametrize("text", ["слово реестр-сводка здесь", "слово DNS-реестр здесь", "слово реестр_x здесь"])
+def test_a_hyphen_or_underscore_is_a_boundary_on_both_sides(text):
+    assert forms_in(text) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "слово `реестр` здесь",
+        "слово «реестр» здесь",
+        "```\nреестр\n```\nслово здесь",
+        "слово [реестр](https://example.org/a) здесь",
+        "слово https://example.org/реестр здесь",
+        "слово scale_pos_weight здесь",
+        "слово registry.jsonl и docs/plan.md здесь",
+        "слово camelCase и HTTPServer и reverse-WireGuard здесь",
+        "слово H0 здесь",
+        "English line with OOF in prose and nothing else",
+    ],
+)
+def test_exempt_spans_are_not_read(text):
+    assert forms_in(text) == []
+
+
+def test_english_line_with_a_forbidden_latin_form_is_silent_and_the_same_form_on_a_cyrillic_line_fires():
+    assert forms_in("This line has OOF in English prose.\nА здесь OOF в русской строке.") == ["OOF"]
+
+
+def test_all_capital_abbreviation_stays_checkable_but_an_identifier_does_not():
+    assert forms_in("слово OOF здесь и OOF_x там") == ["OOF"]
+
+
+def test_exception_phrase_overlapping_a_form_drops_the_finding():
+    assert forms_in("слово реестр моделей здесь") == []
+    assert forms_in("слово реестр здесь и реестр моделей там") == ["реестр"]
+
+
+def test_the_longest_form_wins_over_a_form_inside_it():
+    assert forms_in("слово кросс-валидация здесь") == ["кросс-валидация"]
+    assert forms_in("слово валидация здесь") == ["валидация"]
+
+
+def test_findings_carry_line_number_form_and_canonical_in_text_order():
+    found = glossary.scan_text("первая строка\nслово регистр и запись", matcher())
+    assert found == [glossary.Finding(2, "регистр", "таблица"), glossary.Finding(2, "запись", "строка")]
+
+
+def test_only_lines_limits_the_report():
+    text = "слово реестр\nслово регистр"
+    assert [f.line_no for f in glossary.scan_text(text, matcher(), only_lines={2})] == [2]
+
+
+def test_changed_lines_marks_replaced_and_inserted_lines_only():
+    assert glossary.changed_lines("a\nb\nc", "a\nB\nc\nd") == {2, 4}
+    assert glossary.changed_lines(None, "a\nb") == {1, 2}

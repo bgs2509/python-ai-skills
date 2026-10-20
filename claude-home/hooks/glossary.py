@@ -13,6 +13,8 @@ memo and stop are advisory (exit 0 on every path, no `decision`, silent without 
 --staged is a gate (exit 0 / 1 findings / 2 glossary unreadable). Stdlib only.
 See ~/.claude/CLAUDE.md -> "Explanation Protocol".
 """
+import difflib
+import functools
 import re
 import subprocess
 from dataclasses import dataclass
@@ -152,3 +154,97 @@ def load_glossary(root, staged=False):
     if again:
         raise GlossaryError(f"{target}: a pointed glossary must not point further")
     return Glossary(target, groups, exceptions, section, True)
+
+
+ENDINGS = r"(?:а|я|у|ю|е|ы|и|о|ом|ем|ём|ой|ей|ов|ев|ам|ям|ами|ями|ах|ях|ью|ь|й)?"
+BOUNDARY_L = r"(?<![а-яёА-ЯЁA-Za-z0-9_-])"
+BOUNDARY_R = r"(?![а-яёА-ЯЁA-Za-z0-9_-])"
+IDENT_RE = re.compile(
+    r"[A-Za-z0-9_./-]*(?:[_/]|[0-9]|\.[A-Za-z])[A-Za-z0-9_./-]*"  # _ / digit inner dot: scale_pos_weight, docs/plan.md, H0
+    r"|(?=[A-Za-z-]*[a-z])[A-Za-z][A-Za-z-]*[A-Z][A-Za-z-]*"  # a capital after the first letter and a lowercase one: camelCase
+)
+TOKEN_EDGES = ".,;:!?()[]{}\"'«»*—–"
+
+
+def word_regex(word):
+    """A Cyrillic word: stem plus case endings; a Latin word: literal."""
+    if CYRILLIC.search(word):
+        stem = word[:-1] if word[-1] in "аяоеиыуюэёьй" else word
+        return re.escape(stem) + ENDINGS
+    return re.escape(word)
+
+
+@functools.lru_cache(maxsize=None)
+def form_regex(form):
+    """One form: words joined by any blanks; Cyrillic forms ignore case, Latin forms are literal."""
+    body = r"\s+".join(word_regex(w) for w in form.split())
+    return re.compile(BOUNDARY_L + body + BOUNDARY_R, re.IGNORECASE if CYRILLIC.search(form) else 0)
+
+
+def blank(match):
+    return re.sub(r"[^\n]", " ", match.group())
+
+
+def blank_ident(match):
+    core = match.group().strip(TOKEN_EDGES)
+    return blank(match) if core and IDENT_RE.fullmatch(core) else match.group()
+
+
+def governed_lines(text):
+    """The lines of text with every exempt span replaced by spaces (offsets and line numbers survive)."""
+    out, fenced = [], False
+    for line in text.split("\n"):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            out.append(" " * len(line))
+        else:
+            out.append(" " * len(line) if fenced else line)
+    text = "\n".join(out)
+    for exempt in (r"`[^`\n]*`", r"«[^»\n]*»", r"\[[^\]\n]*\]\([^)\n]*\)", r"https?://\S+"):
+        text = re.sub(exempt, blank, text)
+    return re.sub(r"\S+", blank_ident, text).split("\n")
+
+
+@dataclass(frozen=True)
+class Finding:
+    line_no: int
+    form: str
+    canonical: str
+
+
+def scan_text(text, glossary, only_lines=None):
+    """Forbidden forms of the glossary in text, outside the exempt spans, on Cyrillic lines only.
+
+    only_lines: 1-based line numbers to report (None: all). A form inside a longer form's match,
+    or overlapping an exception phrase, is not reported."""
+    pairs = [(form, group.canonical) for group in glossary.groups for form in group.forms]
+    findings = []
+    for line_no, line in enumerate(governed_lines(text), 1):
+        if (only_lines is not None and line_no not in only_lines) or not CYRILLIC.search(line):
+            continue
+        excused = [m.span() for phrase in glossary.exceptions for m in form_regex(phrase).finditer(line)]
+        found = [
+            (m.start(), m.end(), form, canonical)
+            for form, canonical in pairs
+            for m in form_regex(form).finditer(line)
+            if not any(m.start() < end and start < m.end() for start, end in excused)
+        ]
+        kept = []
+        for start, end, form, canonical in sorted(found, key=lambda f: f[0] - f[1]):  # longest first, stable
+            if not any(k[0] <= start and end <= k[1] for k in kept):
+                kept.append((start, end, form, canonical))
+        findings += [Finding(line_no, form, canonical) for _, _, form, canonical in sorted(kept)]
+    return findings
+
+
+def changed_lines(head_text, new_text):
+    """1-based numbers of the lines of new_text that differ from head_text; head_text None: every line is new."""
+    new_lines = new_text.split("\n")
+    if head_text is None:
+        return set(range(1, len(new_lines) + 1))
+    matcher = difflib.SequenceMatcher(None, head_text.split("\n"), new_lines, autojunk=False)
+    changed = set()
+    for tag, _, _, j1, j2 in matcher.get_opcodes():
+        if tag in ("replace", "insert"):
+            changed.update(range(j1 + 1, j2 + 1))
+    return changed
