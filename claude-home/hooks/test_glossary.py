@@ -656,3 +656,21 @@ def test_repository_config_declares_the_glossary_check():
 def test_global_instructions_name_the_glossary_mechanism_once():
     text = (REPO / "claude-home" / "CLAUDE.md").read_text(encoding="utf-8")
     assert text.count("`## Glossary`") == 1 and text.count("glossary.py") == 1
+
+
+ASSET = REPO / "grace-init" / "assets" / "glossary-section.md.template"
+
+
+def test_asset_skeleton_has_no_groups_and_no_contract_errors():
+    text = ASSET.read_text(encoding="utf-8")
+    assert glossary.parse_section(glossary.cut_section(text, "asset"), "asset") == ((), (), None)
+
+
+def test_both_generators_reference_the_asset():
+    for rel in ("_init/SKILL.md", "grace-init/SKILL.md"):
+        assert "glossary-section.md.template" in (REPO / rel).read_text(encoding="utf-8"), rel
+
+
+def test_grace_agents_template_carries_the_asset_verbatim():
+    template = (REPO / "grace-init" / "assets" / "AGENTS.md.template").read_text(encoding="utf-8")
+    assert ASSET.read_text(encoding="utf-8").strip() in template

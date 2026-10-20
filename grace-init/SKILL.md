@@ -13,6 +13,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 | Template source                          | Target in project           |
 |------------------------------------------|-----------------------------|
 | `assets/AGENTS.md.template`              | `AGENTS.md` (project root) + `CLAUDE.md -> AGENTS.md` symlink |
+| `assets/glossary-section.md.template`    | the `## Glossary` skeleton, already appended to `assets/AGENTS.md.template` (one text, a test keeps the two equal) |
 | `assets/docs/knowledge-graph.xml.template` | `docs/knowledge-graph.xml`  |
 | `assets/docs/requirements.xml.template`    | `docs/requirements.xml`     |
 | `assets/docs/technology.xml.template`      | `docs/technology.xml`       |
