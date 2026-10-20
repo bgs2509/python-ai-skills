@@ -435,3 +435,66 @@ def test_memo_with_a_broken_pointer_is_silent_and_journals_the_error(home, tmp_p
 def test_unknown_mode_is_a_usage_error(home):
     result = run_mode("bogus", {}, home)
     assert result.returncode == 2 and "usage" in result.stderr
+
+
+FORMS_BODY = "- «кросс-валидация» → **перекрёстная проверка**\n- «фича» → **признак**\n- «лог» → **журнал**\n"
+LONG_RU = "Это сообщение написано по-русски, чтобы строка считалась русской. "
+
+
+def stop(home, root, message, **extra):
+    return run_mode("stop", {"hook_event_name": "Stop", "last_assistant_message": message, "cwd": str(root), **extra}, home)
+
+
+@pytest.fixture
+def project(tmp_path):
+    return make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + FORMS_BODY})
+
+
+def test_stop_asks_for_one_line_per_forbidden_form_without_blocking(home, project):
+    context = context_of(stop(home, project, LONG_RU + "Нужна кросс-валидация и ещё одна фича."), "Stop")
+    assert "«кросс-валидация» → «перекрёстная проверка»" in context and "«фича» → «признак»" in context
+    assert "Поправка к термину: «<form>» → «<canonical>»" in context and "ALREADY READ" in context
+
+
+def test_stop_lists_each_distinct_form_once_in_order_of_first_occurrence(home, project):
+    context = context_of(stop(home, project, LONG_RU + "Фича, потом лог, потом снова фича.\nИ ещё одна фича."), "Stop")
+    listed = context.split("project glossary: ", 1)[1].split(".\n", 1)[0]
+    assert listed == "«фича» → «признак», «лог» → «журнал»"
+
+
+def test_stop_is_silent_when_the_message_uses_canonical_terms_only(home, project):
+    silent(stop(home, project, LONG_RU + "Здесь только признак и журнал."))
+
+
+def test_stop_is_silent_when_a_stop_hook_is_already_continuing(home, project):
+    silent(stop(home, project, LONG_RU + "Фича.", stop_hook_active=True))
+
+
+@pytest.mark.parametrize("payload", ["", "not json", "[]", "42"])
+def test_stop_malformed_input_is_silent(home, project, payload):
+    silent(run_mode("stop", payload, home, cwd=project))
+
+
+def test_stop_without_a_glossary_is_silent_and_writes_no_journal(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "# P\n\nplain\n"})
+    silent(stop(home, root, LONG_RU + "Фича."))
+    assert not (home / ".claude" / "hook-stats").exists()
+
+
+def test_stop_journals_the_findings_under_the_glossary_hook_name(home, project):
+    stop(home, project, LONG_RU + "Фича и лог.")
+    record = json.loads((home / ".claude" / "hook-stats" / "blocks.jsonl").read_text().splitlines()[-1])
+    assert (record["hook"], record["mode"], record["cwd"]) == ("glossary", "stop", str(project))
+    assert record["findings"] == [["фича", "признак"], ["лог", "журнал"]]
+    assert record["glossary"] == str(project / "AGENTS.md") and record["ts"].endswith("+00:00")
+
+
+def test_stop_still_answers_when_the_journal_cannot_be_written(home, project):
+    (home / ".claude").rmdir()
+    (home / ".claude").write_text("a file where the journal directory should be")
+    assert "«фича» → «признак»" in context_of(stop(home, project, LONG_RU + "Фича."), "Stop")
+
+
+def test_stop_with_a_broken_pointer_is_silent(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\nGlossary file: `absent.md`\n"})
+    silent(stop(home, root, LONG_RU + "Фича."))

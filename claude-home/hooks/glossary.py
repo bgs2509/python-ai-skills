@@ -309,7 +309,31 @@ def run_memo(data):
     return 0
 
 
-HOOKS = {"memo": run_memo}
+def stop_context(glossary, findings):
+    """The one-line correction request for the distinct forbidden forms of the last message."""
+    forms = {}
+    for finding in findings:
+        forms.setdefault(finding.form, finding.canonical)
+    listed = ", ".join(f"«{form}» → «{canonical}»" for form, canonical in forms.items())
+    return (
+        f"GLOSSARY {glossary.path}: these forms in your last message are forbidden synonyms of the project glossary: {listed}.\n\n"
+        "The user has ALREADY READ that message. Do NOT repeat, rewrite or quote it; no paragraphs, no apology. "
+        "Reply with exactly one line per form and nothing else:\n"
+        "  Поправка к термину: «<form>» → «<canonical>»\n"
+        "See ~/.claude/CLAUDE.md -> 'Explanation Protocol'."
+    )
+
+
+def run_stop(data):
+    glossary = None if data.get("stop_hook_active") else load_glossary(project_root(data.get("cwd") or ""))
+    findings = scan_text(data.get("last_assistant_message") or "", glossary) if glossary else []
+    if findings:
+        log_record({"cwd": data.get("cwd") or "", "mode": "stop", "glossary": glossary.path, "findings": [[f.form, f.canonical] for f in findings]})
+        emit("Stop", stop_context(glossary, findings))
+    return 0
+
+
+HOOKS = {"memo": run_memo, "stop": run_stop}
 
 
 def main(argv):
