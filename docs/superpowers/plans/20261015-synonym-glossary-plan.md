@@ -2,7 +2,7 @@
 feature: synonym-glossary
 bd_id: python-ai-skills-du5
 date: 2026-10-20
-status: approved
+status: executed
 risk: medium
 discovery: docs/superpowers/specs/20261015-synonym-glossary-discovery.md
 design: docs/superpowers/specs/20261015-synonym-glossary-design.md
@@ -12,6 +12,14 @@ phases: 5
 ---
 
 # Per-project synonym glossary: implementation plan (python-ai-skills-du5)
+
+## Execution status (2026-10-20)
+
+Executed in full; this section is the status, the step checkboxes below are not ticked one by one. Where the plan text and a commit differ, the commit wins.
+
+- Commits per task: Task 2 `5fef113`, Task 3 `0398a80`, Task 4 `929b8b1`, Task 5 `2884ec7`, Task 6 `8581cda`, Task 7 `ddc9554`, Task 8 `f8a104d`, Task 9 `f4db91d`, Task 10 `3e9dc99`, Task 11 `c107cfc`, Task 12 `e0d627c`, Task 13 `b6c13b9`, Task 15 `bd65baa`, Task 17 `54b0a2e`. Task 1 (preflight) and Task 16 (bd issue `python-ai-skills-89d`) have no commit. Task 14 wrote `glossary.md` and `AGENTS.md` in `ML_Sobes_2026`; they stay uncommitted there for the user.
+- Deviations: (1) Tasks 2-7 import each module in the first task that uses it (ruff F401). (2) Task 10: the shared test helper runs git with `core.hooksPath=/dev/null`, so fixture repositories do not inherit the machine's bootstrap hook. (3) Task 13: the groups are `журнал`, `символическая ссылка`, `субагент`, chosen by the user and the counting rule. (4) Task 14: the user removed the 13 short forms from the forbidden forms. (5) Task 15 ran (the user chose D-GATE A). (6) Step 12 review fixes: `40f4917` (git failures and renamed files in staged mode), `10577c6` (fenced blocks and inline spans), `8973f95` (the skeleton lives only in `grace-init/assets/glossary-section.md.template`; the equality test of Task 12 was replaced by `test_the_skeleton_lives_only_in_the_asset`), `03b4e1f` (CHANGELOG wording). One review finding was rejected: an oversized inline section falls back to the pointer, as the design says.
+- Final gate: `make test` 746 tests passed (616 + 25 + 12 + 76 + 17).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:executing-plans` (inline). Several steps need the Edit/Write tools on sandbox-protected paths, two steps need the user's per-command sandbox-bypass approval and two steps are user-review stops, so subagent dispatch gains nothing. A worker can take one phase at a time (section "Phases"). Steps use checkbox (`- [ ]`) syntax.
 
