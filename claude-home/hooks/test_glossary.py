@@ -290,6 +290,36 @@ def test_exempt_spans_are_not_read(text):
     assert forms_in(text) == []
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "````\nреестр до\n```\nреестр после внутренней\n````",  # a shorter inner fence does not close a longer one
+        "~~~\nреестр внутри\n~~~",
+        "~~~~\nреестр\n~~~\nреестр\n~~~~",
+        "слово ``реестр`` здесь",
+        "слово ``a ` реестр`` здесь",
+        "```\nреестр до конца текста без закрытия",  # an unclosed fence exempts to the end
+        "```\nреестр\n```   \nслово здесь",  # trailing blanks still close
+    ],
+)
+def test_markdown_code_exemptions_follow_commonmark(text):
+    assert forms_in(text) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "````\nвнутри\n````\nслово реестр снаружи",
+        "~~~\nвнутри\n~~~\nслово реестр снаружи",
+        "```\nвнутри\n~~~\nещё внутри\n```\nслово реестр снаружи",  # another character does not close a fence
+        "слово ``a`` и реестр снаружи",
+        "слово реестр здесь",
+    ],
+)
+def test_text_outside_code_is_still_read(text):
+    assert forms_in(text) == ["реестр"]
+
+
 def test_english_line_with_a_forbidden_latin_form_is_silent_and_the_same_form_on_a_cyrillic_line_fires():
     assert forms_in("This line has OOF in English prose.\nА здесь OOF в русской строке.") == ["OOF"]
 

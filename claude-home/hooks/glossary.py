@@ -171,7 +171,8 @@ IDENT_RE = re.compile(
     r"[A-Za-z0-9_./-]*(?:[_/]|[0-9]|\.[A-Za-z])[A-Za-z0-9_./-]*"  # _ / digit inner dot: scale_pos_weight, docs/plan.md, H0
     r"|(?=[A-Za-z-]*[a-z])[A-Za-z][A-Za-z-]*[A-Z][A-Za-z-]*"  # a capital after the first letter and a lowercase one: camelCase
 )
-TOKEN_EDGES = ".,;:!?()[]{}\"'«»*—–"
+OPEN_FENCE_RE = re.compile(r"\s*(`{3,}(?=[^`]*$)|~{3,})")  # CommonMark: a backtick fence has no backtick in its info string
+TOKEN_EDGES =".,;:!?()[]{}\"'«»*—–"
 
 
 def word_regex(word):
@@ -200,15 +201,19 @@ def blank_ident(match):
 
 def governed_lines(text):
     """The lines of text with every exempt span replaced by spaces (offsets and line numbers survive)."""
-    out, fenced = [], False
+    out, fence = [], None  # fence: the opening run of the fenced block the line is in; an unclosed one runs to the end
     for line in text.split("\n"):
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            out.append(" " * len(line))
+        if fence is None:
+            opening = OPEN_FENCE_RE.match(line)
+            fence = opening.group(1) if opening else None
+            out.append(" " * len(line) if opening else line)
         else:
-            out.append(" " * len(line) if fenced else line)
+            run = line.strip()
+            if set(run) == {fence[0]} and len(run) >= len(fence):
+                fence = None
+            out.append(" " * len(line))
     text = "\n".join(out)
-    for exempt in (r"`[^`\n]*`", r"«[^»\n]*»", r"\[[^\]\n]*\]\([^)\n]*\)", r"https?://\S+"):
+    for exempt in (r"(?<!`)(`+)(?!`)[^\n]*?(?<!`)\1(?!`)", r"«[^»\n]*»", r"\[[^\]\n]*\]\([^)\n]*\)", r"https?://\S+"):
         text = re.sub(exempt, blank, text)
     return re.sub(r"\S+", blank_ident, text).split("\n")
 
