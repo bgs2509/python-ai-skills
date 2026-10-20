@@ -13,10 +13,14 @@ memo and stop are advisory (exit 0 on every path, no `decision`, silent without 
 --staged is a gate (exit 0 / 1 findings / 2 glossary unreadable). Stdlib only.
 See ~/.claude/CLAUDE.md -> "Explanation Protocol".
 """
+import datetime
 import difflib
 import functools
+import json
+import os
 import re
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -248,3 +252,78 @@ def changed_lines(head_text, new_text):
         if tag in ("replace", "insert"):
             changed.update(range(j1 + 1, j2 + 1))
     return changed
+
+
+def log_record(detail):
+    """Append one JSONL record to the hook journal (the explanation-terms.py shape); never raises."""
+    try:
+        JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        record = {"ts": stamp, "hook": "glossary", "cwd": os.getcwd(), **detail}
+        with open(JOURNAL, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
+
+
+def emit(event, context):
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}, ensure_ascii=False))
+
+
+def memo_context(glossary, prompt):
+    """The text a memo sends: the whole section, else the groups the prompt touches, else a pointer."""
+    section = "\n".join(glossary.lines)
+    if not glossary.pointed and len(glossary.lines) <= SECTION_MAX_LINES and len(section) <= MEMO_MAX_CHARS:
+        return f"Project glossary from {glossary.path} (the only copy); use only the canonical terms in this answer:\n\n{section}"
+    picked, total = [], 0
+    for group in glossary.groups:
+        if any(form_regex(term).search(prompt) for term in (group.canonical, *group.forms)):
+            total += len(group.line) + 1
+            if total > MEMO_MAX_CHARS:
+                break
+            picked.append(group.line)
+    if picked:
+        return (
+            f"Project glossary {glossary.path}: {len(picked)} of {len(glossary.groups)} groups touched by this prompt "
+            "(the file has the rest); use only the canonical terms:\n\n" + "\n".join(picked)
+        )
+    return (
+        f"Project glossary: {glossary.path}, {len(glossary.groups)} groups, {len(glossary.lines)} lines. "
+        "Read it before naming a thing; use only its canonical terms in this answer."
+    )
+
+
+def read_event():
+    """The hook input: a JSON object, else None."""
+    try:
+        data = json.load(sys.stdin)
+    except ValueError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def run_memo(data):
+    glossary = load_glossary(project_root(data.get("cwd") or ""))
+    if glossary:
+        emit("UserPromptSubmit", memo_context(glossary, data.get("prompt") or ""))
+    return 0
+
+
+HOOKS = {"memo": run_memo}
+
+
+def main(argv):
+    mode = argv[1] if len(argv) > 1 else ""
+    if mode not in HOOKS:
+        print("usage: glossary.py memo | stop | --staged", file=sys.stderr)
+        return 2
+    try:
+        data = read_event()
+        return HOOKS[mode](data) if data is not None else 0
+    except Exception as exc:  # advisory hooks never fail a turn; the journal keeps the cause
+        log_record({"mode": mode, "error": f"{type(exc).__name__}: {exc}"})
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

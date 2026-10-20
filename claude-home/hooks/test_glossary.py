@@ -7,6 +7,7 @@ one (bd python-ai-skills-du5). Isolation as in test_explanation_terms.py: a fake
 temporary git repository per test; fixtures are inline strings.
 """
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -320,3 +321,117 @@ def test_only_lines_limits_the_report():
 def test_changed_lines_marks_replaced_and_inserted_lines_only():
     assert glossary.changed_lines("a\nb\nc", "a\nB\nc\nd") == {2, 4}
     assert glossary.changed_lines(None, "a\nb") == {1, 2}
+
+
+def run_mode(mode, payload, home, cwd=None):
+    return subprocess.run(
+        ["python3", str(HOOK), mode],
+        input=payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False),
+        capture_output=True,
+        text=True,
+        timeout=30,
+        cwd=cwd,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(home)},
+    )
+
+
+def memo(home, root, prompt="привет", **extra):
+    return run_mode("memo", {"hook_event_name": "UserPromptSubmit", "prompt": prompt, "cwd": str(root), **extra}, home)
+
+
+def context_of(result, event):
+    assert result.returncode == 0 and result.stderr == ""
+    out = json.loads(result.stdout)
+    assert "decision" not in out and out["hookSpecificOutput"]["hookEventName"] == event
+    return out["hookSpecificOutput"]["additionalContext"]
+
+
+def silent(result):
+    assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
+
+
+def groups_section(count, prefix="термин"):
+    return "".join(f"- «{prefix}{i}» → **канон{i}** — определение {i}\n" for i in range(count))
+
+
+def test_memo_sends_the_whole_section_of_a_small_glossary(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": GLOSSARY_MD + "\n## Другое\n\nSTAYS-OUT\n"})
+    context = context_of(memo(home, root), "UserPromptSubmit")
+    assert "- «фича» → **признак** — столбец данных" in context and "STAYS-OUT" not in context
+    assert str(root / "AGENTS.md") in context and "only the canonical terms" in context
+
+
+def test_memo_resolves_a_subdirectory_to_the_project_root(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": GLOSSARY_MD, "sub/x.txt": "x"})
+    assert "«фича»" in context_of(memo(home, root / "sub"), "UserPromptSubmit")
+
+
+def test_memo_reads_claude_md_when_it_is_the_instruction_file(home, tmp_path):
+    root = make_project(tmp_path, {"CLAUDE.md": GLOSSARY_MD})
+    assert "«фича»" in context_of(memo(home, root), "UserPromptSubmit")
+
+
+def test_memo_of_a_pointed_glossary_sends_only_the_touched_groups_in_file_order(home, tmp_path):
+    root = make_project(tmp_path, {
+        "AGENTS.md": "## Glossary\n\nGlossary file: `glossary.md`\n",
+        "glossary.md": "## Glossary\n\n" + groups_section(30),
+    })
+    context = context_of(memo(home, root, prompt="что значит канон7 и термин3?"), "UserPromptSubmit")
+    sent = [line for line in context.splitlines() if line.startswith("- ")]
+    assert sent == ["- «термин3» → **канон3** — определение 3", "- «термин7» → **канон7** — определение 7"]
+    assert "2 of 30 groups" in context
+
+
+def test_memo_of_a_pointed_glossary_with_nothing_touched_sends_the_pointer(home, tmp_path):
+    root = make_project(tmp_path, {
+        "AGENTS.md": "## Glossary\n\nGlossary file: `glossary.md`\n",
+        "glossary.md": "## Glossary\n\n" + groups_section(30),
+    })
+    context = context_of(memo(home, root, prompt="совсем другая тема"), "UserPromptSubmit")
+    assert "30 groups" in context and "- «" not in context and "glossary.md" in context
+
+
+@pytest.mark.parametrize(
+    "section",
+    [groups_section(201), "".join(f"- «т{i}» → **к{i}** — {'д' * 100}\n" for i in range(80))],
+    ids=["201 lines", "over 8,000 characters"],
+)
+def test_memo_of_an_oversized_section_falls_back_to_the_pointer(home, tmp_path, section):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + section})
+    context = context_of(memo(home, root, prompt="совсем другая тема"), "UserPromptSubmit")
+    assert "groups," in context and "- «" not in context
+
+
+def test_memo_caps_the_touched_groups_at_the_character_limit(home, tmp_path):
+    section = "".join(f"- «слово» → **канон{i}** — {'д' * 200}\n" for i in range(60))
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\nGlossary file: `g.md`\n", "g.md": "## Glossary\n\n" + section})
+    context = context_of(memo(home, root, prompt="слово"), "UserPromptSubmit")
+    assert len(context) <= glossary.MEMO_MAX_CHARS + 400 and "groups touched" in context
+
+
+@pytest.mark.parametrize("payload", ["", "not json", "[]", "42"])
+def test_memo_malformed_input_is_silent(home, tmp_path, payload):
+    root = make_project(tmp_path, {"AGENTS.md": GLOSSARY_MD})
+    silent(run_mode("memo", payload, home, cwd=root))
+
+
+def test_memo_without_a_glossary_is_silent_and_writes_no_journal(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "# P\n\nno glossary\n"})
+    silent(memo(home, root))
+    assert not (home / ".claude" / "hook-stats").exists()
+
+
+def test_memo_without_git_or_instruction_file_is_silent(home, tmp_path):
+    silent(memo(home, make_project(tmp_path, {}, git=False)))
+
+
+def test_memo_with_a_broken_pointer_is_silent_and_journals_the_error(home, tmp_path):
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\nGlossary file: `absent.md`\n"})
+    silent(memo(home, root))
+    record = json.loads((home / ".claude" / "hook-stats" / "blocks.jsonl").read_text().splitlines()[-1])
+    assert (record["hook"], record["mode"]) == ("glossary", "memo") and "unreadable" in record["error"]
+
+
+def test_unknown_mode_is_a_usage_error(home):
+    result = run_mode("bogus", {}, home)
+    assert result.returncode == 2 and "usage" in result.stderr
