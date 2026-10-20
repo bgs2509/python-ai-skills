@@ -222,9 +222,10 @@ def scan_text(text, glossary, only_lines=None):
     only_lines: 1-based line numbers to report (None: all). A form inside a longer form's match,
     or overlapping an exception phrase, is not reported."""
     pairs = [(form, group.canonical) for group in glossary.groups for form in group.forms]
+    entry_lines = {group.line for group in glossary.groups}
     findings = []
-    for line_no, line in enumerate(governed_lines(text), 1):
-        if (only_lines is not None and line_no not in only_lines) or not CYRILLIC.search(line):
+    for line_no, (line, original) in enumerate(zip(governed_lines(text), text.split("\n")), 1):
+        if (only_lines is not None and line_no not in only_lines) or not CYRILLIC.search(line) or original in entry_lines:
             continue
         excused = [m.span() for phrase in glossary.exceptions for m in form_regex(phrase).finditer(line)]
         found = [

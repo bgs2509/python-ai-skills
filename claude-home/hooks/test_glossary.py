@@ -576,11 +576,11 @@ def test_staged_broken_pointer_exits_2(home, tmp_path):
     assert staged(home, root).returncode == 2
 
 
-def test_staged_checks_the_glossary_file_itself_for_foreign_forbidden_forms(home, tmp_path):
+def test_staged_does_not_scan_the_glossary_entry_lines_but_scans_the_rest_of_the_file(home, tmp_path):
     body = "- «лог» → **журнал** — то же, что фича\n- «фича» → **признак**\n"
-    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + body})
+    root = make_project(tmp_path, {"AGENTS.md": "## Glossary\n\n" + body + "\n## Другое\n\nЗдесь лог в прозе.\n"})
     sh(root, "add", "-A")
-    assert staged(home, root).stdout == "AGENTS.md:3: «фича» → «признак»\n"
+    assert staged(home, root).stdout == "AGENTS.md:8: «лог» → «журнал»\n"
 
 
 def test_staged_follows_an_absolute_pointer_outside_the_repository(home, tmp_path):
