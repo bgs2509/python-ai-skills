@@ -729,9 +729,17 @@ def test_both_generators_reference_the_asset():
         assert "glossary-section.md.template" in (REPO / rel).read_text(encoding="utf-8"), rel
 
 
-def test_grace_agents_template_carries_the_asset_verbatim():
+def test_the_skeleton_lives_only_in_the_asset():
     template = (REPO / "grace-init" / "assets" / "AGENTS.md.template").read_text(encoding="utf-8")
-    assert ASSET.read_text(encoding="utf-8").strip() in template
+    assert glossary.GLOSSARY_HEADING not in template
+    skeleton = ASSET.read_text(encoding="utf-8")
+    assert skeleton.startswith(glossary.GLOSSARY_HEADING)
+    assert all(form in skeleton for form in ("→ **канонический термин**", "- **термин без синонимов**", "- Исключение: «"))
+
+
+def test_init_skill_cites_the_asset_by_a_path_that_resolves():
+    text = (REPO / "_init" / "SKILL.md").read_text(encoding="utf-8")
+    assert "`~/.claude/skills/grace-init/assets/glossary-section.md.template`" in text
 
 
 def test_this_repository_glossary_fits_the_section_form():

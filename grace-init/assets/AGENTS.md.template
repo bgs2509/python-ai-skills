@@ -162,18 +162,3 @@ In `docs/*.xml`, repeated entities must use their unique ID as the XML tag name 
 4. After changing test files, commands, critical scenarios, or log markers, update `docs/verification-plan.xml`.
 5. After fixing bugs, add a CHANGE_SUMMARY entry and strengthen nearby verification if the old evidence was weak.
 6. Never remove semantic markup anchors unless the structure is intentionally replaced with better anchors.
-
-## Glossary
-
-Одно понятие — одно обозначение (глобальный CLAUDE.md → Explanation Protocol). Одна строка на группу,
-формы записи (пример в блоке кода не читается проверкой):
-
-```text
-- «запрещённая форма», «ещё форма» → **канонический термин** — определение (источник: документ или дата)
-- **термин без синонимов** — определение (English: term)
-- Исключение: «форма в законном контексте» — источник: откуда разрешение
-```
-
-Нового понятия в словаре нет — добавить строку и дальше употреблять её канонический термин. Раздел больше
-200 строк или 8 000 знаков — перенести в `glossary.md` в корне проекта и оставить здесь одну строку:
-Glossary file: `glossary.md`

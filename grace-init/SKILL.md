@@ -13,7 +13,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 | Template source                          | Target in project           |
 |------------------------------------------|-----------------------------|
 | `assets/AGENTS.md.template`              | `AGENTS.md` (project root) + `CLAUDE.md -> AGENTS.md` symlink |
-| `assets/glossary-section.md.template`    | the `## Glossary` skeleton, already appended to `assets/AGENTS.md.template` (one text, a test keeps the two equal) |
+| `assets/glossary-section.md.template`    | the `## Glossary` skeleton, appended verbatim to the generated `AGENTS.md` (one template for both generators, `_init` uses it too) |
 | `assets/docs/knowledge-graph.xml.template` | `docs/knowledge-graph.xml`  |
 | `assets/docs/requirements.xml.template`    | `docs/requirements.xml`     |
 | `assets/docs/technology.xml.template`      | `docs/technology.xml`       |
@@ -45,6 +45,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 3. **Create or verify `AGENTS.md` at project root:**
     - If `AGENTS.md` does not exist — read `assets/AGENTS.md.template`, fill in `$KEYWORDS` and `$ANNOTATION`, and write to project root
     - If `AGENTS.md` already exists — warn the user and ask whether to overwrite or keep the existing one
+    - After writing a new or overwritten `AGENTS.md`, append `assets/glossary-section.md.template` verbatim to it (the `## Glossary` skeleton; one template for both generators)
     - Create the symlink `CLAUDE.md -> AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`) when `CLAUDE.md` is absent; a link already pointing to `AGENTS.md` stays as is; when a regular `CLAUDE.md` or any other link exists, stop and ask the user to merge it into `AGENTS.md` first.
 
 4. **Print a summary** of all created files and suggest the next step:
