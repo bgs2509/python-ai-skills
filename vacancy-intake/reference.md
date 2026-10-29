@@ -20,7 +20,7 @@ Sells technical skills. No questions about format, location, contract type or pa
 
 ## 4. Salary range
 
-Give a range with the reason for the minimum and the maximum: market, region of the employer, contract type (B2B or employment), seniority. Mark it as an estimate; name the sources and the search date.
+Give a range with the reason for the minimum and the maximum: market, region of the employer, contract type (B2B or employment), seniority. Mark it as an estimate; name the sources and the search date. Both ends are also written in euro per month at 40 hours a week and 4 weeks a month (160 hours), by the rules of `SKILL.md`, «Conversions inside the vacancy description».
 
 ## 5. Company research
 

@@ -62,6 +62,16 @@ The stop-list is the only filter that can close a vacancy at once (`AGENTS.md`, 
 
 Folder already exists for this vacancy (the user confirmed after an alarm) → update the files, do not create a second folder.
 
+#### Conversions inside the vacancy description
+
+In `01_vacancy.md` the vacancy text stays verbatim. Every time zone and every pay figure in it gets its conversion **in the conditions section of the same file, next to the original value** (the original is kept), and the answer to the user repeats it in block 2.
+
+1. **Time zones → Turkish time** (`Europe/Istanbul`, the owner's zone, fixed UTC+3 all year). Convert with the tool, not from memory: `TZ=Europe/Istanbul date -d 'TZ="<IANA zone>" <YYYY-MM-DD> <HH:MM>' '+%H:%M'`. Vague phrases («US business hours», «EST overlap») → the hours of the stated zone, converted. A zone with daylight saving time (the employer's side changes, Istanbul does not) → give two values, for the date of the analysis and for the other season, and say which is which. Zone not named → «часовой пояс не назван».
+2. **Pay → euro per month at 40 hours a week, 4 weeks a month (160 hours a month).** Hourly × 160; daily × 20 (8 hours a day); weekly × 4; annual ÷ 12; monthly as stated. Pay stated for another load (part-time, hours a week named) → convert through the hourly rate, then × 160, and say so. Show the original, the arithmetic and the result, e.g. «400 GBP в день × 20 = 8 000 GBP в мес → ≈ N EUR в мес (курс …)».
+3. **Rate:** take the reference rate (ECB) for the day of the analysis from a source you can open, and write the rate, the source and the date next to the result. Rate unavailable → write the pay in its own currency per month and «курс не получен»; never guess a rate. Pay already in euro → only the monthly conversion.
+4. **Gross or net, with or without taxes, employer contributions** — as stated; not stated → «не названо». The conversion is arithmetic on the posted figure, not an estimate of take-home pay.
+5. A range stays a range (both ends converted). A bonus, share of sales or other variable pay is not folded into the monthly figure; it is listed beside it.
+
 ### 5. `02_tech_fit.md`
 
 1. Check every requirement and duty against `docs/owners/<owner>/legends/` only. Each confirmation names the file and the section number. Labels: **прямое / частично / пробел / превышение уровня**.
@@ -77,7 +87,7 @@ By technical fit only. Format, location, contract type and pay go to the referen
 ### 7. Answer to the user (Russian, in this order)
 
 1. Duplicate check result.
-2. Conditions: location, pay, contract type, visa, time zone.
+2. Conditions: location, pay, contract type, visa, time zone — with the conversions from step 4 (Turkish time, euro per month at 160 hours), original values beside them.
 3. Client and recruiting company: size, place, main services.
 4. The work itself.
 5. Unusual requirements and non-standard terms.
