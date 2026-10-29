@@ -31,7 +31,7 @@ project_type: dev
 
 > **SSoT for invocation:** the `TRIGGER`/`SKIP` lines in each `SKILL.md` frontmatter are the single source of truth for when a skill fires. The `not …` hints above are a compact routing aid, not a duplicate of those lines.
 
-### Workflow, GRACE & utility skills (33)
+### Workflow, GRACE & utility skills (34)
 
 - **Orchestrators:** `do-feature` (shipped code: full mode for task level 1, `--lite` for level 2 — levels in `claude-home/CLAUDE.md`), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
 - **best-\* family:** `best-research` (analysis engine, SSoT), `best-recommend` (recommendation format atom), `best-approach` / `best-rank` / `best-questions` (thin wrappers)
@@ -39,9 +39,9 @@ project_type: dev
 - **git & sync:** `git-commit`, `git-branch`, `git-finish` (closes the session: docs and plans always first → merge → delete → push → uppercase verdict), `project-sync`, `projects-sync`, `beads-sync`
 - **audit:** `full-audit` (deterministic code+docs audit), `audit-loop` (5-round codex cross-review)
 - **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only), `plan-progress-page` (proportional HTML progress page of a plan, published as an Artifact)
-- **misc:** `customer-tz` (customer-facing TZ from raw input)
+- **misc:** `customer-tz` (customer-facing TZ from raw input), `vacancy-intake` (ML_CAREER_2026: one incoming job offer → duplicate alarm over all vacancies, stop-list, four-file analysis against the owner's legends)
 
-> The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (48 total); `make install-symlinks` links them all.
+> The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (49 total); `make install-symlinks` links them all.
 
 ---
 
@@ -113,7 +113,7 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** All repo skills (48 as of 2026-10-15; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
+**Rule:** All repo skills (49 as of 2026-10-29; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
 
 **Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
 
