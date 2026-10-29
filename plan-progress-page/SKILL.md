@@ -118,15 +118,16 @@ Field rules (`render.py` enforces each one and refuses to write the page otherwi
 5. `meta` values and `foot` paragraphs are inserted as HTML (use `<code>`, `<b>`); every
    other string is escaped.
 6. Every number with a unit; every percent is of the whole plan (= total hours).
-   The footer «Как читать» states the scale: 1 ч = 40 px.
+   The footer «Как читать» states the scale rule, not a number: the page picks one scale for the whole bar.
 7. `updated` starts with «ДД.ММ.ГГГГ ЧЧ:ММ»: the page takes the year of every other
    timestamp from it, and its time is the «сейчас» line on both time views.
 8. `work_window` — the owner's working hours `[start, end]` (default `[10, 23]`); the hours
    outside it are shaded on both time views. Every stage's `end` is not earlier than its `start`.
-9. The scale is fixed, so a stage under ~1 h is a thin row (< 46 px gets the compact
-   `tiny` style) and its ticks crowd the next one; in a plan of only a few hours most
-   rows are thin. Merge sub-hour stages into a neighbour and list them as sub-stages
-   rather than changing the scale.
+9. One scale for the whole bar: at least 40 px per hour (34 px on a phone), raised until every
+   row fits its left tick and its header (name, status, time), at most 200 px per hour (150 px on
+   a phone). Heights stay proportional to hours. A stage shorter than about 0.2 h still gets a
+   cramped row (the text inside scrolls), so merge such stages into a neighbour and list them
+   as sub-stages; sub-stages and the detail line scroll inside a short row or open in the stage dialog.
 
 ## 4. Render, check, publish
 
@@ -170,3 +171,8 @@ forecast finish.
    both stages); Esc, × or a click outside closes it. The bar got the heading «Столбец этапов:
    доли часов плана» — the owner called it a sidebar, but a sidebar is a side navigation
    panel; the block is a vertical stacked bar chart with a label beside each segment.
+8. 2026-10-29: the scale of the bar is no longer a fixed 40 px per hour. One measured scale for
+   the whole bar (see rule 9 above) keeps the bar proportional and keeps every row's header
+   readable in plans with stages shorter than 1 h. A broken axis and a nonlinear scale were
+   dropped (they break proportion); a separate text column with connector lines was offered
+   and not chosen.

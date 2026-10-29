@@ -2,7 +2,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: every stage is one row whose height is its share of hours (1 h = fixed px); tick, bar segment and description share that row; a blue arrow left of the bar marks "now". */
+/* Layout: every stage is one row whose height is its share of hours (one scale for the whole bar, picked so every row's tick and header fit); tick, bar segment and description share that row; a blue arrow left of the bar marks "now". */
 :root {
   --bg: #f6f7f5;
   --panel: #ffffff;
@@ -51,7 +51,7 @@ h1 { font-size: 1.6rem; font-weight: 600; margin: 0 0 4px; text-wrap: balance; }
 .chart { position: relative; }
 .row { position: absolute; left: 0; right: 0; display: grid; grid-template-columns: 150px 30px 1fr; border-top: 1px solid var(--line); }
 .row:first-child { border-top: 0; }
-.tick { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); text-align: right; padding: 2px 10px 0 0; line-height: 1.25; font-variant-numeric: tabular-nums; overflow: hidden; }
+.tick { align-self: start; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); text-align: right; padding: 2px 10px 0 0; line-height: 1.25; font-variant-numeric: tabular-nums; overflow: hidden; }
 .tick em { font-style: normal; color: var(--fg); }
 .seg { position: relative; background: var(--left); }
 .seg .fill { position: absolute; left: 0; right: 0; top: 0; background: var(--done); }
@@ -254,22 +254,39 @@ document.addEventListener("keydown", (e) => {
 
 function draw() {
   const narrow = window.matchMedia("(max-width: 560px)").matches;
-  const pxPerHour = narrow ? 34 : 40;
+  const basePx = narrow ? 34 : 40;      // px per plan hour when the text already fits
+  const maxPx = narrow ? 150 : 200;     // upper bound: beyond it a row scrolls instead of growing
   const chart = document.getElementById("chart");
   chart.innerHTML = "";
-  let y = 0, cum = 0;
-  STAGES.forEach((s, i) => {
-    const h = s.hours * pxPerHour;
+  let cum = 0;
+  const rows = STAGES.map((s, i) => {
     const row = document.createElement("div");
-    row.className = `row ${s.state}` + (h < 46 ? " tiny" : "") + (i === STAGES.length - 1 ? " last" : "");
-    row.style.top = y + "px";
-    row.style.height = h + "px";
+    row.className = `row ${s.state}` + (i === STAGES.length - 1 ? " last" : "");
     row.innerHTML =
       `<div class="tick">${fmt(pct(cum))}% · ${fmt(cum)} ч<br><em>${s.start}</em>${s.fact || s.state === "run" ? "" : " прогн."}</div>` +
       `<div class="seg"><div class="fill" style="height:${(s.done / s.hours) * 100}%"></div></div>` +
       `<div class="desc" tabindex="0" aria-label="${esc(s.name)}">${stageInner(s, i, true)}</div>`;
     chart.appendChild(row);
-    y += h; cum += s.hours;
+    cum += s.hours;
+    return row;
+  });
+  // One scale for the whole bar keeps heights proportional to hours; it is the smallest one at which
+  // every row still shows its tick and its header (name, status, time), measured at natural height.
+  let need = basePx;
+  rows.forEach((row, i) => {
+    const d = row.querySelector(".desc"), cs = getComputedStyle(d);
+    const head = [...d.querySelectorAll("h3, .when")].reduce((a, e) => a + e.getBoundingClientRect().height, 0);
+    const rowNeed = Math.max(row.querySelector(".tick").getBoundingClientRect().height, head + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom));
+    need = Math.max(need, rowNeed / STAGES[i].hours);
+  });
+  const pxPerHour = Math.min(Math.ceil(need), maxPx);
+  let y = 0;
+  rows.forEach((row, i) => {
+    const h = STAGES[i].hours * pxPerHour;
+    row.classList.toggle("tiny", h < 46);
+    row.style.top = y + "px";
+    row.style.height = h + "px";
+    y += h;
   });
   const end = document.createElement("div");
   end.className = "endtick";
