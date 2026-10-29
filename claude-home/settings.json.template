@@ -505,5 +505,6 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
   "teammateMode": "tmux",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "switchModelsOnFlag": true
 }
