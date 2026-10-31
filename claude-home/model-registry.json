@@ -10,8 +10,8 @@
     "measured_seconds = ~2k-token single prompt incl. CLI startup (passport). Multi-turn tool/web tasks take far longer: read model-stats.py, not this field."
   ],
   "version": 2,
-  "updated": "2026-10-14",
-  "source": "docs/research/model-passports-2026-09.md",
+  "updated": "2026-10-31",
+  "source": "docs/research/model-passports-2026-09.md; gpt-6.x entries: Codex catalog ~/.codex/models_cache.json (client 0.163.0, fetched 2026-10-30), unmeasured. KNOWN DISCREPANCY, not changed: context_tokens of the gpt-5.6 entries is 1050000, the catalog says context_window 272000 (max_context_window 872000).",
   "capabilities_source": "bd python-ai-skills-2fu comment 2026-09-24: real runs of all ten models, web search checked by a live PyPI query.",
 
   "roles": {
@@ -184,6 +184,66 @@
       "quota": "ChatGPT Plus — 250-2000 Luna messages / 5h",
       "capabilities": {"web_search": true},
       "notes": "Fastest non-Anthropic position at small and medium context."
+    },
+    "gpt-6.1-sol-low": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-6.1-sol",
+      "effort": "low",
+      "context_tokens": 500000,
+      "measured_seconds": {"small": null, "medium": null, "large": null},
+      "timeout_seconds": 600,
+      "quota": "ChatGPT Plus — quota for this model not recorded",
+      "capabilities": {"web_search": false},
+      "notes": "NOT MEASURED, in no role. Codex catalog 2026-10-30: «Latest workhorse model for coding and everyday work». Effort is the catalog default; web_search false means not checked, not absent."
+    },
+    "gpt-6-astra-low": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-6-astra",
+      "effort": "low",
+      "context_tokens": 272000,
+      "measured_seconds": {"small": null, "medium": null, "large": null},
+      "timeout_seconds": 600,
+      "quota": "ChatGPT Plus — quota for this model not recorded",
+      "capabilities": {"web_search": false},
+      "notes": "NOT MEASURED, in no role. Codex catalog 2026-10-30: «Frontier intelligence for the most demanding work». Effort is the catalog default; web_search false means not checked, not absent."
+    },
+    "gpt-6.1-terra-medium": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-6.1-terra",
+      "effort": "medium",
+      "context_tokens": 500000,
+      "measured_seconds": {"small": null, "medium": null, "large": null},
+      "timeout_seconds": 480,
+      "quota": "ChatGPT Plus — quota for this model not recorded",
+      "capabilities": {"web_search": false},
+      "notes": "NOT MEASURED, in no role. The judge of Local_LLM_selection/DGX_Spark/watch/weekly_report.py (owner decision 2026-10-31) pins this model and effort in code, not through this file. Catalog 2026-10-30: «GPT-6.1 Terra Codex model». web_search false means not checked, not absent."
+    },
+    "gpt-6-sol-medium": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-6-sol",
+      "effort": "medium",
+      "context_tokens": 272000,
+      "measured_seconds": {"small": null, "medium": null, "large": null},
+      "timeout_seconds": 600,
+      "quota": "ChatGPT Plus — quota for this model not recorded",
+      "capabilities": {"web_search": false},
+      "notes": "NOT MEASURED, in no role. Codex catalog 2026-10-30: «Previous generation workhorse model». Effort is the catalog default; web_search false means not checked, not absent."
+    },
+    "gpt-6-luna-medium": {
+      "pool": "openai",
+      "runner": "codex",
+      "model_arg": "gpt-6-luna",
+      "effort": "medium",
+      "context_tokens": 272000,
+      "measured_seconds": {"small": null, "medium": null, "large": null},
+      "timeout_seconds": 480,
+      "quota": "ChatGPT Plus — quota for this model not recorded",
+      "capabilities": {"web_search": false},
+      "notes": "NOT MEASURED, in no role. Codex catalog 2026-10-30: «Fast and affordable model for easier tasks». Effort is the catalog default; web_search false means not checked, not absent."
     },
     "qwen38": {
       "pool": "local",

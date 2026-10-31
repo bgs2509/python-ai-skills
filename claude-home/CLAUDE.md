@@ -221,6 +221,8 @@ Real secrets in any of these files = policy violation regardless of name.
 
 **Rule:** Do NOT log passwords, tokens, API keys, or session IDs.
 
+**Rule (Claude only on this laptop, owner decision 2026-10-31):** never run `claude` — in any form (`claude -p`, `claude-glm`, an interactive session), directly or through `ssh`, `docker exec`, cron, a systemd unit or a script — on any VPS, server or other remote host. Do not install, update or restore it there; the binaries were removed from vpn-2 and vpn-3 on 2026-10-31. Work a server must do with a model goes to Codex (`codex exec`). Rationale and limits: `~/.claude/CLAUDE-APPENDIX.md` → "Claude only on this laptop".
+
 **Enforcement:** `~/.claude/settings.json` (deny+sandbox) + `~/.codex/config.toml` (deny+sandbox_mode=workspace-write) for read-side; `gitleaks`/`detect-secrets` pre-commit + CI for write-side.
 
 **Rule:** Honest limits of the read-side gate (what `deny` and the Bash sandbox do and do not block): `~/.claude/CLAUDE-APPENDIX.md` → "Security — scope of the read-side gate".

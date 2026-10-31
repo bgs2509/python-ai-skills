@@ -348,6 +348,18 @@ It picks the first usable model of that role, applies the registry timeout, skip
 
 **Scope of the read-side gate (honest limits, 2026-08-31):** `deny` binds the `Read` tool only, so any allowed command that prints a file walks around it. `cat`, `head`, `tail` and `sudo cat` were removed from the allow list for that reason; `grep`/`rg`/`find`, `ssh * cat` and arbitrary interpreters (`python3 -c "open('.env').read()"`) remain capable and are NOT blocked. Deny patterns must carry a `**/` prefix or an absolute path — a bare `Read(.env)` matches only the cwd root. The `*secret*`/`*_token*` masks from the Rule above are deliberately NOT in the deny list (they false-positive on legit code like `secrets.py`) — they bind agent discipline only. Treat the filename deny-list as a navigation contract for agents; the real gates are file modes (600/700) and the content scanner at commit time. Since 2026-09-24 the Bash sandbox is live on the laptop and `sandbox.credentials` (template) denies sandboxed commands the SSH/GPG dirs, the gh/codex/Claude auth files, the GLM/qwen/secrets env files and `CONTEXT7_API_KEY` — an OS-level read gate for Bash only; commands in `sandbox.excludedCommands` (`git *`, `gh *`, `docker *`, `model-run.sh *`) run outside it — only as a standalone call: a pipe or chain with any other command, a `cd` or `git -C <dir>`, a redirect, `$(...)` or `/usr/bin/git` keeps the whole call sandboxed. The trailing ` *` is load-bearing: a bare `git` matches only `git` with no arguments (sandboxing docs), which kept every git call sandboxed until 2026-10-13; `git` is also excluded from RTK rewriting for the same reason (`CLAUDE.md` → "RTK — Rust Token Killer").
 
+## Claude only on this laptop
+
+**Why (owner decision 2026-10-31):** the OAuth session of `claude` on a server expires and cannot be refreshed without a person at a browser. Observed 2026-10-31: every morning at 07:05 Istanbul (04:05 UTC) and on Wednesdays at 03:17, `@knw232_bot` delivered the text `Failed to authenticate: OAuth session expired and could not be refreshed`. Two cron jobs on vpn-2 (`housekeeping-report.sh`, `weekly_report.py`) took the `claude -p` stdout as the answer without looking at the exit code, so the login error went to Telegram as if it were a report.
+
+**What was done on 2026-10-31:**
+1. `claude` binaries (`~/.local/bin/claude`, `~/.local/share/claude`) removed on vpn-2 and vpn-3; `~/.claude` data left in place.
+2. `aisw-bot` and `quickexambot` on vpn-2 (both spawned `claude -p`) stopped and disabled.
+3. The `housekeeping` cron lines on vpn-2 and vpn-3 commented out (backup `~/crontab.bak-2026-10-31`) and the laptop `housekeeping.timer` disabled — the script is retired.
+4. `Local_LLM_selection/DGX_Spark/watch/weekly_report.py` judges with `codex exec` (`gpt-6.1-terra`, effort `medium`) and runs daily at 04:05 UTC.
+
+**Limits of the rule:** it binds agents and is backed by removal of the binaries, not by a hook; nothing blocks a person who installs `claude` on a server again. A Codex login through a ChatGPT account on a server expires too (owner, 2026-10-31) and is restored by hand with `codex login --device-auth`; the scripts that use it report a failed judge in their message instead of passing the error text on.
+
 ## Pre-commit — template mechanics
 
 **Rule:** The `~/.git-template` bootstrap hook delegates to the `pre-commit` framework when `.pre-commit-config.yaml` exists, otherwise falls back to a staged `gitleaks` scan. Project-relevant fast checks (ruff check + format-check on staged source files) are added per project — via `.pre-commit-config.yaml` or by extending `.git/hooks/pre-commit`. SSoT of the template hook: `python-ai-skills/claude-home/git-template/pre-commit`.
