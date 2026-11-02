@@ -2,6 +2,8 @@
 
 Every extension uses facts that the owner's legends confirm. A fact absent from the legends is a question to the owner, never a claim.
 
+An extension that brings new source material — a call recording, its transcript or translation, a message from the recruiter or the client — saves it in the folder's `raw/` first (`SKILL.md`, step 4) and cites it from the analysis by line range or time mark.
+
 ## 1. Pitch
 
 1. Language: English. Two lengths: 30 seconds (about 75 words at 150 words per minute — the speed assumed in the project's voice texts, not measured) and 2 minutes.

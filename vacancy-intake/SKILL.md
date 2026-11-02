@@ -4,7 +4,8 @@ description: >
   Analyse one incoming job offer for the ML_CAREER_2026 project: split the pasted recruiter
   message from the vacancy text, compare the vacancy with every vacancy already in the project
   (duplicate alarm, stops on a match), check the stop-list, then write the four-file analysis
-  folder with a technical-fit verdict against the owner's legends.
+  folder with a technical-fit verdict against the owner's legends; source material is kept
+  only in the folder's raw/ and cited from the analysis.
   TRIGGER when: the session is in ML_CAREER_2026 and the user pastes a recruiter message or a
   vacancy text, gives a path to a vacancy .pdf/.docx or a vacancy URL, or says "new vacancy" /
   "новая вакансия" / "новое предложение".
@@ -35,7 +36,8 @@ If only the letter exists, get the full text: the vacancy URL, a `.pdf` (`pdftot
 
 1. Take keys from the new vacancy: client or company, recruiter name, platform, vacancy URL or ID, 3–5 distinctive requirement phrases.
 2. Search **all** owners, not only the current one:
-   `grep -r -i -l --include='01_vacancy.md' --include='03_recruiter_contact.md' -e "<key1>" -e "<key2>" docs/owners/*/job_search/inbound_offers`
+   `grep -r -i -l --include='*.txt' --include='*.md' -e "<key1>" -e "<key2>" docs/owners/*/job_search/inbound_offers/*/01_vacancy.md docs/owners/*/job_search/inbound_offers/*/03_recruiter_contact.md docs/owners/*/job_search/inbound_offers/*/raw`
+   — vacancy texts and recruiter messages live verbatim only in `raw/`, so without `raw/` the alarm goes blind;
    and the same keys over `docs/shared/contacts_log.md docs/shared/recruiter_keywords.md` (`grep` exit 1 means no match, not an error; plain `grep` because `rg` exists only as a Claude Code shell function). Read only the files `grep` returned. A hit that only mentions the key in passing (another vacancy naming the same company) is still reported: the user decides.
 3. **Any match on client, recruiter, URL or ID, or on at least half of the requirement phrases is an alarm**, including a match in another owner's folder (the same vacancy or the same recruiter reaching two similar profiles — the very case `contacts_log.md` exists for).
 4. On an alarm, print this block first and **stop**:
@@ -51,12 +53,21 @@ The stop-list is the only filter that can close a vacancy at once (`AGENTS.md`, 
 
 ### 4. Folder
 
-`docs/owners/<owner>/job_search/inbound_offers/ГГГГММДД_Компания-Площадка_Роль/`, date = today. Use the names that appear in the text; never invent a client. Files and skeletons — `template.md`:
+`docs/owners/<owner>/job_search/inbound_offers/ГГГГММДД_Компания-Площадка_Роль/`, date = today. Use the names that appear in the text; never invent a client. Files and skeletons — `template.md`.
+
+**Source material lives only in `raw/`** (project `AGENTS.md`, the `inbound_offers/` paragraph). Create `raw/` first and save everything as it came:
+
+- pasted text (recruiter message, vacancy, the owner's reply, a client's answer) — verbatim, `raw/ГГГГММДД_<откуда>.txt`;
+- `.pdf` / `.docx` — the file itself plus its text (`pdftotext -layout` → `.txt` of the same name);
+- a file the user points to outside the project (`~/Downloads/…`) — copied into `raw/`; a call recording `.mp3` too (it stays out of git, `.gitignore`: `**/raw/*.mp3`); a video `.mp4` is not copied, its path is cited;
+- call transcripts and **translations of any of these** — a translation is the Russian version of the source, not analysis; it goes next to the original.
+
+Outside `raw/` there is only analysis: a quote is at most one sentence (≈ 300 characters) and always cites `` `raw/<файл>`, строки N–M `` (a call — its time mark); a call is retold with time marks, never copied.
 
 1. `00_report.md` — summary and the **verdict on technical fit**;
-2. `01_vacancy.md` — the vacancy verbatim with sources, then the conditions section «справочно, на вердикт не влияет»;
+2. `01_vacancy.md` — numbered duties and requirements, each a quote of at most one sentence or a short restatement with its line range in `raw/`; then the conditions section «справочно, на вердикт не влияет», whose original values also cite `raw/` lines. `02_tech_fit.md` cites this numbering — once written, never renumber;
 3. `02_tech_fit.md` — line-by-line check of the vacancy requirements against the owner's legends; **the ground of the verdict**;
-4. `03_recruiter_contact.md` — recruiter and the verbatim message;
+4. `03_recruiter_contact.md` — recruiter, notes and the path of the message in `raw/`, no message text;
 5. `profile_company.md` — only when the client is known;
 6. `04_outreach_draft.md` — only on request: it sells skills and contains no questions about conditions.
 
@@ -64,7 +75,7 @@ Folder already exists for this vacancy (the user confirmed after an alarm) → u
 
 #### Conversions inside the vacancy description
 
-In `01_vacancy.md` the vacancy text stays verbatim. Every time zone and every pay figure in it gets its conversion **in the conditions section of the same file, next to the original value** (the original is kept), and the answer to the user repeats it in block 2.
+The vacancy text stays verbatim in `raw/`. Every time zone and every pay figure in it gets its conversion **in the conditions section of the same file, next to the original value** (the original is kept), and the answer to the user repeats it in block 2.
 
 1. **Time zones → Turkish time** (`Europe/Istanbul`, the owner's zone, fixed UTC+3 all year). Convert with the tool, not from memory: `TZ=Europe/Istanbul date -d 'TZ="<IANA zone>" <YYYY-MM-DD> <HH:MM>' '+%H:%M'`. Vague phrases («US business hours», «EST overlap») → the hours of the stated zone, converted. A zone with daylight saving time (the employer's side changes, Istanbul does not) → give two values, for the date of the analysis and for the other season, and say which is which. Zone not named → «часовой пояс не назван».
 2. **Pay → euro per month at 40 hours a week, 4 weeks a month (160 hours a month).** Hourly × 160; daily × 20 (8 hours a day); weekly × 4; annual ÷ 12; monthly as stated. Pay stated for another load (part-time, hours a week named) → convert through the hourly rate, then × 160, and say so. Show the original, the arithmetic and the result, e.g. «400 GBP в день × 20 = 8 000 GBP в мес → ≈ N EUR в мес (курс …)».
@@ -100,7 +111,7 @@ What the text does not state is «не названо». Every inference is mark
 1. Row in `docs/shared/contacts_log.md`, the same day.
 2. Row in the owner's index `docs/owners/<owner>/job_search/inbound_offers/README.md` when it exists (folder, date, recruiter, role, verdict).
 3. Keywords: append the vacancy to `docs/shared/recruiter_keywords.md` by the rule written in that file.
-4. Check by command, not by reading: the four files exist; every legend section cited in `02_tech_fit.md` exists (`grep` for the heading).
+4. Check by command, not by reading: the four files exist; `raw/` exists and holds the source; every `raw/<файл>` cited in the folder's files exists (`grep -o` the paths, `test -e` each); no quote block outside `raw/` is longer than 300 characters (consecutive `>` lines, bare `>` and blank lines between them count as one block; header notes `> Источник`, `> Составлено` excepted); every legend section cited in `02_tech_fit.md` exists (`grep` for the heading).
 5. Commit, message `docs(budov-inbound): add <Company> <Role> analysis, contact log row and gaps` (the pattern of the last commits of the project). **No `git push`.** Do not skip pre-commit hooks.
 
 ## Extensions — only on request
