@@ -2,6 +2,8 @@
 
 Every extension uses facts that the owner's legends confirm. A fact absent from the legends is a question to the owner, never a claim.
 
+Every document an extension writes for the owner to send — outreach, reply, cover letter, CV variant PDF, presentation, test task solution — goes to the folder's `outbox/` (`SKILL.md`, step 4) and gets a line in the section «Исходящие» of `03_recruiter_contact.md`. Preparation that is not sent (pitch, call questions, research) stays at the folder's top level.
+
 An extension that brings new source material — a call recording, its transcript or translation, a message from the recruiter or the client — saves it in the folder's `raw/` first (`SKILL.md`, step 4) and cites it from the analysis by line range or time mark.
 
 ## 1. Pitch
@@ -16,7 +18,7 @@ An extension that brings new source material — a call recording, its transcrip
 
 Questions the recruiter will ask the owner, built from the gaps in `02_tech_fit.md`, with a short legend-based answer for each. Questions about conditions are kept for after interest is confirmed.
 
-## 3. Outreach draft (`04_outreach_draft.md`)
+## 3. Outreach draft (`outbox/ГГГГММДД_<кому>_outreach.md`)
 
 Sells technical skills. No questions about format, location, contract type or pay (`AGENTS.md`, «Условия работы — предмет переговоров»). Before sending, `contacts_log.md` is checked again.
 

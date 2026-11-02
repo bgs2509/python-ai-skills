@@ -5,7 +5,8 @@ description: >
   message from the vacancy text, compare the vacancy with every vacancy already in the project
   (duplicate alarm, stops on a match), check the stop-list, then write the four-file analysis
   folder with a technical-fit verdict against the owner's legends; source material is kept
-  only in the folder's raw/ and cited from the analysis.
+  only in the folder's raw/ and cited from the analysis; everything the owner sends (letters,
+  replies, CV, cover letter) is kept only in the folder's outbox/.
   TRIGGER when: the session is in ML_CAREER_2026 and the user pastes a recruiter message or a
   vacancy text, gives a path to a vacancy .pdf/.docx or a vacancy URL, or says "new vacancy" /
   "новая вакансия" / "новое предложение".
@@ -28,7 +29,7 @@ description: >
 
 ### 1. Split the pasted text
 
-Separate: recruiter message / vacancy text / the owner's own reply / **restatement of the owner's profile**. A letter that lists the owner's own projects and numbers back to them (gateway failover, token cost, retrieval metrics) is the recruiter's flattery, often machine-generated from the profile: mark it «пересказ профиля, не требования вакансии» and never extract requirements from it.
+Separate: recruiter message / vacancy text / the owner's own reply / **restatement of the owner's profile**. A whole conversation pasted as one piece (both sides) goes to `raw/` as it came; a letter or document the owner sends on its own goes to `outbox/` (step 4). A letter that lists the owner's own projects and numbers back to them (gateway failover, token cost, retrieval metrics) is the recruiter's flattery, often machine-generated from the profile: mark it «пересказ профиля, не требования вакансии» and never extract requirements from it.
 
 If only the letter exists, get the full text: the vacancy URL, a `.pdf` (`pdftotext -layout`), a `.docx`. Do not log in to LinkedIn and do not construct profile addresses (`docs/shared/linkedin_guide/07_people_search_safety.md`). Text unavailable → say so and ask.
 
@@ -62,14 +63,22 @@ The stop-list is the only filter that can close a vacancy at once (`AGENTS.md`, 
 - a file the user points to outside the project (`~/Downloads/…`) — copied into `raw/`; a call recording `.mp3` too (it stays out of git, `.gitignore`: `**/raw/*.mp3`); a video `.mp4` is not copied, its path is cited;
 - call transcripts and **translations of any of these** — a translation is the Russian version of the source, not analysis; it goes next to the original.
 
-Outside `raw/` there is only analysis: a quote is at most one sentence (≈ 300 characters) and always cites `` `raw/<файл>`, строки N–M `` (a call — its time mark); a call is retold with time marks, never copied.
+**Everything the owner sends lives only in `outbox/`** (project `AGENTS.md`, the same paragraph): letters and messages to the recruiter or the client, answers to their questions, cover letters, the CV exactly as sent (a copy of the PDF; the `.tex` source of truth stays in `docs/owners/<owner>/resume/`), presentations, test task solutions — drafts and sent versions alike. Create `outbox/` when the first outgoing document appears, not before.
+
+- file name `outbox/ГГГГММДД_<кому>_<что>.<ext>` (date = written or sent; e.g. `outbox/20261102_james_cover_letter.md`, `outbox/20261102_storyful_cv.pdf`); a new version of a sent document is a new file, the sent one is never edited;
+- the header of a text file: date, status (`черновик` / `отправлено <дата>, <канал>`), addressee, language, attachments;
+- the sent CV: copy the very PDF that went out at the moment of sending, never regenerate it later;
+- the log «what went out and when» is the section «Исходящие» of `03_recruiter_contact.md` (`template.md`);
+- facts in an outgoing document follow the owner's legends (`AGENTS.md`, «Правила согласования слоёв»).
+
+Outside `raw/` and `outbox/` there is only analysis: a quote is at most one sentence (≈ 300 characters) and always cites `` `raw/<файл>`, строки N–M `` (a call — its time mark); a call is retold with time marks, never copied.
 
 1. `00_report.md` — summary and the **verdict on technical fit**;
 2. `01_vacancy.md` — numbered duties and requirements, each a quote of at most one sentence or a short restatement with its line range in `raw/`; then the conditions section «справочно, на вердикт не влияет», whose original values also cite `raw/` lines. `02_tech_fit.md` cites this numbering — once written, never renumber;
 3. `02_tech_fit.md` — line-by-line check of the vacancy requirements against the owner's legends; **the ground of the verdict**;
-4. `03_recruiter_contact.md` — recruiter, notes and the path of the message in `raw/`, no message text;
+4. `03_recruiter_contact.md` — recruiter, notes, the path of the message in `raw/` and the log of `outbox/`, no message text;
 5. `profile_company.md` — only when the client is known;
-6. `04_outreach_draft.md` — only on request: it sells skills and contains no questions about conditions.
+6. `outbox/ГГГГММДД_<кому>_outreach.md` — only on request: it sells skills and contains no questions about conditions. (Folders made before 2026-11-02 keep the old name `outbox/04_outreach_draft.md`.)
 
 Folder already exists for this vacancy (the user confirmed after an alarm) → update the files, do not create a second folder.
 
@@ -111,7 +120,7 @@ What the text does not state is «не названо». Every inference is mark
 1. Row in `docs/shared/contacts_log.md`, the same day.
 2. Row in the owner's index `docs/owners/<owner>/job_search/inbound_offers/README.md` when it exists (folder, date, recruiter, role, verdict).
 3. Keywords: append the vacancy to `docs/shared/recruiter_keywords.md` by the rule written in that file.
-4. Check by command, not by reading: the four files exist; `raw/` exists and holds the source; every `raw/<файл>` cited in the folder's files exists (`grep -o` the paths, `test -e` each); no quote block outside `raw/` is longer than 300 characters (consecutive `>` lines, bare `>` and blank lines between them count as one block; header notes `> Источник`, `> Составлено` excepted); every legend section cited in `02_tech_fit.md` exists (`grep` for the heading).
+4. Check by command, not by reading: the four files exist; `raw/` exists and holds the source; the files in `outbox/` and the `outbox/<файл>` paths in the section «Исходящие» of `03_recruiter_contact.md` are the same set (`ls outbox/` against `grep -o 'outbox/[^`]*'`; a name-based search for letters at the folder top level is not a check — preparation files such as `10_cover_letter_requirements.md` match it); every `raw/<файл>` cited in the folder's files exists (`grep -o` the paths, `test -e` each); no quote block outside `raw/` is longer than 300 characters (consecutive `>` lines, bare `>` and blank lines between them count as one block; header notes `> Источник`, `> Составлено` excepted); every legend section cited in `02_tech_fit.md` exists (`grep` for the heading).
 5. Commit, message `docs(budov-inbound): add <Company> <Role> analysis, contact log row and gaps` (the pattern of the last commits of the project). **No `git push`.** Do not skip pre-commit hooks.
 
 ## Extensions — only on request
