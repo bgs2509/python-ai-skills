@@ -39,7 +39,7 @@ If only the letter exists, get the full text: the vacancy URL, a `.pdf` (`pdftot
 2. Search **all** owners, not only the current one:
    `grep -r -i -l --include='*.txt' --include='*.md' -e "<key1>" -e "<key2>" docs/owners/*/job_search/inbound_offers/*/01_vacancy.md docs/owners/*/job_search/inbound_offers/*/03_recruiter_contact.md docs/owners/*/job_search/inbound_offers/*/raw`
    — vacancy texts and recruiter messages live verbatim only in `raw/`, so without `raw/` the alarm goes blind;
-   and the same keys over `docs/shared/contacts_log.md docs/shared/recruiter_keywords.md` (`grep` exit 1 means no match, not an error; plain `grep` because `rg` exists only as a Claude Code shell function). Read only the files `grep` returned. A hit that only mentions the key in passing (another vacancy naming the same company) is still reported: the user decides.
+   and the same keys over `docs/shared/contacts_log.md docs/shared/analytics/recruiter_keywords.md` (`grep` exit 1 means no match, not an error; plain `grep` because `rg` exists only as a Claude Code shell function). Read only the files `grep` returned. A hit that only mentions the key in passing (another vacancy naming the same company) is still reported: the user decides.
 3. **Any match on client, recruiter, URL or ID, or on at least half of the requirement phrases is an alarm**, including a match in another owner's folder (the same vacancy or the same recruiter reaching two similar profiles — the very case `contacts_log.md` exists for).
 4. On an alarm, print this block first and **stop**:
    - `ТРЕВОГА: возможный дубликат`;
@@ -119,7 +119,7 @@ What the text does not state is «не названо». Every inference is mark
 
 1. Row in `docs/shared/contacts_log.md`, the same day.
 2. Row in the owner's index `docs/owners/<owner>/job_search/inbound_offers/README.md` when it exists (folder, date, recruiter, role, verdict).
-3. Keywords: append the vacancy to `docs/shared/recruiter_keywords.md` by the rule written in that file.
+3. Keywords: append the vacancy to `docs/shared/analytics/recruiter_keywords.md` by the rule written in that file.
 4. Check by command, not by reading: the four files exist; `raw/` exists and holds the source; the files in `outbox/` and the `outbox/<файл>` paths in the section «Исходящие» of `03_recruiter_contact.md` are the same set (`ls outbox/` against `grep -o 'outbox/[^`]*'`; a name-based search for letters at the folder top level is not a check — preparation files such as `10_cover_letter_requirements.md` match it); every `raw/<файл>` cited in the folder's files exists (`grep -o` the paths, `test -e` each); no quote block outside `raw/` is longer than 300 characters (consecutive `>` lines, bare `>` and blank lines between them count as one block; header notes `> Источник`, `> Составлено` excepted); every legend section cited in `02_tech_fit.md` exists (`grep` for the heading).
 5. Commit, message `docs(budov-inbound): add <Company> <Role> analysis, contact log row and gaps` (the pattern of the last commits of the project). **No `git push`.** Do not skip pre-commit hooks.
 
