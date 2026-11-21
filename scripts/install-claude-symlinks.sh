@@ -95,6 +95,19 @@ if [ -d "$CODEX_HOME" ]; then
   link "$REPO/claude-home/CLAUDE.md" "$CODEX_HOME/AGENTS.md"
 fi
 
+# Pi reads skills from the agent dir: ~/.pi/agent/skills/ (pi docs → configuration.md,
+# "<agent-dir>/skills/"). Same list as Claude/Codex, linked straight from the repo, one
+# SSoT; pi scans it recursively for dirs with SKILL.md and registers each as /skill:<name>.
+# Set PI_HOME=/dev/null (or any path without a skills dir) to opt out.
+PI_HOME="${PI_HOME:-$HOME/.pi/agent}"
+if [ -d "$PI_HOME" ]; then
+  echo "[pi skills]"
+  for d in "$REPO"/*/; do
+    [ -f "${d}SKILL.md" ] || continue
+    link "${d%/}" "$PI_HOME/skills/$(basename "$d")"
+  done
+fi
+
 echo "[global config dirs]"
 link "$REPO/claude-home/output-styles" "$CLAUDE_HOME/output-styles"
 link "$REPO/claude-home/hooks"         "$CLAUDE_HOME/hooks"

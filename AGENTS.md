@@ -113,9 +113,9 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** All repo skills (50 as of 2026-11-21; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into BOTH `~/.claude/skills/` and `~/.codex/skills/` by `make install-symlinks` — one SSoT, no per-tool copies.
+**Rule:** All repo skills (50 as of 2026-11-21; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into `~/.claude/skills/`, `~/.codex/skills/` and `~/.pi/agent/skills/` by `make install-symlinks` — one SSoT, no per-tool copies. Pi registration verified 2026-11-21 by RPC `get_commands`: 50 `skill:*` entries; pi scans the agent dir recursively for dirs with `SKILL.md` and routes `/skill:<name>` plus auto-invocation from `description`.
 
-**Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out.
+**Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/` or `~/.pi/agent/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out; for pi the same via `PI_HOME`.
 
 ---
 
