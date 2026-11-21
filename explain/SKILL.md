@@ -2,20 +2,30 @@
 name: explain
 description: >
   Multi-dimensional explanation generator: explains a concept, theory, term, document,
-  project, codebase or LLM output for a chosen audience, with a fixed term register
-  and source grounding. Eight axes (search source, object, audience, detail, register,
-  structure, language, sources) plus presets; full explanations follow a fixed
-  five-section anatomy (legend / what it is / why needed / problems created / expected
-  result); bare term questions get a brief three-block decode. Extends the global
+  project, codebase, difference pair or LLM output for a chosen audience, with a fixed
+  term register and source grounding. Eight axes (search source, object, audience,
+  detail, register, structure, language, sources) plus presets; full explanations follow
+  a per-object anatomy matrix (five for concept/document, four for project plus an auto
+  "done this time" section for artifacts, five for codebase); difference questions get
+  a three-section structure; bare term questions get a brief three-block decode; a lost
+  user gets rescue mode with the object taken from the dialog. Extends the global
   Explanation Protocol.
   TRIGGER when: user calls /explain (Pi: /skill:explain); asks to explain something
-  «как джуну / ребёнку / сеньору / бизнесу»; asks a bare term question — «что такое X»,
-  «объясни X», «explain X» — auto brief mode; wants controlled detail, decoded terms
-  or a fixed vocabulary.
-  SKIP when: short factual answer or work report; recommendation delivery
-  (best-recommend); plain in-answer explanation covered by the global Explanation
-  Protocol.
-argument-hint: "[что объяснить и для кого; --preset child|junior|senior|business, --audience, --detail full|partial|none, --search auto|local|web|none, --structure five|summary-first|direct|brief, --lang ru|en, --no-sources]"
+  «как джуну / ребёнку / сеньору / бизнесу», «начиная с базы / с нуля», «простыми словами»;
+  asks a bare term question — «что такое X», «что значит X», «что означает X», «расшифруй X»,
+  «объясни X», «explain X» — auto brief mode; asks a difference question — «чем отличается X
+  от Y», «в чём разница между X и Y» — auto difference mode; asks «как работает / как устроен X»;
+  asks to walk through a project or code — «прочитай проект… и объясни», «разбери X»,
+  «объясни, что ты сделал»; is lost mid-task — «ничего не понимаю», «запутался» + explain
+  intent — rescue mode (object from the dialog, no clarifying question); wants controlled
+  detail, decoded terms or a fixed vocabulary.
+  SKIP when: short factual answer or work report; recommendation delivery (best-recommend);
+  comparing concrete data instances (vacancies, bank statements, recruiters) — data
+  analysis, not explanation; «какой вариант лучше / что тут бест практис» → best-approach;
+  «исправь / почини / почему падает» about concrete code or tests → debugging;
+  «сделай отчёт» → _report; web-research task wording («Find on the internet: what is…»);
+  plain in-answer explanation covered by the global Explanation Protocol.
+argument-hint: "[что объяснить и для кого; --preset child|junior|senior|business, --audience, --detail full|partial|none, --search auto|local|web|none, --structure five|difference|summary-first|direct|brief, --lang ru|en, --no-sources]"
 ---
 
 # /explain — Многомерное объяснение
@@ -31,7 +41,7 @@ argument-hint: "[что объяснить и для кого; --preset child|ju
 | `audience` — кому | `child` · `novice` (новичок в теме) · `junior` · `senior` · `nontech` (не связан с программированием) · `mixed` (пишем по самому неподготовленному) | `junior` |
 | `detail` — расшифровка терминов | `full` (каждый термин при первом употреблении: расшифровка аббревиатуры + значение в скобках + ≥1 предложение смысла) · `partial` (только термины вне базового набора аудитории) · `none` | по аудитории |
 | `register` — реестр терминов | всегда включён; значения не выбираются — см. правило ниже | on |
-| `structure` — порядок изложения | `five` (пять фиксированных разделов: Легенда → Что это → Зачем нужно → Какие проблемы создаёт → Какой результат даст) · `summary-first` (TL;DR, потом разделы) · `direct` (сразу на целевом уровне) · `brief` (краткий: расшифровка → что это → зачем) | `five`; вопрос «что такое X» → `brief` |
+| `structure` — порядок изложения | `five` (матрица анатомий: фиксированный набор разделов своего типа объекта, `reference.md` § 1.6) · `difference` (Суть → Ключевые различия → Когда что выбрать) · `summary-first` (TL;DR, потом разделы) · `direct` (сразу на целевом уровне) · `brief` (краткий: расшифровка → что это → зачем) | `five`; «что такое X» → `brief`; «чем отличается X от Y» → `difference` |
 | `lang` — язык объяснения | `ru` · `en` (глоссарий терминов всё равно двуязычный) | `ru` |
 | `sources` — grounding | `on` (web-факт → URL; код → `file:line`; вывод LLM → цитата; библиотека → Context7/официальная документация) · `off` (`--no-sources`) | `on` |
 
@@ -54,7 +64,9 @@ argument-hint: "[что объяснить и для кого; --preset child|ju
 4. **База — глобальный Explanation Protocol** (global CLAUDE.md): обычное русское слово вместо термина, термин только при необходимости, запрет образов и метафор. Скилл добавляет поверх: уровни детализации, реестр, режим.
 5. **Гипотезы — флагом.** Не уверен в факте — пометить «предположительно, нужно проверить», не выдавать за факт.
 6. **Самопроверка перед выдачей** — чек-лист в `reference.md`.
-7. **Автоматический выбор структуры.** Вопрос «что такое X / объясни X» без иных уточнений → `brief`: расшифровка аббревиатуры обязательна, «что это» и «зачем» — по 1–3 предложения, без вопросов. Во всех остальных случаях полное объяснение → `five` (анатомия пяти разделов, `reference.md` § 1.6). Процедуры `llm-output` и `web-result` остаются своими — пять разделов к ним не применяются.
+7. **Автоматический выбор структуры.** «Что такое X / что значит X / объясни X» без иных уточнений → `brief`: расшифровка аббревиатуры обязательна, «что это» и «зачем» — по 1–3 предложения, без вопросов. «Чем отличается X от Y» без иных уточнений → `difference` в краткой форме (суть → 1–2 различия → когда что). Во всех остальных случаях полное объяснение → `five` — матрица анатомий своего типа объекта (`reference.md` § 1.6). `llm-output`, `web-result` и `text` разбираются процедурой фрагментов (§ 1.2) — разделы к ним не применяются. Явный `--structure` сильнее автоопределения.
 8. **Приглашение сменить режим.** После строки режима — одно короткое приглашение: «другая аудитория или уровень — скажи»; повторять в каждом ответе не нужно.
+9. **Число — только с единицей измерения.** Цифра без единицы («50» без того, что это: проценты, миллисекунды, запросы) — ошибка ответа; процент без базы («N из M») и точки сравнения — ошибка. Опора: global CLAUDE.md → Questions and Numbers (правило чисел); скилл делает его операционным для объяснений.
+10. **Rescue-режим.** «Ничего не понимаю / запутался / не понимаю» + фраза намерения («объясни», «с базы», «с нуля», «начиная с базы») → объект берётся из текущего диалога, вопрос «Что объясняем?» не задаётся; `detail=full`, аудитория `junior` (если не указана), анатомия своего типа объекта.
 
 Полная спецификация осей, процедура для `llm-output`, шаблоны по аудиториям и чек-лист — `reference.md`.
