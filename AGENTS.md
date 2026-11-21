@@ -39,7 +39,7 @@ project_type: dev
 - **git & sync:** `git-commit`, `git-branch`, `git-finish` (closes the session: docs and plans always first → merge → delete → push → uppercase verdict), `project-sync`, `projects-sync`, `beads-sync`
 - **audit:** `full-audit` (deterministic code+docs audit), `audit-loop` (5-round codex cross-review)
 - **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only), `plan-progress-page` (proportional HTML progress page of a plan, published as an Artifact)
-- **misc:** `explain` (multi-dimensional explanation: 8 axes — search source, object, audience, term decoding, term register, structure, language, source grounding; presets child/junior/senior/business), `customer-tz` (customer-facing TZ from raw input), `vacancy-intake` (ML_CAREER_2026: one incoming job offer → duplicate alarm over all vacancies, stop-list, four-file analysis against the owner's legends)
+- **misc:** `explain` (multi-dimensional explanation: 8 axes — search source, object, audience, term decoding, term register, structure, language, source grounding; fixed five-section anatomy for full explanations, brief auto mode for bare term questions; presets child/junior/senior/business), `customer-tz` (customer-facing TZ from raw input), `vacancy-intake` (ML_CAREER_2026: one incoming job offer → duplicate alarm over all vacancies, stop-list, four-file analysis against the owner's legends)
 
 > The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (50 total); `make install-symlinks` links them all.
 
