@@ -92,7 +92,8 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
 
    This links every skill, agent, command, and the global instruction files
    (`CLAUDE.md`, `CLAUDE-APPENDIX.md`, `output-styles/`) into `~/.claude`, links
-   the same skills into `~/.codex/skills` for Codex, renders `settings.json`
+   the same skills into `~/.codex/skills` for Codex and `~/.pi/agent/skills`
+   for Pi, renders `settings.json`
    from `claude-home/settings.json.template`, and installs the `pre-commit`
    bootstrap hook (into `~/.git-template` for new repos and into this checkout).
    Idempotent — safe to re-run after adding or removing a skill. The repo is the
