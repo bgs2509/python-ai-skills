@@ -134,7 +134,7 @@
       <Item>model-stats.py reads journal keys model, pool, role, outcome, seconds (lines 75-95) and counts ok per pool/role (line 92).</Item>
       <Item>test_model_run.py (12 tests) pins today's classification via cmd_template models; test_model_stats.py (12 tests) pins the journal summary.</Item>
       <Item>test_delegation_pool_nudge.py asserts only that the hook text contains &quot;model-run.sh&quot; (lines 42, 112); flag names are not asserted.</Item>
-      <Item>CLAUDE.md lines 358-362 and do-feature/SKILL.md line 89 document the runner's outcomes and invocation for humans.</Item>
+      <Item>CLAUDE.md lines 358-362 and Skills/development-workflows/do-feature/SKILL.md line 89 document the runner's outcomes and invocation for humans.</Item>
       <Item>housekeeping.py prunes ~/.claude/jobs/&lt;id&gt;/ by age (JOB_MAX_AGE_DAYS=14, line 41) - the only existing retention rule for machine-local state.</Item>
     </dependencies>
     <risks>
@@ -268,7 +268,7 @@
     <date>2026-10-13</date>
     <status>approved</status>
     <risk>low</risk>
-    <risk_justification>Text of best-research/SKILL.md plus one clause of the global Tooling Preferences line; reversible; no code.</risk_justification>
+    <risk_justification>Text of Skills/decision-support/best-research/SKILL.md plus one clause of the global Tooling Preferences line; reversible; no code.</risk_justification>
     <evidence>strong</evidence>
     <evidence_justification>Tool calls inside best-* windows counted from transcripts - best-approach 31 calls with 83 sequential-thinking calls and 21 ToolSearch loads, 168 Bash; best-questions median 5 requests per call at 330k context, best-approach 10 at 155k; every host tool call re-reads the session context.</evidence_justification>
     <open_questions/>
@@ -399,16 +399,16 @@
     <open_questions/>
     <functional_requirements>
       <Item id="FR-1">
-        <text>One file, code-quality/principles.md, is the single source of truth for programming principles; KISS and YAGNI come first and every principle is stated as a detectable violation sign, not a slogan.</text>
+        <text>One file, Skills/python-development/code-quality/principles.md, is the single source of truth for programming principles; KISS and YAGNI come first and every principle is stated as a detectable violation sign, not a slogan.</text>
       </Item>
       <Item id="FR-2">
-        <text>No other maintained file restates a principle definition; former copies (code-quality/SKILL.md list, reference/quality-cascade.md tables, agents/py-quality.md top-5, best-research section 3, audit-loop Principles, commands/pipeline.md step 3, global CLAUDE.md code rules) become pointers.</text>
+        <text>No other maintained file restates a principle definition; former copies (Skills/python-development/code-quality/SKILL.md list, reference/quality-cascade.md tables, agents/py-quality.md top-5, best-research section 3, audit-loop Principles, commands/pipeline.md step 3, global CLAUDE.md code rules) become pointers.</text>
       </Item>
       <Item id="FR-3">
         <text>Every code-producing or code-reviewing skill or agent in the repo points to principles.md (do-feature steps 2/4/7/9/11/12, grace-plan, grace-execute, grace-multiagent-execute, grace-reviewer, best-research, audit-loop, do-autopilot, py-quality, commands/pipeline).</text>
       </Item>
       <Item id="FR-4">
-        <text>Prompts sent to non-Anthropic models (do-feature/reviewer-prompt.md, audit-loop/reference/codex-prompt.md) receive the file content inlined through a placeholder, because those models do not read ~/.claude.</text>
+        <text>Prompts sent to non-Anthropic models (Skills/development-workflows/do-feature/reviewer-prompt.md, Skills/audit-and-progress/audit-loop/reference/codex-prompt.md) receive the file content inlined through a placeholder, because those models do not read ~/.claude.</text>
       </Item>
       <Item id="FR-5">
         <text>A PreToolUse hook on the Skill tool injects principles.md as additionalContext when a listed code-related skill is invoked, including superpowers skills that cannot be edited.</text>
@@ -441,7 +441,7 @@
     <date>2026-10-13</date>
     <status>approved</status>
     <risk>low</risk>
-    <risk_justification>Text of one utility skill (progress-watch/SKILL.md); reversible; no code, no API, no security surface; the watched process is untouched by design.</risk_justification>
+    <risk_justification>Text of one utility skill (Skills/audit-and-progress/progress-watch/SKILL.md); reversible; no code, no API, no security surface; the watched process is untouched by design.</risk_justification>
     <evidence>strong</evidence>
     <evidence_justification>145 firings measured from transcripts with skill-stats.py internals - median 2 API requests per firing, median 494k context per request (p90 777k), median 1.09M tokens per firing; SKILL.md is 9.2k chars and is re-injected by every /progress-watch --iteration slash call.</evidence_justification>
     <open_questions/>
@@ -585,7 +585,7 @@
     <date>2026-10-14</date>
     <status>approved</status>
     <risk>low</risk>
-    <risk_justification>One shell orchestrator (full-audit/lib/run.sh) plus its SKILL.md/references rows; deterministic, reversible, no secrets, no network; a wrong derivation is visible (red audit), not silent, and the src/ branch stays as the fallback.</risk_justification>
+    <risk_justification>One shell orchestrator (Skills/audit-and-progress/full-audit/lib/run.sh) plus its SKILL.md/references rows; deterministic, reversible, no secrets, no network; a wrong derivation is visible (red audit), not silent, and the src/ branch stays as the fallback.</risk_justification>
     <evidence>strong</evidence>
     <evidence_justification>Every src assumption located by grep; exit codes of radon/vulture/interrogate/pytest-cov on a missing dir measured in a scratch project; pyproject keys of 47 sibling projects inventoried (21 with src/, 26 without); tool config behaviour confirmed via Context7 (vulture, coverage.py, pytest-cov, radon) and interrogate 1.7.0 --help + installed source.</evidence_justification>
     <open_questions/>
@@ -642,9 +642,9 @@
     </risks>
     <scope>
       <in>
-        <Item>full-audit/lib/run.sh lines 88-92, 114, 160-163 (derivation + five checks)</Item>
-        <Item>full-audit/SKILL.md rows 3, 6, 14-17; full-audit/references/checks.md rows 03, 06</Item>
-        <Item>tests for the derivation in full-audit/tests/</Item>
+        <Item>Skills/audit-and-progress/full-audit/lib/run.sh lines 88-92, 114, 160-163 (derivation + five checks)</Item>
+        <Item>Skills/audit-and-progress/full-audit/SKILL.md rows 3, 6, 14-17; Skills/audit-and-progress/full-audit/references/checks.md rows 03, 06</Item>
+        <Item>tests for the derivation in Skills/audit-and-progress/full-audit/tests/</Item>
       </in>
       <out>
         <Item>thresholds (-n C, -f 70, --min-confidence 80) and required/optional flags</Item>

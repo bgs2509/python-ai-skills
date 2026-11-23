@@ -14,6 +14,7 @@ Run: pytest scripts/test_install_claude_symlinks.py
 import json
 import os
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -88,8 +89,10 @@ def skill_homes(tmp_path):
 
 def test_every_client_gets_the_same_flat_inventory(tmp_path, skill_homes):
     repo = INSTALLER.parent.parent
-    expected = {f.parent.name: f.parent for f in repo.glob("*/SKILL.md")}
-    assert len(expected) == 50
+    files = list(repo.glob("Skills/*/*/SKILL.md"))
+    expected = {f.parent.name: f.parent for f in files}
+    assert len(files) == len(expected) == 50
+    assert not list(repo.glob("*/SKILL.md"))
     for _ in range(2):
         result = run_installer(tmp_path, skill_homes[0])
         assert result.returncode == 0, result.stderr
@@ -106,6 +109,8 @@ def test_upgrade_retires_only_our_legacy_links(tmp_path, skill_homes):
     for home in skill_homes:
         old = home / "skills"
         (old / "_testing").symlink_to(repo / "_testing")
+        (old / "architecture").symlink_to(repo / "architecture")
+        (old / "testing").symlink_to(repo / "Skills" / "another-topic" / "testing")
         (old / "_init").symlink_to(repo / "_init")
         (old / "_logging").symlink_to(custom)
         (old / "_docker").mkdir()
@@ -113,7 +118,8 @@ def test_upgrade_retires_only_our_legacy_links(tmp_path, skill_homes):
     assert result.returncode == 0, result.stderr
     for home in skill_homes:
         installed = home / "skills"
-        assert (installed / "testing" / "SKILL.md").is_file()
+        assert (installed / "testing").resolve() == repo / "Skills/python-development/testing"
+        assert (installed / "architecture").resolve() == repo / "Skills/python-development/architecture"
         assert (installed / "python-init" / "SKILL.md").is_file()
         assert not (installed / "init").exists()
         assert not (installed / "_testing").is_symlink()
@@ -136,6 +142,51 @@ def test_collision_aborts_before_touching_any_skill(tmp_path, skill_homes, kind)
     assert "skill destination is not owned" in result.stderr
     assert dest.exists() or dest.is_symlink()
     assert not list((skill_homes[0] / "skills").iterdir())
+
+
+@pytest.fixture
+def sample_installer(tmp_path):
+    installer = tmp_path / "sample-repo" / "scripts" / INSTALLER.name
+    installer.parent.mkdir(parents=True)
+    shutil.copyfile(INSTALLER, installer)
+    (installer.parent.parent / "claude-home").symlink_to(INSTALLER.parent.parent / "claude-home")
+    return installer
+
+
+def write_skill(repo, rel, name):
+    file = repo / rel / "SKILL.md"
+    file.parent.mkdir(parents=True)
+    file.write_text(f"---\nname: {name}\ndescription: Sample skill.\n---\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("rel", "name", "diagnostic"),
+    [
+        ("Skills/other/sample", "sample", "duplicate skill name"),
+        ("Skills/other/not-sample", "sample", "invalid skill directory or name"),
+        ("Skills/other/_invalid", "_invalid", "invalid skill directory or name"),
+    ],
+)
+def test_invalid_inventory_stops_before_install(tmp_path, sample_installer, rel, name, diagnostic):
+    repo = sample_installer.parent.parent
+    write_skill(repo, "Skills/example/sample", "sample")
+    write_skill(repo, rel, name)
+    home = tmp_path / "claude"
+    result = run_installer(tmp_path, home, installer=sample_installer)
+    assert result.returncode != 0
+    assert diagnostic in result.stderr
+    assert not (home / "skills").exists()
+
+
+def test_discovers_only_one_category_level(tmp_path, sample_installer):
+    repo = sample_installer.parent.parent
+    write_skill(repo, "Skills/example/sample", "sample")
+    write_skill(repo, "Skills/example/sample/assets/fixture", "fixture")
+    write_skill(repo, "outside", "outside")
+    home = tmp_path / "claude"
+    result = run_installer(tmp_path, home, installer=sample_installer)
+    assert result.returncode == 0, result.stderr
+    assert sorted(p.name for p in (home / "skills").iterdir()) == ["sample"]
 
 
 def test_pi_block_is_opt_out(tmp_path):

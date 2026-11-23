@@ -41,7 +41,7 @@ project_type: dev
 - **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only), `plan-progress-page` (proportional HTML progress page of a plan, published as an Artifact)
 - **misc:** `explain` (multi-dimensional explanation: 8 axes — search source, object, audience, term decoding, term register, structure, language, source grounding; per-object anatomy matrix — shared five for concept/document, four for project plus an auto "done this time" section for build artifacts, five for codebase, three-section difference structure for «чем отличается», fragment procedure for llm-output/web-result/text; brief auto mode for bare term questions, rescue mode for «ничего не понимаю»; numbers must carry units, alternatives covered briefly inside "why needed"; presets child/junior/senior/business), `customer-tz` (customer-facing TZ from raw input), `vacancy-intake` (ML_CAREER_2026: one incoming job offer → duplicate alarm over all vacancies, stop-list, four-file analysis against the owner's legends)
 
-> The catalog table above covers the original Python development and documentation skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (50 total); `make install-symlinks` links them all.
+> The catalog table above covers the original Python development and documentation skills; this grouped list covers the rest. The full inventory is `Skills/*/*/SKILL.md` (50 skills); `make install-symlinks` links them all.
 
 ---
 
@@ -84,7 +84,7 @@ project_type: dev
 
 ### Skill Distribution (symlinks)
 
-This repo is the **SSoT** for the global Claude config. `~/.claude` links back via symlinks — there is no plugin install step.
+This repo is the **SSoT** for the global Claude config. `~/.claude` links back via symlinks — there is no plugin install step. Source skills live in `Skills/<topic>/<name>/`; topics are not part of the installed names. See [Skills structure](docs/adr/ADR-004-thematic-skill-layout.md).
 
 - Bootstrap / after structural changes: `make install-symlinks` (idempotent, safe to re-run).
 - New machine: clone the repo, then `make install-symlinks` — as a **non-root** user (`bypassPermissions` refuses root). Prerequisites and what the installer does not carry (plugins, MCP servers, project memory, `bd bootstrap`): `README.md` → Installation.
@@ -113,7 +113,7 @@ This repo is the **SSoT** for the global Claude config. `~/.claude` links back v
 
 **Rule:** Secrets (`.credentials.json`, `.env`) — never in git; per-machine only.
 
-**Rule:** All repo skills (50 as of 2026-11-21; SSoT is the set of repo dirs with a `SKILL.md`) are symlinked into `~/.claude/skills/`, `~/.codex/skills/` and `~/.pi/agent/skills/` by `make install-symlinks` — one SSoT, no per-tool copies. Pi registration verified 2026-11-21 by RPC `get_commands`: 50 `skill:*` entries; pi scans the agent dir recursively for dirs with `SKILL.md` and routes `/skill:<name>` plus auto-invocation from `description`.
+**Rule:** All repo skills (50 as of 2026-11-21; SSoT is `Skills/*/*/SKILL.md`) are symlinked into `~/.claude/skills/`, `~/.codex/skills/` and `~/.pi/agent/skills/` by `make install-symlinks` — one SSoT, no per-tool copies. Pi registration verified 2026-11-21 by RPC `get_commands`: 50 `skill:*` entries; pi scans the agent dir recursively for dirs with `SKILL.md` and routes `/skill:<name>` plus auto-invocation from `description`.
 
 **Exception:** Anthropic-proprietary skills (currently `pptx`) live in `~/.claude/skills/` as real directories OUTSIDE the repo SSoT: their license forbids copying/redistribution, so they are never committed, never linked into `~/.codex/` or `~/.pi/agent/`, and not counted above. They are managed by Claude Code itself and may need reinstall after a `~/.claude` rebuild. Linking straight from the repo (never `~/.codex/skills/<n>` → `~/.claude/skills/<n>`) keeps Codex working when `~/.claude` is rebuilt. Set `CODEX_HOME` to a path with no `skills/` dir to opt a machine out; for pi the same via `PI_HOME`.
 

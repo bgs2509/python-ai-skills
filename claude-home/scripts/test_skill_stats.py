@@ -402,9 +402,10 @@ def test_template_skill_overrides_name_existing_repo_skills():
     template = json.loads((HERE.parent / "settings.json.template").read_text())
     overrides = template["skillOverrides"]
     repo = HERE.parent.parent
+    known = {file.parent.name for file in repo.glob("Skills/*/*/SKILL.md")}
     assert len(overrides) >= 20
     for name, state in overrides.items():
-        assert (repo / name / "SKILL.md").is_file(), name
+        assert name in known, name
         assert state == "name-only", name
     for kept in ("do-feature", "best-questions", "git-finish", "progress-watch"):
         assert kept not in overrides

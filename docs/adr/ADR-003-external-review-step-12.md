@@ -26,7 +26,7 @@ Neither external reviewer modified the worktree. Full notes: bd comments on pyth
 
 ## Decision
 1. Registry role `reviewer` = `gpt-sol-xhigh` → `glm-5.3-high` → `opus-xhigh`, role timeout 1800 s; first valid review wins. Using opus is a logged routing exception.
-2. The reviewer prompt is the versioned template `do-feature/reviewer-prompt.md`; the answer must end with a verdict line checked by `--expect '^(READY|READY WITH FIXES|NOT READY)$'`.
+2. The reviewer prompt is the versioned template `Skills/development-workflows/do-feature/reviewer-prompt.md`; the answer must end with a verdict line checked by `--expect '^(READY|READY WITH FIXES|NOT READY)$'`.
 3. The reviewer runs in a temporary detached worktree, removed afterwards (DQ-3).
 4. `model-run.sh` gives every attempt an answer file (`MODEL_RUN_ANSWER_FILE`); codex writes its final message there (`-o`), so the delivered review is the report, not the log.
 5. Trust = 0% is unchanged: the orchestrator verifies every finding before acting.

@@ -11,10 +11,8 @@ install-symlinks:
 install-symlinks-force:
 	@bash scripts/install-claude-symlinks.sh --force
 
-# Full sweep: claude-home suites plus the skill suites under audit-loop/,
-# full-audit/ and project-sync/. One pytest call per suite: full-audit/ and
-# project-sync/ carry their own pytest.ini, so they run from their dir (a
-# combined call would apply one suite's ini to every path).
+# Full sweep: claude-home suites plus the suites inside Skills/.
+# full-audit and project-sync each run from their own directory for pytest.ini.
 # The commit-time gate runs only scoped suites (see .pre-commit-config.yaml): hooks on claude-home/hooks/,
 # scripts on claude-home/scripts/, the principles guard on any *.md.
 test:
@@ -35,7 +33,7 @@ test:
 	                   claude-home/scripts/test_skill_stats.py \
 	                   claude-home/scripts/test_git_finish_state.py \
 	                   scripts/test_install_claude_symlinks.py -q
-	@python3 -m pytest audit-loop/tests -q
-	@python3 -m pytest plan-progress-page/scripts -q
-	@cd full-audit && python3 -m pytest
-	@cd project-sync && python3 -m pytest
+	@python3 -m pytest Skills/audit-and-progress/audit-loop/tests -q
+	@python3 -m pytest Skills/audit-and-progress/plan-progress-page/scripts -q
+	@cd Skills/audit-and-progress/full-audit && python3 -m pytest
+	@cd Skills/git-and-sync/project-sync && python3 -m pytest

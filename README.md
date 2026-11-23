@@ -93,11 +93,17 @@ A collection of 50 skills (Python development and documentation, GRACE, `best-*`
    This links every skill, agent, command, and the global instruction files
    (`CLAUDE.md`, `CLAUDE-APPENDIX.md`, `output-styles/`) into `~/.claude`, links
    the same skills into `~/.codex/skills` for Codex and `~/.pi/agent/skills`
-   for Pi, renders `settings.json`
-   from `claude-home/settings.json.template`, and installs the `pre-commit`
-   bootstrap hook (into `~/.git-template` for new repos and into this checkout).
-   Idempotent — safe to re-run after adding or removing a skill. The repo is the
-   single source of truth; `~/.claude` holds only symlinks back to it.
+   for Pi. Source skills live in `Skills/<topic>/<name>/`, but installed paths
+   stay flat (`skills/<name>/`). It also renders `settings.json` from
+   `claude-home/settings.json.template` and installs the `pre-commit` bootstrap
+   hook (into `~/.git-template` for new repos and into this checkout).
+
+   Re-running updates symlinks owned by this checkout. On upgrade from the
+   underscore-prefixed names, the installer removes old links only if they
+   point back to this checkout. An unmanaged entry with a conflicting new name
+   is reported before any skill links change. See the
+   [layout and migration decision](docs/adr/ADR-004-thematic-skill-layout.md)
+   for category boundaries and rollback.
 
    The render refuses to overwrite a hand-edited `settings.json`. Keys Claude
    writes itself (`model`, `enabledPlugins`) are carried over, not treated as

@@ -716,7 +716,9 @@ def test_global_instructions_name_the_glossary_mechanism_once():
     assert text.count("`## Glossary`") == 1 and text.count("glossary.py") == 1
 
 
-ASSET = REPO / "grace-init" / "assets" / "glossary-section.md.template"
+GRACE_INIT = REPO / "Skills/grace/grace-init"
+PYTHON_INIT = REPO / "Skills/python-development/python-init"
+ASSET = GRACE_INIT / "assets/glossary-section.md.template"
 
 
 def test_asset_skeleton_has_no_groups_and_no_contract_errors():
@@ -725,12 +727,12 @@ def test_asset_skeleton_has_no_groups_and_no_contract_errors():
 
 
 def test_both_generators_reference_the_asset():
-    for rel in ("python-init/SKILL.md", "grace-init/SKILL.md"):
-        assert "glossary-section.md.template" in (REPO / rel).read_text(encoding="utf-8"), rel
+    for skill in (PYTHON_INIT, GRACE_INIT):
+        assert "glossary-section.md.template" in (skill / "SKILL.md").read_text(encoding="utf-8"), skill
 
 
 def test_the_skeleton_lives_only_in_the_asset():
-    template = (REPO / "grace-init" / "assets" / "AGENTS.md.template").read_text(encoding="utf-8")
+    template = (GRACE_INIT / "assets/AGENTS.md.template").read_text(encoding="utf-8")
     assert glossary.GLOSSARY_HEADING not in template
     skeleton = ASSET.read_text(encoding="utf-8")
     assert skeleton.startswith(glossary.GLOSSARY_HEADING)
@@ -738,7 +740,7 @@ def test_the_skeleton_lives_only_in_the_asset():
 
 
 def test_init_skill_cites_the_asset_by_a_path_that_resolves():
-    text = (REPO / "python-init" / "SKILL.md").read_text(encoding="utf-8")
+    text = (PYTHON_INIT / "SKILL.md").read_text(encoding="utf-8")
     assert "`~/.claude/skills/grace-init/assets/glossary-section.md.template`" in text
 
 

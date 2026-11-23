@@ -33,7 +33,7 @@ every file; excess code is a BLOCKER.
 5. Check linter compliance (Ruff, Mypy, naming conventions — snake_case, descriptive names)
 6. Assign confidence score (0-100) to each finding — only report findings with confidence >=80
 
-> **Topic details (read as needed):** `error-handling/SKILL.md`, `linters/SKILL.md`, `logging/SKILL.md`
+> **Topic details (read as needed):** `~/.claude/skills/error-handling/SKILL.md`, `~/.claude/skills/linters/SKILL.md`, `~/.claude/skills/logging/SKILL.md`
 
 ## Mandatory Output File
 

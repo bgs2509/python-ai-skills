@@ -8,7 +8,7 @@ Accepted. The Step 12 (review) routing is superseded by ADR-003 (2026-09-24): re
 
 ## Context
 `do-feature` routes each workflow step to a model tier (opus / sonnet / haiku) via the
-Model Routing Matrix in `do-feature/SKILL.md`. The matrix was originally justified by
+Model Routing Matrix in `Skills/development-workflows/do-feature/SKILL.md`. The matrix was originally justified by
 inline A/B numbers embedded in the skill body. Those numbers are historical evidence,
 not control logic — keeping them in SKILL.md added token ballast on every invocation
 and let them silently go stale. This ADR is now the SSoT for that evidence; the skill
@@ -32,7 +32,7 @@ references it by name.
   assertion; future revalidation needs the baseline numbers.
 
 ## Decision
-Move all A/B evidence out of `do-feature/SKILL.md` into this ADR. The skill's matrix
+Move all A/B evidence out of `Skills/development-workflows/do-feature/SKILL.md` into this ADR. The skill's matrix
 and escalation rule cite `ADR-002` instead of restating numbers.
 
 ## Consequences
@@ -55,7 +55,7 @@ lineup:
   1.5-3x slower; the local gateway is 10-24x slower.
 - **Capacity — done, and it changed a routing rule.** Tier windows are not uniform:
   `cheap`=haiku holds 200K and fails above ~170k usable tokens, every other tier 1M.
-  This produced the context-overflow escalation rule now in `do-feature/SKILL.md`,
+  This produced the context-overflow escalation rule now in `Skills/development-workflows/do-feature/SKILL.md`,
   which the original 2-test-fail trigger missed entirely.
 - **Quality — NOT revalidated.** The benchmark phase was cancelled by user decision
   2026-09-22. The 2026-05-13 numbers above remain the only quality evidence, and they
@@ -66,4 +66,4 @@ lineup:
 Two structural facts were also recorded, neither of which the original A/B covered:
 the tier→model mapping now lives in `claude-home/model-registry.json` (this ADR and
 the matrix own tiers; the registry owns models), and the Agent tool is Anthropic-only,
-so saving quota requires the outward-dispatch fork added to `do-feature/SKILL.md`.
+so saving quota requires the outward-dispatch fork added to `Skills/development-workflows/do-feature/SKILL.md`.

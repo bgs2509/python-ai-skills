@@ -2,7 +2,7 @@
 # PreToolUse hook (matcher: Skill): inject the code principles into skills that
 # plan, write or review code (bd python-ai-skills-5io).
 #
-# The principles live in one file, code-quality/principles.md. A pointer inside
+# The principles live in one file, Skills/python-development/code-quality/principles.md. A pointer inside
 # each skill reaches only skills this repo owns and only when the model follows
 # it; superpowers skills (brainstorming, writing-plans, TDD) cannot be edited at
 # all. A hook fires on every listed invocation, in already-running sessions too —

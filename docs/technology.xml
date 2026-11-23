@@ -165,7 +165,7 @@
     <date>2026-10-14</date>
     <status>approved</status>
     <risk>low</risk>
-    <approach>A - python3 helper full-audit/lib/source_dirs.py (tomllib) called once by run.sh</approach>
+    <approach>A - python3 helper Skills/audit-and-progress/full-audit/lib/source_dirs.py (tomllib) called once by run.sh</approach>
     <context7_verified>
       <Item>pytest-cov==7.1.0 (/pytest-dev/pytest-cov docs/config.rst: --cov multi-allowed; --cov=X overrides [tool.coverage.run] source) + measured --cov=backend --cov=shared</Item>
       <Item>coverage==7.16.2 (pulled by pytest-cov 7.1.0 in the scratch run)</Item>

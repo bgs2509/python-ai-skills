@@ -2,7 +2,7 @@
   "_comment": [
     "SSoT for WHICH MODEL implements a role, with launch parameters and fallback order.",
     "It is NOT the SSoT for which role/tier a do-feature step needs — that stays in",
-    "do-feature/SKILL.md (Model Routing Matrix), which by its own wording routes by TIERS,",
+    "Skills/development-workflows/do-feature/SKILL.md (Model Routing Matrix), which by its own wording routes by TIERS,",
     "not model names. Matrix answers 'this step needs tier X'; this file answers",
     "'tier/role X is served by these models, in this order, with these parameters'.",
     "Numbers come from docs/research/model-passports-2026-09.md (measured 2026-09-22).",
@@ -32,7 +32,7 @@
       "models": ["glm-5.3-high", "gpt-terra-high", "sonnet-low"]
     },
     "reviewer": {
-      "purpose": "do-feature Step 12 code review from the versioned template do-feature/reviewer-prompt.md; plans and designs stay on Anthropic (user requirement 2026-09-24).",
+      "purpose": "do-feature Step 12 code review from the versioned template Skills/development-workflows/do-feature/reviewer-prompt.md; plans and designs stay on Anthropic (user requirement 2026-09-24).",
       "order_rationale": "Measured 2026-09-24 on range ddf0dc6^..d8f81aa with the same prompt (bd python-ai-skills-xp4): gpt-sol-xhigh found 8 of the 9 findings of the Anthropic review plus 2 real defects it missed (558 s); glm-5.3-high found 6 of 9 (533 s). Sequential, first valid review wins (user decision DQ-1). opus-xhigh is last so a feature never stalls at Step 12 when both external quotas are out (DQ-2); using it is logged as a routing exception. timeout_seconds 1800: both externals needed about 9 minutes for 8 commits.",
       "timeout_seconds": 1800,
       "models": ["gpt-sol-xhigh", "glm-5.3-high", "opus-xhigh"]

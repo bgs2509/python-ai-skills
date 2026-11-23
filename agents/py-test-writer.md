@@ -32,7 +32,7 @@ You are a test engineer specializing in Python. Your task is to analyze code and
 5. Run `pytest` to verify tests pass
 6. Run `pytest --cov` if coverage tool is available
 
-> **Details (read as needed):** `testing/SKILL.md`
+> **Details (read as needed):** `~/.claude/skills/testing/SKILL.md`
 
 ## Test Standards
 

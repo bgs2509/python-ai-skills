@@ -57,7 +57,8 @@ if [ -d "$CODEX_HOME" ]; then skill_homes+=("$CODEX_HOME/skills"); fi
 if [ -d "$PI_HOME" ]; then skill_homes+=("$PI_HOME/skills"); fi
 
 shopt -s nullglob
-skill_files=("$REPO"/*/SKILL.md)
+# Exactly one category level; resources and test fixtures cannot register skills.
+skill_files=("$REPO"/Skills/*/*/SKILL.md)
 shopt -u nullglob
 if [ "${#skill_files[@]}" -eq 0 ]; then
   echo 'ERROR: no repo skills found' >&2
@@ -81,7 +82,11 @@ for file in "${skill_files[@]}"; do
     dest="$home/$name"
     if [ -L "$dest" ]; then
       target=$(readlink "$dest")
-      if [[ "$target" == "$d" || "$target" == "$REPO/$name" || "$target" == "$REPO/Skills/"*/"$name" ]]; then
+      if [[ "$target" == "$d" || "$target" == "$REPO/$name" ]]; then
+        continue
+      fi
+      previous="${target#"$REPO/Skills/"}"
+      if [[ "$previous" != "$target" && "$previous" == */"$name" && "${previous%/*}" != */* ]]; then
         continue
       fi
     elif [ ! -e "$dest" ]; then

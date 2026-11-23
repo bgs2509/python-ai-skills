@@ -59,7 +59,7 @@ Task description: `$ARGUMENTS`
    - **Functional Requirements (FR)** — what the system must do
    - **Non-Functional Requirements (NFR)** — quality attributes (performance, security, maintainability, etc.)
 2. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 1.5 REQUIREMENTS: Create a requirements document for TASK-NNN. Read docworkflow/reference/requirements.md for the format. Create docs/requirements/REQ-NNN-{name}.md. FR: {list}. NFR: {list}. Update TASK-NNN — add a reference to REQ-NNN in artifacts."
+   - Prompt: "Phase 1.5 REQUIREMENTS: Create a requirements document for TASK-NNN. Read Skills/development-workflows/docworkflow/reference/requirements.md for the format. Create docs/requirements/REQ-NNN-{name}.md. FR: {list}. NFR: {list}. Update TASK-NNN — add a reference to REQ-NNN in artifacts."
 3. Present the requirements table to the user:
    - FR: table (ID, Requirement, Priority)
    - NFR: table (ID, Requirement, Category, Priority)
@@ -102,7 +102,7 @@ Task description: `$ARGUMENTS`
 1. Ask the user clarifying questions if needed (edge cases, requirements, constraints)
 2. Design the implementation approach
 3. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. Plan MUST cover ALL FR with Must priority from REQ-NNN. Each plan step should reference which FR/NFR it implements. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using adr skill format."
+   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read Skills/development-workflows/docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. Plan MUST cover ALL FR with Must priority from REQ-NNN. Each plan step should reference which FR/NFR it implements. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using adr skill format."
    - Include: task context, exploration findings, design decisions, approved requirements from REQ-NNN
 4. If plugin **feature-dev** is available:
    - Optionally launch **code-architect** for complex architectural decisions
@@ -136,10 +136,10 @@ Task description: `$ARGUMENTS`
 
 1. Write the code, applying contextual skills:
    - Load relevant skill SKILL.md files for guidance (from the Routing Table)
-   - For DB work: read `database/SKILL.md` — Repository pattern, migrations
-   - For HTTP: read `http/SKILL.md` — httpx, timeout, retry
-   - For error handling: read `error-handling/SKILL.md` — AppException hierarchy
-   - For logging: read `logging/SKILL.md` — structlog, Log-Driven Design
+   - For DB work: read `Skills/python-development/database/SKILL.md` — Repository pattern, migrations
+   - For HTTP: read `Skills/python-development/http/SKILL.md` — httpx, timeout, retry
+   - For error handling: read `Skills/python-development/error-handling/SKILL.md` — AppException hierarchy
+   - For logging: read `Skills/python-development/logging/SKILL.md` — structlog, Log-Driven Design
 2. Follow the plan from Phase 3
 3. Apply the code principles in `~/.claude/skills/code-quality/principles.md` throughout — KISS and YAGNI first; run its excess-code check before reporting
 4. Output: summary of created/modified files
@@ -293,5 +293,5 @@ Output to user:
 - **Do NOT push** to remote — only local commit
 - **Docworkflow is mandatory**: every pipeline run produces TASK, PLAN, CHANGELOG entry, and Completion Report
 - **ADR is optional**: only when an architectural decision was made
-- **Skill paths**: skills are at `~/.claude/skills/_*/SKILL.md` (symlinks to this repo)
+- **Skill paths**: installed skills are at `~/.claude/skills/<name>/SKILL.md` (symlinks to `Skills/<topic>/<name>/` in this repo)
 - **Phase 9 is mandatory**: after the commit, always launch py-supervisor for audit
