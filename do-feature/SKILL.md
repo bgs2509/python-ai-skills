@@ -48,7 +48,7 @@ Criteria:
 1. `strong` — ALL of:
    - ≥1 best-practice source cited (Context7 query result, official docs URL, existing project pattern with `file:line`, or industry ADR/standard)
    - `open_questions: []` (empty) in frontmatter
-   - Brainstorming/discovery converged to one dominant option (others violate the code principles in `~/.claude/skills/_code-quality/principles.md` or are explicitly rejected with reason)
+   - Brainstorming/discovery converged to one dominant option (others violate the code principles in `~/.claude/skills/code-quality/principles.md` or are explicitly rejected with reason)
    - No new ADR-candidate detected on this step (no architectural fork)
 2. `weak` — any of the above missing
 
@@ -180,13 +180,13 @@ Step 3:  [USER APPROVAL] — FR/NFR/Scope
 Step 4:  BRAINSTORMING (brainstorming + ST + Context7 + Q&A if needed)
 Step 5:  [USER APPROVAL] — design
 Step 6:  GRACE ASK (grace-refresh + grace-ask)
-Step 7:  GRACE PLAN (grace-plan + Context7 + principles.md + _logging)
-Step 8:  Q&A CONTRACTS (analysis subagent + inline Q&A + _adr if significant)
+Step 7:  GRACE PLAN (grace-plan + Context7 + principles.md + logging)
+Step 8:  Q&A CONTRACTS (analysis subagent + inline Q&A + adr if significant)
 Step 9:  WRITING PLANS (writing-plans + self-review vs FR/NFR/verification)
 Step 10: [USER APPROVAL] — implementation plan
 Step 11: EXECUTION (controller per grace-execute + sonnet workers + TDD)
 Step 12: REVIEW (grace-reviewer full-integrity + external code review via model-run.sh --role reviewer + verification-before-completion)
-Step 13: FINISH (git-commit meta + grace-refresh + _adr if new + _report if major + changelog if major + bd close)
+Step 13: FINISH (git-commit meta + grace-refresh + adr if new + report if major + changelog if major + bd close)
 ```
 
 **Step-by-step details (goals, tools, processes, outputs, Sentrux gates): `reference.md`.**

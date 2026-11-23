@@ -17,7 +17,7 @@ Task description: `$ARGUMENTS`
 
 1. Analyze the task from `$ARGUMENTS`
 2. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 1 INTAKE: Create a backlog task for: $ARGUMENTS. Read _docworkflow skill first. Create docs/backlog/TASK-NNN-{name}.md."
+   - Prompt: "Phase 1 INTAKE: Create a backlog task for: $ARGUMENTS. Read docworkflow skill first. Create docs/backlog/TASK-NNN-{name}.md."
 3. Determine which skills are needed using the Routing Table below
 4. Output to user:
    - TASK-NNN (from py-doc-manager)
@@ -29,26 +29,26 @@ Task description: `$ARGUMENTS`
 **ALWAYS** (every task):
 | Skill | Agent | Phase |
 |-------|-------|-------|
-| _code-quality | py-quality | 5 |
-| _security | py-security | 5 |
-| _docworkflow | py-doc-manager | 1, 7 |
+| code-quality | py-quality | 5 |
+| security | py-security | 5 |
+| docworkflow | py-doc-manager | 1, 7 |
 
 **BY CONTEXT** (Lead determines in Phase 1):
 | Context | Skills |
 |---------|--------|
-| DB, ORM, migrations | _database, _error-handling |
-| HTTP, external APIs | _http, _caching |
-| Architectural decision | _architecture, _adr |
-| CI/CD, linters | _linters |
-| Docker, deploy | _docker |
-| Logging | _logging |
-| Tests explicitly | _testing |
+| DB, ORM, migrations | database, error-handling |
+| HTTP, external APIs | http, caching |
+| Architectural decision | architecture, adr |
+| CI/CD, linters | linters |
+| Docker, deploy | docker |
+| Logging | logging |
+| Tests explicitly | testing |
 
 **FINALIZATION** (Phase 7, 9):
 | Skill | Agent | When |
 |-------|-------|------|
-| _report | py-doc-manager | Always |
-| _adr | py-doc-manager | Only if architectural decision |
+| report | py-doc-manager | Always |
+| adr | py-doc-manager | Only if architectural decision |
 | — | py-supervisor | Always (Phase 9, post-commit audit) |
 
 ---
@@ -59,7 +59,7 @@ Task description: `$ARGUMENTS`
    - **Functional Requirements (FR)** — what the system must do
    - **Non-Functional Requirements (NFR)** — quality attributes (performance, security, maintainability, etc.)
 2. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 1.5 REQUIREMENTS: Create a requirements document for TASK-NNN. Read _docworkflow/reference/requirements.md for the format. Create docs/requirements/REQ-NNN-{name}.md. FR: {list}. NFR: {list}. Update TASK-NNN — add a reference to REQ-NNN in artifacts."
+   - Prompt: "Phase 1.5 REQUIREMENTS: Create a requirements document for TASK-NNN. Read docworkflow/reference/requirements.md for the format. Create docs/requirements/REQ-NNN-{name}.md. FR: {list}. NFR: {list}. Update TASK-NNN — add a reference to REQ-NNN in artifacts."
 3. Present the requirements table to the user:
    - FR: table (ID, Requirement, Priority)
    - NFR: table (ID, Requirement, Category, Priority)
@@ -102,7 +102,7 @@ Task description: `$ARGUMENTS`
 1. Ask the user clarifying questions if needed (edge cases, requirements, constraints)
 2. Design the implementation approach
 3. Launch **py-doc-manager** agent:
-   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read _docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. Plan MUST cover ALL FR with Must priority from REQ-NNN. Each plan step should reference which FR/NFR it implements. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using _adr skill format."
+   - Prompt: "Phase 3 PLANNING: Create a plan for TASK-NNN: {task description}. Read docworkflow/reference/planning.md for MANDATORY format. Create docs/plans/PLAN-NNN-{name}.md with: Context, Contents, Brief version (6 questions per step), Full version. Plan MUST cover ALL FR with Must priority from REQ-NNN. Each plan step should reference which FR/NFR it implements. If there is an architectural decision, also create docs/adr/ADR-NNN-{name}.md using adr skill format."
    - Include: task context, exploration findings, design decisions, approved requirements from REQ-NNN
 4. If plugin **feature-dev** is available:
    - Optionally launch **code-architect** for complex architectural decisions
@@ -136,12 +136,12 @@ Task description: `$ARGUMENTS`
 
 1. Write the code, applying contextual skills:
    - Load relevant skill SKILL.md files for guidance (from the Routing Table)
-   - For DB work: read `_database/SKILL.md` — Repository pattern, migrations
-   - For HTTP: read `_http/SKILL.md` — httpx, timeout, retry
-   - For error handling: read `_error-handling/SKILL.md` — AppException hierarchy
-   - For logging: read `_logging/SKILL.md` — structlog, Log-Driven Design
+   - For DB work: read `database/SKILL.md` — Repository pattern, migrations
+   - For HTTP: read `http/SKILL.md` — httpx, timeout, retry
+   - For error handling: read `error-handling/SKILL.md` — AppException hierarchy
+   - For logging: read `logging/SKILL.md` — structlog, Log-Driven Design
 2. Follow the plan from Phase 3
-3. Apply the code principles in `~/.claude/skills/_code-quality/principles.md` throughout — KISS and YAGNI first; run its excess-code check before reporting
+3. Apply the code principles in `~/.claude/skills/code-quality/principles.md` throughout — KISS and YAGNI first; run its excess-code check before reporting
 4. Output: summary of created/modified files
 
 ---
@@ -216,9 +216,9 @@ After **all 3** agents complete:
 Launch **py-doc-manager** agent:
 - Prompt: "Phase 7 DOCUMENTATION for TASK-NNN: {task description}.
   1. Update CHANGELOG.md — add entry under Unreleased section (Keep a Changelog format).
-  2. Create Completion Report in docs/reports/YYYY-MM-DD-{name}.md using _report skill template.
+  2. Create Completion Report in docs/reports/YYYY-MM-DD-{name}.md using report skill template.
   Include: Task ID, Plan ref, ADR ref (if any), summary, changes list, review results from Quality Gate, test results.
-  Read _docworkflow, _report skills first."
+  Read docworkflow, report skills first."
 
 Output: list of documentation artifacts created
 

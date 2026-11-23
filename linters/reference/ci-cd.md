@@ -1,0 +1,59 @@
+# CI/CD
+
+> Automated checks pipeline. Fast checks first. Tool details — see skill `linters` (linters/reference/linters.md) (DRY).
+
+---
+
+## Mandatory Pipeline
+
+```
+lint (ruff check) → format (ruff format --check) → typecheck (mypy) → dead code (vulture) → tests (pytest --cov) → coverage (≥90%) → security (bandit)
+```
+
+**Order is mandatory**: fast checks first — saving time on failures.
+
+| Step | Tool | Threshold | Time |
+|------|------|-----------|------|
+| Lint | ruff check | 0 errors | ~2s |
+| Format | ruff format --check | Compliant | ~2s |
+| Typecheck | mypy | 0 errors | ~10s |
+| Dead code | vulture | 0 findings outside `vulture_whitelist.py` | ~3s |
+| Tests | pytest | All pass | ~30s+ |
+| Coverage | pytest --cov | ≥90% | (together with tests) |
+| Security | bandit | 0 high/critical | ~5s |
+
+---
+
+## Coverage Gate
+
+- Threshold: ≥90%
+- Pipeline fails if coverage is below the threshold
+- Command: `pytest --cov=src --cov-report=xml --cov-fail-under=90`
+- Report: XML for CI, HTML for local development
+
+---
+
+## Docker Build in CI
+
+- Multi-stage build (see skill `docker` (docker/reference/docker.md))
+- Layer caching — dependencies separate from code
+- Build + healthcheck as the final pipeline step
+
+```bash
+docker build -t app:ci .
+docker run --rm app:ci python -c "import src; print('OK')"
+```
+
+---
+
+## Local CI
+
+Before push — run all checks locally:
+
+```bash
+make ci
+```
+
+> The `make ci` command and tool configuration — see skill `linters` (linters/reference/linters.md).
+
+> Testing details (levels, fixtures, coverage) — see skill `testing` (testing/reference.md).

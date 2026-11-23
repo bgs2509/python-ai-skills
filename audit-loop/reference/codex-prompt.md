@@ -1,6 +1,6 @@
 # Codex audit prompt
 
-Passed via heredoc to `codex exec -s read-only --cd "$PWD"`. Frozen by `config.toml.codex_prompt_version` (version 2: principles inlined from `${PRINCIPLES}`, the content of `~/.claude/skills/_code-quality/principles.md`).
+Passed via heredoc to `codex exec -s read-only --cd "$PWD"`. Frozen by `config.toml.codex_prompt_version` (version 2: principles inlined from `${PRINCIPLES}`, the content of `~/.claude/skills/code-quality/principles.md`).
 
 ```
 You are a code auditor. Context: human used Claude to fix bugs in this repo.

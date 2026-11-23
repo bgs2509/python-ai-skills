@@ -48,10 +48,50 @@ link() {  # link <target-in-repo> <link-path-in-claude-home>
 echo "Repo:        $REPO"
 echo "Claude home: $CLAUDE_HOME"
 
-echo "[skills] (every repo dir containing SKILL.md)"
-for d in "$REPO"/*/; do
-  [ -f "${d}SKILL.md" ] || continue
-  link "${d%/}" "$CLAUDE_HOME/skills/$(basename "$d")"
+# Install the same flat namespace in every enabled client. Validate the
+# entire inventory and all destinations before writing any skill links.
+CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+PI_HOME="${PI_HOME:-$HOME/.pi/agent}"
+skill_homes=("$CLAUDE_HOME/skills")
+if [ -d "$CODEX_HOME" ]; then skill_homes+=("$CODEX_HOME/skills"); fi
+if [ -d "$PI_HOME" ]; then skill_homes+=("$PI_HOME/skills"); fi
+
+shopt -s nullglob
+skill_files=("$REPO"/*/SKILL.md)
+shopt -u nullglob
+if [ "${#skill_files[@]}" -eq 0 ]; then
+  echo 'ERROR: no repo skills found' >&2
+  exit 1
+fi
+seen=' '
+for file in "${skill_files[@]}"; do
+  d="${file%/*}"
+  name="${d##*/}"
+  declared=$(awk 'NR == 1 && $0 != "---" {exit} NR > 1 && $0 == "---" {exit} /^name: / {sub(/^name: +/, ""); print}' "$file")
+  if ! [[ "$name" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || [ "${#name}" -gt 64 ] || [ "$declared" != "$name" ]; then
+    echo "ERROR: invalid skill directory or name: $file" >&2
+    exit 1
+  fi
+  if [[ "$seen" == *" $name "* ]]; then
+    echo "ERROR: duplicate skill name: $name" >&2
+    exit 1
+  fi
+  seen+="$name "
+  for home in "${skill_homes[@]}"; do
+    dest="$home/$name"
+    if [ -L "$dest" ]; then
+      target=$(readlink "$dest")
+      if [[ "$target" == "$d" || "$target" == "$REPO/$name" || "$target" == "$REPO/Skills/"*/"$name" ]]; then
+        continue
+      fi
+    elif [ ! -e "$dest" ]; then
+      continue
+    elif [ -d "$dest" ] && [ "$FORCE" = 1 ]; then
+      continue
+    fi
+    echo "ERROR: skill destination is not owned by this checkout: $dest" >&2
+    exit 1
+  done
 done
 
 echo "[agents]"
@@ -84,28 +124,9 @@ ln -sfn "CLAUDE.md" "$CLAUDE_HOME/AGENTS.md"; echo "  $CLAUDE_HOME/AGENTS.md -> 
 # whenever ~/.claude was rebuilt. Link straight from the repo, same list as
 # Claude, one SSoT.
 # Set CODEX_HOME=/dev/null (or any path without a skills dir) to opt out.
-CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 if [ -d "$CODEX_HOME" ]; then
-  echo "[codex skills]"
-  for d in "$REPO"/*/; do
-    [ -f "${d}SKILL.md" ] || continue
-    link "${d%/}" "$CODEX_HOME/skills/$(basename "$d")"
-  done
   echo "[codex instructions]"
   link "$REPO/claude-home/CLAUDE.md" "$CODEX_HOME/AGENTS.md"
-fi
-
-# Pi reads skills from the agent dir: ~/.pi/agent/skills/ (pi docs → configuration.md,
-# "<agent-dir>/skills/"). Same list as Claude/Codex, linked straight from the repo, one
-# SSoT; pi scans it recursively for dirs with SKILL.md and registers each as /skill:<name>.
-# Set PI_HOME=/dev/null (or any path without a skills dir) to opt out.
-PI_HOME="${PI_HOME:-$HOME/.pi/agent}"
-if [ -d "$PI_HOME" ]; then
-  echo "[pi skills]"
-  for d in "$REPO"/*/; do
-    [ -f "${d}SKILL.md" ] || continue
-    link "${d%/}" "$PI_HOME/skills/$(basename "$d")"
-  done
 fi
 
 echo "[global config dirs]"
@@ -198,6 +219,23 @@ print(json.dumps(d, indent=2, sort_keys=True, ensure_ascii=False))' "$1" 2>/dev/
 else
   echo "  (no template found — skipped)"
 fi
+
+# Do not switch skills if the settings drift guard rejected the update.
+for home in "${skill_homes[@]}"; do
+  echo "[skills] $home"
+  for file in "${skill_files[@]}"; do
+    d="${file%/*}"
+    link "$d" "$home/${d##*/}"
+  done
+  # Retire only links to this checkout's former underscore-prefixed directories.
+  for name in adr architecture caching code-quality database docker docworkflow error-handling http init linters logging report security testing; do
+    old="$home/_$name"
+    if [ -L "$old" ] && [ "$(readlink "$old")" = "$REPO/_$name" ]; then
+      rm -f "$old"
+      echo "  retired $old"
+    fi
+  done
+done
 
 # git-template hook is COPIED, not symlinked: `git init` copies the template
 # tree into every new repo, and a symlink there would break if the repo moves.

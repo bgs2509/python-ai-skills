@@ -1,25 +1,25 @@
 # python-ai-skills
 
-A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` decision family, `do-*` orchestrators, git/sync utilities), 6 specialized agents, and a 9-phase development pipeline for Python 3.11+ projects in Claude Code. Enforces code quality, security, testing, and documentation standards throughout the entire development lifecycle.
+A collection of 50 skills (Python development and documentation, GRACE, `best-*`, `do-*`, Git and sync, audit and progress, business), 6 specialized agents, and a 9-phase development pipeline for Python 3.11+ projects in Claude Code. Enforces code quality, security, testing, and documentation standards throughout the entire development lifecycle.
 
 ## Features
 
-- **15 quality skills** (`_*`) covering the full development spectrum:
-  - Code quality (`_code-quality`) — 17 principles: DRY, KISS, YAGNI, SOLID, SRP, LoD, Fail Fast
-  - Security (`_security`) — OWASP Top 10 checklist, input validation, secrets management
-  - Testing (`_testing`) — 3-level test strategy, pytest, AAA pattern, coverage target >= 90%
-  - Error handling (`_error-handling`) — AppException hierarchy, HTTP mapping, retry strategies
-  - Database (`_database`) — Repository pattern, Alembic migrations, transactions, N+1 prevention
-  - HTTP clients (`_http`) — httpx AsyncClient, timeout, retry, Circuit Breaker
-  - Caching (`_caching`) — Redis, Cache-Aside, TTL, invalidation, graceful degradation
-  - Docker (`_docker`) — multi-stage Dockerfile, Compose, health checks, graceful shutdown
-  - Architecture (`_architecture`) — DDD, Hexagonal, monolith vs microservices
-  - Logging (`_logging`) — structlog, JSON, Correlation ID, 11 Log-Driven Design principles
-  - Linters (`_linters`) — Ruff, Mypy, Bandit, pre-commit hooks, CI pipeline
-  - Documentation workflow (`_docworkflow`) — TASK -> REQ -> PLAN -> ADR -> CHANGELOG -> REPORT -> COMMIT
-  - ADR generator (`_adr`) — Architecture Decision Records with context, alternatives, consequences
-  - Completion report (`_report`) — post-implementation summary with review and test results
-  - Project init (`_init`) — interactive new project scaffolding
+- **15 Python development and documentation skills** covering the development lifecycle:
+  - Code quality (`code-quality`) — 17 principles: DRY, KISS, YAGNI, SOLID, SRP, LoD, Fail Fast
+  - Security (`security`) — OWASP Top 10 checklist, input validation, secrets management
+  - Testing (`testing`) — 3-level test strategy, pytest, AAA pattern, coverage target >= 90%
+  - Error handling (`error-handling`) — AppException hierarchy, HTTP mapping, retry strategies
+  - Database (`database`) — Repository pattern, Alembic migrations, transactions, N+1 prevention
+  - HTTP clients (`http`) — httpx AsyncClient, timeout, retry, Circuit Breaker
+  - Caching (`caching`) — Redis, Cache-Aside, TTL, invalidation, graceful degradation
+  - Docker (`docker`) — multi-stage Dockerfile, Compose, health checks, graceful shutdown
+  - Architecture (`architecture`) — DDD, Hexagonal, monolith vs microservices
+  - Logging (`logging`) — structlog, JSON, Correlation ID, 11 Log-Driven Design principles
+  - Linters (`linters`) — Ruff, Mypy, Bandit, pre-commit hooks, CI pipeline
+  - Documentation workflow (`docworkflow`) — TASK -> REQ -> PLAN -> ADR -> CHANGELOG -> REPORT -> COMMIT
+  - ADR generator (`adr`) — Architecture Decision Records with context, alternatives, consequences
+  - Completion report (`report`) — post-implementation summary with review and test results
+  - Project init (`python-init`) — interactive new project scaffolding
 
 - **6 specialized agents** (via Claude Code Agent Teams):
   - `py-quality` — code quality review against 17 principles
@@ -46,16 +46,16 @@ A collection of 45 skills (15 `_*` quality skills, GRACE workflow, `best-*` deci
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — CLI, Agent Teams, Skills system, Plugin architecture
 - **Python 3.11+** — target runtime for all skills
-- **Ruff** — fast Python linter and formatter (referenced in `_linters`)
-- **Mypy** — static type checking (referenced in `_linters`)
-- **Bandit** — security-focused static analysis (referenced in `_linters`, `_security`)
-- **pytest** — testing framework (referenced in `_testing`)
-- **httpx** — async HTTP client (referenced in `_http`)
-- **Redis** — caching backend (referenced in `_caching`)
-- **Docker** / **Docker Compose** — containerization (referenced in `_docker`)
-- **structlog** — structured logging (referenced in `_logging`)
-- **Alembic** — database migrations (referenced in `_database`)
-- **Pydantic Settings** — configuration and secrets management (referenced in `_security`)
+- **Ruff** — fast Python linter and formatter (referenced in `linters`)
+- **Mypy** — static type checking (referenced in `linters`)
+- **Bandit** — security-focused static analysis (referenced in `linters`, `security`)
+- **pytest** — testing framework (referenced in `testing`)
+- **httpx** — async HTTP client (referenced in `http`)
+- **Redis** — caching backend (referenced in `caching`)
+- **Docker** / **Docker Compose** — containerization (referenced in `docker`)
+- **structlog** — structured logging (referenced in `logging`)
+- **Alembic** — database migrations (referenced in `database`)
+- **Pydantic Settings** — configuration and secrets management (referenced in `security`)
 
 ## Installation
 
@@ -149,21 +149,21 @@ The pipeline orchestrates all phases automatically — from task intake through 
 Invoke any skill directly as a slash command:
 
 ```
-/_code-quality    # Code quality review (17 principles)
-/_security        # Security audit (OWASP Top 10)
-/_testing         # Test strategy and generation
-/_database        # Database patterns and migrations
-/_docker          # Containerization guidance
-/_http            # HTTP client patterns
-/_caching         # Caching strategies
-/_logging         # Structured logging setup
-/_linters         # Linter configuration
-/_architecture    # Architecture design
-/_error-handling  # Exception hierarchy
-/_docworkflow     # Documentation pipeline
-/_adr             # Architecture Decision Record
-/_report          # Completion report
-/_init            # New project scaffolding
+/code-quality    # Code quality review (17 principles)
+/security        # Security audit (OWASP Top 10)
+/testing         # Test strategy and generation
+/database        # Database patterns and migrations
+/docker          # Containerization guidance
+/http            # HTTP client patterns
+/caching         # Caching strategies
+/logging         # Structured logging setup
+/linters         # Linter configuration
+/architecture    # Architecture design
+/error-handling  # Exception hierarchy
+/docworkflow     # Documentation pipeline
+/adr             # Architecture Decision Record
+/report          # Completion report
+/python-init            # New project scaffolding
 ```
 
 ### Agents
@@ -185,7 +185,7 @@ Using python-ai-skills provides:
 - **Automated test generation** — pytest tests following AAA pattern with coverage targets
 - **Full documentation trail** — every task produces TASK, REQ, PLAN, CHANGELOG entry, and Completion Report
 - **Compliance audit** — post-hoc verification that all pipeline phases were followed correctly
-- **Knowledge codification** — 45 skills encode best practices (SOLID, OWASP, DDD, GRACE) as reusable, versionable artifacts
+- **Knowledge codification** — 50 skills encode best practices (SOLID, OWASP, DDD, GRACE) as reusable, versionable artifacts
 - **Gated workflow** — mandatory approvals at requirements and plan stages prevent wasted implementation effort
 
 ## License

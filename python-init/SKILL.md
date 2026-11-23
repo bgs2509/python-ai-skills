@@ -1,0 +1,85 @@
+---
+name: python-init
+description: >
+  Initialize a new Python project for Claude Code. Creates AGENTS.md (plus a `CLAUDE.md -> AGENTS.md` symlink), CHANGELOG.md,
+  docs/ structure. Invoke when starting a new project.
+disable-model-invocation: true
+---
+
+# Project Initialization
+
+> Setting up a new Python project for use with Claude Code and python-ai-skills.
+
+## Required Questions for the User
+
+Before creating files, ask these questions:
+
+1. **Project name** — what is the project called?
+2. **Architecture type** — monolith or microservices?
+3. **Framework** — FastAPI, Django, CLI, library?
+4. **Database** — PostgreSQL, SQLite, no database?
+5. **Cache** — Redis, no cache?
+6. **Description** — 1-2 sentences: what does the project do?
+
+## Files to Create
+
+### 1. AGENTS.md (in project root) + `CLAUDE.md` symlink
+
+```markdown
+# {Project Name}
+
+## Description
+{Description from user's answer}
+
+## Architecture
+- Type: {monolith/microservices}
+- Framework: {FastAPI/Django/...}
+- DB: {PostgreSQL/SQLite/none}
+- Cache: {Redis/none}
+
+## Standards
+This project follows python-ai-skills standards (global skills).
+```
+
+Append `~/.claude/skills/grace-init/assets/glossary-section.md.template` verbatim to `AGENTS.md` (the `## Glossary` skeleton; one template for both generators). Then `ln -s AGENTS.md CLAUDE.md`. Claude Code reads the file through the link (a `CLAUDE.md` above the project, the user profile, otherwise hides a bare `AGENTS.md`); Codex reads `AGENTS.md`. Edit `AGENTS.md`, never the link. If `CLAUDE.md` already exists: a link to `AGENTS.md` stays as is; a regular file or any other link — stop and ask the user to merge it into `AGENTS.md` first.
+
+### 2. CHANGELOG.md
+
+```markdown
+# Changelog
+
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Project initialization
+```
+
+### 3. docs/ Structure
+
+```
+docs/
+├── backlog/     # Tasks (TASK-NNN)
+├── plans/       # Implementation plans
+├── adr/         # Architecture Decision Records
+└── reports/     # Completion reports
+```
+
+### 4. .claude/settings.local.json (if it doesn't exist)
+
+```json
+{
+  "permissions": {
+    "allow": []
+  }
+}
+```
+
+## After Creation
+
+Inform the user:
+- Which files were created
+- Which skills are available globally (list the main ones)
+- How to invoke a skill: `/code-quality`, `/adr`, etc.

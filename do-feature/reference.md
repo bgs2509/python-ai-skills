@@ -141,7 +141,7 @@ Present Discovery Report to user. Ask: "Approve FR/NFR and scope? (yes / changes
 
 **Process:**
 1. Subagent reviews Discovery Report and compiles remaining Open Questions → orchestrator resolves them with the user (one at a time, light Q&A)
-2. Subagent reads `~/.claude/skills/_code-quality/principles.md` and designs the solution with ST (2–3 architecture approaches, trade-offs) and returns options with a recommendation. KISS and YAGNI first: at least one approach is the smallest change that meets the approved FR/NFR, and every layer, option or abstraction beyond it names the requirement that needs it
+2. Subagent reads `~/.claude/skills/code-quality/principles.md` and designs the solution with ST (2–3 architecture approaches, trade-offs) and returns options with a recommendation. KISS and YAGNI first: at least one approach is the smallest change that meets the approved FR/NFR, and every layer, option or abstraction beyond it names the requirement that needs it
 3. Orchestrator presents options to user inline, user chooses
 4. Re-dispatch: subagent details the chosen approach — data model sketch, API sketch, UX flow, module map
 5. Context7 — verify library APIs if involved (inside the subagent). Append each confirmed
@@ -184,14 +184,14 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
 
 **Dispatch:** per Model Routing Matrix.
 
-**Tools:** `grace-plan` + `Context7` + `~/.claude/skills/_code-quality/principles.md` + `_logging`
+**Tools:** `grace-plan` + `Context7` + `~/.claude/skills/code-quality/principles.md` + `logging`
 
 **Process:**
 1. `grace-plan` — creates/updates MODULE_CONTRACTs, knowledge-graph.xml, development-plan.xml, verification-plan.xml
 2. `Context7` — verify library APIs for contract INPUTS/OUTPUTS. Append each confirmed
    `library==version` to `design.md`'s `context7_verified:` frontmatter list (same key Step 4 writes).
-3. Validate contracts against `~/.claude/skills/_code-quality/principles.md` — read the file; do not invoke the `_code-quality` skill (it forks into a subagent). A contract field, parameter or dependency no FR needs is removed
-4. `_logging` — plan log anchors in each contract (events, correlation IDs, decision points)
+3. Validate contracts against `~/.claude/skills/code-quality/principles.md` — read the file; do not invoke the `code-quality` skill (it forks into a subagent). A contract field, parameter or dependency no FR needs is removed
+4. `logging` — plan log anchors in each contract (events, correlation IDs, decision points)
 
 **Output:**
 - Updated MODULE_CONTRACTs in source files
@@ -205,7 +205,7 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
 
 **Dispatch:** per Model Routing Matrix; interaction per Research Subagent Pattern.
 
-**Tools:** analysis subagent + `_adr` (if significant); `/best-questions` only for ADR-candidates
+**Tools:** analysis subagent + `adr` (if significant); `/best-questions` only for ADR-candidates
 
 **Process:**
 1. Subagent produces a compact summary of ALL contracts and identifies ambiguities / trade-offs → returns a structured question list
@@ -232,12 +232,12 @@ Present Design Document. Ask: "Approve design? (yes / changes needed)"
    - [ ] Every FR from Discovery → covered by task
    - [ ] Every NFR → has verification step
    - [ ] Verification plan → every test/trace reflected
-   - [ ] Log anchors from _logging → included in tasks
+   - [ ] Log anchors from logging → included in tasks
    - [ ] ADR decisions → implemented in plan
    - [ ] Task order respects DEPENDS
    - [ ] No placeholders (scan)
    - [ ] Reverse traceability: every task, function, parameter and config key traces to a named FR, NFR or contract item — no trace, no task
-   - [ ] Excess-code check of `~/.claude/skills/_code-quality/principles.md` passes on the plan's GREEN code: the minimal implementation that makes each RED test pass, no speculative options, single-implementation abstractions or guards against states internal callers cannot produce
+   - [ ] Excess-code check of `~/.claude/skills/code-quality/principles.md` passes on the plan's GREEN code: the minimal implementation that makes each RED test pass, no speculative options, single-implementation abstractions or guards against states internal callers cannot produce
 
 **Output:**
 - `docs/superpowers/plans/YYYYMMDD-{feature}-plan.md` (SSoT for execution)
@@ -273,18 +273,18 @@ When following an approved plan with pre-verified APIs — Context7 not required
 
 **Advisory gate — deviation detection:**
 If any step diverges from the approved plan (new module not in plan, different approach than designed, unexpected dependency, code beyond the plan's GREEN — an extra function, parameter, option or layer), the worker MUST NOT proceed silently and MUST NOT ask the user directly (it can't) — it pauses that step and returns the deviation to the controller. The controller classifies it via the risk × evidence matrix:
-- `low + strong` (e.g. rename within one module, add log anchor matching `_logging` rules) → auto-approve, one-line flag in commit body: `Deviation auto-approved: <reason>`.
+- `low + strong` (e.g. rename within one module, add log anchor matching `logging` rules) → auto-approve, one-line flag in commit body: `Deviation auto-approved: <reason>`.
 - `low + weak` → auto-approve + log open question.
 - `medium / high` → **always ask the user**, regardless of flag. Destructive deviations (delete module not in plan, change DB schema, drop API) are `high` by definition.
 
 **Process:**
-1. Controller reads plan, builds execution queue + ExecutionPackets (each carries the path `~/.claude/skills/_code-quality/principles.md`), presents the queue (per grace-execute)
+1. Controller reads plan, builds execution queue + ExecutionPackets (each carries the path `~/.claude/skills/code-quality/principles.md`), presents the queue (per grace-execute)
 2. Worker, for each step in its batch:
    - TDD cycle from the plan: RED → verify fail → GREEN → verify pass → REFACTOR
    - Context7 check on any of the 4 library triggers (see above)
    - Deviation check vs plan — return to controller if diverged
    - Implement log anchors per contract
-   - **Self-check against the packet (no extra dispatch):** matches contract? within write scope? log anchors present? tests pass? nothing beyond the plan's GREEN code (excess-code check of `~/.claude/skills/_code-quality/principles.md`)?
+   - **Self-check against the packet (no extra dispatch):** matches contract? within write scope? log anchors present? tests pass? nothing beyond the plan's GREEN code (excess-code check of `~/.claude/skills/code-quality/principles.md`)?
    - Commit: `<type>(<MODULE_ID>): <description>`
    - Return graph/verification delta proposals to the controller
 3. Controller, at each phase boundary: apply accumulated graph/verification deltas + dispatch a scoped `grace-reviewer` review of the phase
@@ -302,7 +302,7 @@ If any step diverges from the approved plan (new module not in plan, different a
 
 **Code review procedure (orchestrator, inline):**
 1. Create a throwaway tree at the reviewed commit: `git worktree add --detach <tmp>/review-wt HEAD` — the reviewer's Bash may write in its working directory, so only a separate tree guarantees the real one stays untouched.
-2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary), `{PRINCIPLES}` (the content of `~/.claude/skills/_code-quality/principles.md`, inlined — the external reviewer does not read `~/.claude`).
+2. Fill `do-feature/reviewer-prompt.md` into a task file: `{RANGE}` (the feature's commits), `{FEATURE}`, `{BD_ID}`, `{FILES}`, `{DISCOVERY}`/`{DESIGN}`/`{PLAN}` paths, `{PHASE_VERDICTS}` (Step 11 phase-review summary), `{PRINCIPLES}` (the content of `~/.claude/skills/code-quality/principles.md`, inlined — the external reviewer does not read `~/.claude`).
 3. From inside the worktree run `~/.claude/scripts/model-run.sh --role reviewer --task <task> --out <review.md> --expect '^(READY|READY WITH FIXES|NOT READY)$'` (runs up to 30 min; run it in the background and WAIT for it to finish before step 4 — removing the worktree under a running reviewer breaks the review). Exit 0 = a review was delivered to `<review.md>`; exit 1 = every reviewer failed (stop and tell the user); exit 2 = usage error. A codex reviewer's answer is its final message only (the runner's answer file), not its log.
 4. After the runner has exited: `git worktree remove --force <tmp>/review-wt` (always, whatever the exit code).
 5. If the journal line of the answering attempt names an Anthropic model, log it as a routing exception (`bd update <epic> --notes`).
@@ -334,7 +334,7 @@ code already passed by a phase review. Its scope is:
   - `Δ modularity_Q`, `Δ cohesion`, top movers (file/module level)
 - **Hard gate (rule violations):** any new entry in the CLI violation list → STOP. Two paths to proceed:
   - Fix the violation in this feature (preferred), then re-scan.
-  - Document via ADR (`_adr` skill) explaining why the new architectural coupling is intentional, AND mark the accepted regression: `bd label add <epic> regression-accepted` — the epic is then closed in Step 13 with `--reason="see ADR-NNN"`.
+  - Document via ADR (`adr` skill) explaining why the new architectural coupling is intentional, AND mark the accepted regression: `bd label add <epic> regression-accepted` — the epic is then closed in Step 13 with `--reason="see ADR-NNN"`.
 - **Soft gate (signal drop):** `Δ quality_signal < −100` → WARNING. Two paths to proceed:
   - Address the regression in this feature.
   - Document via ADR + `bd label add <epic> regression-accepted` (close reason in Step 13: `see ADR-NNN`). The Δ MUST appear in the completion report (Step 13).
@@ -347,15 +347,15 @@ code already passed by a phase review. Its scope is:
 
 **Dispatch:** inline (no subagent) — mechanical commit + refresh + close
 
-**Tools:** `git-commit` + `grace-refresh` + `_adr` (if new decisions) + `_report` (if major) + `bd close`
+**Tools:** `git-commit` + `grace-refresh` + `adr` (if new decisions) + `report` (if major) + `bd close`
 
 **Process:**
 1. `grace-refresh` (targeted, scoped to modules touched since the last Step 11 phase-boundary sync
    — typically just the Step 12 review fixes, since Step 11 already applied per-phase deltas as it
    went. Run `grace-refresh` **full** only if wider drift is suspected, e.g. review fixes touched
    modules outside the original plan scope.) — final sync of graph and verification plan
-2. `_adr` — if new architectural decisions were made during coding
-3. `_report` (if major feature) — completion report to `docs/reports/`
+2. `adr` — if new architectural decisions were made during coding
+3. `report` (if major feature) — completion report to `docs/reports/`
 4. Update the project changelog (`CHANGELOG.md` per Keep a Changelog, or the path configured in the project's CLAUDE.md) — if the project maintains one (major features)
 5. `git-commit` — commit remaining meta files (ADR, report, changelog, graph updates)
    - Commit format: `<type>(<short-name>):` Conventional Commits. Examples: `docs(changelog): add voice feature section`, `chore(knowledge-graph): refresh after M-VOICE changes`, `docs(adr): ADR-042 Whisper model selection`

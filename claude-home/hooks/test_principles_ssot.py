@@ -1,6 +1,6 @@
 """Guard for the single source of truth of the code principles (bd python-ai-skills-5io).
 
-_code-quality/principles.md is the only place a principle is defined. Before it
+code-quality/principles.md is the only place a principle is defined. Before it
 existed the list was restated in seven files and the copies diverged (a KISS
 violation was a "blocker" in one and "critical" in another). This guard fails when
 a definition reappears elsewhere, when a consumer stops pointing to the file, or
@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[2]
-SSOT = REPO / "_code-quality" / "principles.md"
+SSOT = REPO / "code-quality" / "principles.md"
 HOOK = REPO / "claude-home" / "hooks" / "principles-inject.sh"
 
 NAMES = (
@@ -35,9 +35,9 @@ SKIP_FILES = {"CHANGELOG.md"}
 
 # Consumer file -> text that proves it is wired to the SSoT.
 CONSUMERS = {
-    "_code-quality/SKILL.md": "principles.md",
+    "code-quality/SKILL.md": "principles.md",
     "agents/py-test-writer.md": "principles.md",
-    "_testing/SKILL.md": "principles.md",
+    "testing/SKILL.md": "principles.md",
     "agents/py-quality.md": "principles.md",
     "best-research/SKILL.md": "principles.md",
     "audit-loop/SKILL.md": "principles.md",
@@ -116,7 +116,7 @@ def test_no_principle_definition_outside_ssot():
         for text in [path.read_text(errors="ignore")]
         for m in DEFINITION.finditer(text)
     ]
-    assert hits == [], "principle restated outside _code-quality/principles.md:\n" + "\n".join(hits)
+    assert hits == [], "principle restated outside code-quality/principles.md:\n" + "\n".join(hits)
 
 
 def test_every_consumer_points_to_ssot():

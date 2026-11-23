@@ -725,7 +725,7 @@ def test_asset_skeleton_has_no_groups_and_no_contract_errors():
 
 
 def test_both_generators_reference_the_asset():
-    for rel in ("_init/SKILL.md", "grace-init/SKILL.md"):
+    for rel in ("python-init/SKILL.md", "grace-init/SKILL.md"):
         assert "glossary-section.md.template" in (REPO / rel).read_text(encoding="utf-8"), rel
 
 
@@ -738,7 +738,7 @@ def test_the_skeleton_lives_only_in_the_asset():
 
 
 def test_init_skill_cites_the_asset_by_a_path_that_resolves():
-    text = (REPO / "_init" / "SKILL.md").read_text(encoding="utf-8")
+    text = (REPO / "python-init" / "SKILL.md").read_text(encoding="utf-8")
     assert "`~/.claude/skills/grace-init/assets/glossary-section.md.template`" in text
 
 

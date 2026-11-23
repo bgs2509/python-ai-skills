@@ -23,18 +23,22 @@ INSTALLER = Path(__file__).parent / "install-claude-symlinks.sh"
 
 
 def run_installer(
-    base: Path, claude_home: Path, extra_env: dict[str, str] | None = None
+    base: Path,
+    claude_home: Path,
+    extra_env: dict[str, str] | None = None,
+    installer: Path = INSTALLER,
 ) -> subprocess.CompletedProcess:
     env = {
         **os.environ,
         "HOME": str(base / "home"),
         "CLAUDE_HOME": str(claude_home),
-        "CODEX_HOME": str(base / "no-codex"),
+        "CODEX_HOME": str(base / "home" / ".codex"),
+        "PI_HOME": str(base / "home" / ".pi" / "agent"),
         "XDG_CONFIG_HOME": str(base / "xdg"),
         **(extra_env or {}),
     }
     return subprocess.run(
-        ["bash", str(INSTALLER)], env=env, capture_output=True, text=True, timeout=120
+        ["bash", str(installer)], env=env, capture_output=True, text=True, timeout=120
     )
 
 
@@ -74,20 +78,64 @@ def test_unsafe_claude_home_is_refused(tmp_path, char):
     assert "CLAUDE_HOME" in result.stderr
 
 
-def test_pi_skills_are_linked(tmp_path):
-    """Every repo skill dir is linked into the pi agent dir (bd python-ai-skills-4mw)."""
-    claude_home = tmp_path / "claude home"
-    (tmp_path / "home" / ".pi" / "agent").mkdir(parents=True)  # pi installed
-    result = run_installer(tmp_path, claude_home)
-    assert result.returncode == 0, result.stderr
+@pytest.fixture
+def skill_homes(tmp_path):
+    homes = [tmp_path / "claude home", tmp_path / "home" / ".codex", tmp_path / "home" / ".pi" / "agent"]
+    for home in homes:
+        (home / "skills").mkdir(parents=True)
+    return homes
+
+
+def test_every_client_gets_the_same_flat_inventory(tmp_path, skill_homes):
     repo = INSTALLER.parent.parent
-    skills = sorted(p.name for p in repo.iterdir() if (p / "SKILL.md").is_file())
-    assert len(skills) == 50, f"expected 50 repo skills, found {len(skills)}"
-    pi_skills = tmp_path / "home" / ".pi" / "agent" / "skills"
-    for name in skills:
-        link = pi_skills / name
-        assert link.is_symlink(), f"pi skill link missing: {name}"
-        assert link.resolve() == (repo / name).resolve(), f"wrong pi link target: {name}"
+    expected = {f.parent.name: f.parent for f in repo.glob("*/SKILL.md")}
+    assert len(expected) == 50
+    for _ in range(2):
+        result = run_installer(tmp_path, skill_homes[0])
+        assert result.returncode == 0, result.stderr
+        for home in skill_homes:
+            actual = {p.name: p for p in (home / "skills").iterdir()}
+            assert actual.keys() == expected.keys()
+            assert all(p.is_symlink() and p.resolve() == expected[name] for name, p in actual.items())
+
+
+def test_upgrade_retires_only_our_legacy_links(tmp_path, skill_homes):
+    repo = INSTALLER.parent.parent
+    custom = tmp_path / "custom"
+    custom.mkdir()
+    for home in skill_homes:
+        old = home / "skills"
+        (old / "_testing").symlink_to(repo / "_testing")
+        (old / "_init").symlink_to(repo / "_init")
+        (old / "_logging").symlink_to(custom)
+        (old / "_docker").mkdir()
+    result = run_installer(tmp_path, skill_homes[0])
+    assert result.returncode == 0, result.stderr
+    for home in skill_homes:
+        installed = home / "skills"
+        assert (installed / "testing" / "SKILL.md").is_file()
+        assert (installed / "python-init" / "SKILL.md").is_file()
+        assert not (installed / "init").exists()
+        assert not (installed / "_testing").is_symlink()
+        assert not (installed / "_init").is_symlink()
+        assert (installed / "_logging").resolve() == custom
+        assert (installed / "_docker").is_dir()
+
+
+@pytest.mark.parametrize("kind", ["link", "directory", "file"])
+def test_collision_aborts_before_touching_any_skill(tmp_path, skill_homes, kind):
+    dest = skill_homes[-1] / "skills" / "testing"
+    if kind == "link":
+        dest.symlink_to(tmp_path / "external")
+    elif kind == "directory":
+        dest.mkdir()
+    else:
+        dest.write_text("unmanaged")
+    result = run_installer(tmp_path, skill_homes[0])
+    assert result.returncode != 0
+    assert "skill destination is not owned" in result.stderr
+    assert dest.exists() or dest.is_symlink()
+    assert not list((skill_homes[0] / "skills").iterdir())
 
 
 def test_pi_block_is_opt_out(tmp_path):

@@ -11,7 +11,7 @@ You are an expert Python code reviewer. Your task is to review code for quality,
 ## Critical Rules (ALWAYS apply)
 
 ### Principles
-Read `~/.claude/skills/_code-quality/principles.md` first — the single source of truth for the
+Read `~/.claude/skills/code-quality/principles.md` first — the single source of truth for the
 principles. KISS and YAGNI first: run its excess-code check (deletion, trace, boundary tests) on
 every file; excess code is a BLOCKER.
 
@@ -33,7 +33,7 @@ every file; excess code is a BLOCKER.
 5. Check linter compliance (Ruff, Mypy, naming conventions — snake_case, descriptive names)
 6. Assign confidence score (0-100) to each finding — only report findings with confidence >=80
 
-> **Topic details (read as needed):** `_error-handling/SKILL.md`, `_linters/SKILL.md`, `_logging/SKILL.md`
+> **Topic details (read as needed):** `error-handling/SKILL.md`, `linters/SKILL.md`, `logging/SKILL.md`
 
 ## Mandatory Output File
 

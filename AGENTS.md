@@ -4,7 +4,7 @@ project_type: dev
 
 > A collection of skills for high-quality Python 3.11+ application development.
 > Each skill is a folder with `SKILL.md` (short version) + `reference.md` (full version).
-> The `_` prefix distinguishes custom skills from built-in ones.
+> Skill names use lowercase ASCII letters, digits, and hyphens, and match their directory names.
 
 ---
 
@@ -12,26 +12,26 @@ project_type: dev
 
 | Skill | Command | Description |
 |-------|---------|-------------|
-| _code-quality | `/_code-quality` | 17 quality principles (DRY, KISS, YAGNI, SOLID); not security/tests/linters |
-| _error-handling | `/_error-handling` | Exception hierarchy, HTTP mapping, retry; not logging or HTTP-client transport |
-| _security | `/_security` | OWASP Top 10, validation, secrets; not general quality or linter setup |
-| _logging | `/_logging` | Structured logging, Correlation ID, sanitization; not exception design |
-| _testing | `/_testing` | 3 test levels, coverage ≥90%, pytest; not linters or quality review |
-| _database | `/_database` | Repository pattern, migrations, transactions; not caching or HTTP |
-| _architecture | `/_architecture` | DDD, Hexagonal, monolith vs microservices; not a single tech choice (_adr) |
-| _linters | `/_linters` | Ruff, Mypy, Bandit, pre-commit, CI; not tests or principle-level review |
-| _docker | `/_docker` | Dockerfile, Compose, health checks; not CI/lint config |
-| _http | `/_http` | httpx, timeout, retry, Circuit Breaker; not server errors or caching |
-| _caching | `/_caching` | Redis, TTL, invalidation, graceful degradation; not source-of-truth DB |
-| _docworkflow | `/_docworkflow` | Docs pipeline backlog → commit for TASK-NNN legacy projects; not do-feature/GRACE projects, not final report only (_report) |
-| _adr | `/_adr` | Architecture Decision Record generator; not a full docs pipeline |
-| _report | `/_report` | Feature completion report; not mid-work docs (_docworkflow) |
-| _init | `/_init` | New project initialization (slash-only, no model auto-invoke) |
+| code-quality | `/code-quality` | 17 quality principles (DRY, KISS, YAGNI, SOLID); not security/tests/linters |
+| error-handling | `/error-handling` | Exception hierarchy, HTTP mapping, retry; not logging or HTTP-client transport |
+| security | `/security` | OWASP Top 10, validation, secrets; not general quality or linter setup |
+| logging | `/logging` | Structured logging, Correlation ID, sanitization; not exception design |
+| testing | `/testing` | 3 test levels, coverage ≥90%, pytest; not linters or quality review |
+| database | `/database` | Repository pattern, migrations, transactions; not caching or HTTP |
+| architecture | `/architecture` | DDD, Hexagonal, monolith vs microservices; not a single tech choice (adr) |
+| linters | `/linters` | Ruff, Mypy, Bandit, pre-commit, CI; not tests or principle-level review |
+| docker | `/docker` | Dockerfile, Compose, health checks; not CI/lint config |
+| http | `/http` | httpx, timeout, retry, Circuit Breaker; not server errors or caching |
+| caching | `/caching` | Redis, TTL, invalidation, graceful degradation; not source-of-truth DB |
+| docworkflow | `/docworkflow` | Docs pipeline backlog → commit for TASK-NNN legacy projects; not do-feature/GRACE projects, not final report only (report) |
+| adr | `/adr` | Architecture Decision Record generator; not a full docs pipeline |
+| report | `/report` | Feature completion report; not mid-work docs (docworkflow) |
+| python-init | `/python-init` | New project initialization (slash-only, no model auto-invoke) |
 | py-supervisor | (agent) | Post-hoc pipeline compliance audit |
 
 > **SSoT for invocation:** the `TRIGGER`/`SKIP` lines in each `SKILL.md` frontmatter are the single source of truth for when a skill fires. The `not …` hints above are a compact routing aid, not a duplicate of those lines.
 
-### Workflow, GRACE & utility skills (34)
+### Workflow, GRACE & utility skills (35)
 
 - **Orchestrators:** `do-feature` (shipped code: full mode for task level 1, `--lite` for level 2 — levels in `claude-home/CLAUDE.md`), `do-autopilot` (draft → executable chain), `do-multiagent` (parallel team over bead graph)
 - **best-\* family:** `best-research` (analysis engine, SSoT), `best-recommend` (recommendation format atom), `best-approach` / `best-rank` / `best-questions` (thin wrappers)
@@ -41,7 +41,7 @@ project_type: dev
 - **monitoring:** `progress-watch` (four-line progress report on an interval, self-terminating, read-only), `plan-progress-page` (proportional HTML progress page of a plan, published as an Artifact)
 - **misc:** `explain` (multi-dimensional explanation: 8 axes — search source, object, audience, term decoding, term register, structure, language, source grounding; per-object anatomy matrix — shared five for concept/document, four for project plus an auto "done this time" section for build artifacts, five for codebase, three-section difference structure for «чем отличается», fragment procedure for llm-output/web-result/text; brief auto mode for bare term questions, rescue mode for «ничего не понимаю»; numbers must carry units, alternatives covered briefly inside "why needed"; presets child/junior/senior/business), `customer-tz` (customer-facing TZ from raw input), `vacancy-intake` (ML_CAREER_2026: one incoming job offer → duplicate alarm over all vacancies, stop-list, four-file analysis against the owner's legends)
 
-> The catalog table above covers only the `_*` quality skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (50 total); `make install-symlinks` links them all.
+> The catalog table above covers the original Python development and documentation skills; this grouped list covers the rest. Full inventory = every repo dir with a `SKILL.md` (50 total); `make install-symlinks` links them all.
 
 ---
 
@@ -49,18 +49,18 @@ project_type: dev
 
 | Task | Skills |
 |------|--------|
-| Writing code | _code-quality, _error-handling |
-| Code review | _code-quality, _security, _linters |
-| Database work | _database, _error-handling |
-| HTTP integrations | _http, _caching |
-| CI setup | _linters |
-| Deployment | _docker, _security |
-| Testing | _testing |
-| New project | _init, _architecture |
-| Architecture decision | _architecture, _adr |
-| Feature completed | _report; _docworkflow (TASK-NNN legacy projects only) |
+| Writing code | code-quality, error-handling |
+| Code review | code-quality, security, linters |
+| Database work | database, error-handling |
+| HTTP integrations | http, caching |
+| CI setup | linters |
+| Deployment | docker, security |
+| Testing | testing |
+| New project | python-init, architecture |
+| Architecture decision | architecture, adr |
+| Feature completed | report; docworkflow (TASK-NNN legacy projects only) |
 | Pipeline audit | py-supervisor |
-| Starting a task | pick the task level (`claude-home/CLAUDE.md` → Dev-project workflow): do-feature for levels 1–2; _docworkflow (TASK-NNN legacy projects) |
+| Starting a task | pick the task level (`claude-home/CLAUDE.md` → Dev-project workflow): do-feature for levels 1–2; docworkflow (TASK-NNN legacy projects) |
 
 ---
 

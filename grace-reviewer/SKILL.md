@@ -61,7 +61,7 @@ For scoped review navigation, you may also use:
 ## Checklist
 
 ### Code Principles
-For each file in scope, apply `~/.claude/skills/_code-quality/principles.md` (the single source of truth; KISS and YAGNI first):
+For each file in scope, apply `~/.claude/skills/code-quality/principles.md` (the single source of truth; KISS and YAGNI first):
 - [ ] Every new symbol, parameter and branch passes its excess-code check (deletion, trace, boundary tests)
 - [ ] No principle violation listed there; excess code is reported with the fix "delete"
 

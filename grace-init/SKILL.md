@@ -13,7 +13,7 @@ Read each template file, replace the `$PLACEHOLDER` variables with actual values
 | Template source                          | Target in project           |
 |------------------------------------------|-----------------------------|
 | `assets/AGENTS.md.template`              | `AGENTS.md` (project root) + `CLAUDE.md -> AGENTS.md` symlink |
-| `assets/glossary-section.md.template`    | the `## Glossary` skeleton, appended verbatim to the generated `AGENTS.md` (one template for both generators, `_init` uses it too) |
+| `assets/glossary-section.md.template`    | the `## Glossary` skeleton, appended verbatim to the generated `AGENTS.md` (one template for both generators, `python-init` uses it too) |
 | `assets/docs/knowledge-graph.xml.template` | `docs/knowledge-graph.xml`  |
 | `assets/docs/requirements.xml.template`    | `docs/requirements.xml`     |
 | `assets/docs/technology.xml.template`      | `docs/technology.xml`       |

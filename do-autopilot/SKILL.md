@@ -113,7 +113,7 @@ Phase 6  CLOSE
                 finding) → halt, surface the setup defect, do NOT enter the fix-loop
               - commit fixes as `fix(<MODULE_ID>): critical audit findings <epic-slug>` with
                 the epic bd_id trailer; quality gates (lint, grace lint, pre-commit) MUST pass
-         6.2  close epic, run /grace-refresh, /git-commit meta, write _report
+         6.2  close epic, run /grace-refresh, /git-commit meta, write report
 ```
 
 ## 3. Decision Protocol (the 3x-rule)
@@ -127,7 +127,7 @@ Phase 6  CLOSE
    - Use `WebSearch` and/or Context7 (`resolve-library-id` → `query-docs`) for libraries.
    - Use `Grep`/`Glob` to check what the project already does.
    - Use `best-approach` skill if the question is about choosing among approaches.
-3. Score each candidate on the project's own criteria (code principles from `~/.claude/skills/_code-quality/principles.md` — KISS and YAGNI first, fit with existing
+3. Score each candidate on the project's own criteria (code principles from `~/.claude/skills/code-quality/principles.md` — KISS and YAGNI first, fit with existing
    stack, risk, reversibility).
 4. **3x-rule:**
    - If the best candidate scores **≥3× better** than the runner-up on the chosen criteria — auto-apply

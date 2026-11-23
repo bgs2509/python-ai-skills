@@ -88,7 +88,7 @@
 
 **Rule (N-DOCS):** Dev-project document names and the `docs/` tree — `CLAUDE-APPENDIX.md` → "File Structure (dev-projects)".
 
-**Rule (N-PY):** Python identifiers — `~/.claude/skills/_code-quality/reference/naming.md`.
+**Rule (N-PY):** Python identifiers — `~/.claude/skills/code-quality/reference/naming.md`.
 
 ## Documentation Retrieval Policy
 
@@ -247,7 +247,7 @@ Real secrets in any of these files = policy violation regardless of name.
 
 ## Preferences
 
-**Rule:** Code principles (KISS, YAGNI, SSoT/DRY, SOTA first, then the rest of the 17) are defined only in `~/.claude/skills/_code-quality/principles.md`. Read it before planning, writing or reviewing code and run its excess-code check on every plan and diff; never restate a principle in another file. `~/.claude/hooks/principles-inject.sh` injects it into code-related skills. Its SSoT principle covers instructions and documents too, not only code.
+**Rule:** Code principles (KISS, YAGNI, SSoT/DRY, SOTA first, then the rest of the 17) are defined only in `~/.claude/skills/code-quality/principles.md`. Read it before planning, writing or reviewing code and run its excess-code check on every plan and diff; never restate a principle in another file. `~/.claude/hooks/principles-inject.sh` injects it into code-related skills. Its SSoT principle covers instructions and documents too, not only code.
 
 **Rule:** Do NOT create unnecessary files, folders, or structures outside of what `do-feature` explicitly requires for dev-projects.
 

@@ -34,7 +34,7 @@ When the optional `grace` CLI is available, `grace module show M-XXX --path <pro
 2. Within each phase, collect `step-N` elements in order
 3. Build a controller-owned execution packet for each step containing:
    - module ID and purpose
-   - the path `~/.claude/skills/_code-quality/principles.md` — the worker reads it before coding (code principles, KISS and YAGNI first)
+   - the path `~/.claude/skills/code-quality/principles.md` — the worker reads it before coding (code principles, KISS and YAGNI first)
    - target file paths and exact write scope
    - module contract excerpt from `docs/development-plan.xml`
    - module graph entry excerpt from `docs/knowledge-graph.xml`

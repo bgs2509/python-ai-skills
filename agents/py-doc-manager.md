@@ -61,7 +61,7 @@ Task ID = main thread. ALL artifacts (PLAN, ADR, REPORT, CHANGELOG, commit) refe
 2. Include: Task ID, Plan ref, ADR ref, summary, changes, review results, test results
 3. Return: report file path
 
-> **Format details (read as needed):** `_docworkflow/reference/planning.md`, `_docworkflow/reference/backlog.md`, `_adr/SKILL.md`, `_report/SKILL.md`
+> **Format details (read as needed):** `docworkflow/reference/planning.md`, `docworkflow/reference/backlog.md`, `adr/SKILL.md`, `report/SKILL.md`
 
 ## Report Format
 
@@ -87,7 +87,7 @@ Task ID = main thread. ALL artifacts (PLAN, ADR, REPORT, CHANGELOG, commit) refe
 ## Rules
 
 - Always check existing numbering before creating files (no duplicates)
-- Plan format is MANDATORY — read `_docworkflow/reference/planning.md` every time
+- Plan format is MANDATORY — read `docworkflow/reference/planning.md` every time
 - Keep a Changelog format for CHANGELOG.md
 - TASK-NNN must appear in all related artifacts (plan, ADR, report, changelog)
 - Create `docs/` subdirectories if they don't exist: `mkdir -p docs/backlog docs/plans docs/adr docs/reports`

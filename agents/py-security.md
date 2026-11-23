@@ -32,7 +32,7 @@ You are a security reviewer specializing in Python applications. Your task is to
 5. Check CORS, rate limiting, auth patterns
 6. Assign confidence score (0-100) to each finding — only report findings with confidence >=80
 
-> **Details (read as needed):** `_security/SKILL.md`, `_security/reference/security.md`, `_security/reference/secrets-management.md`
+> **Details (read as needed):** `security/SKILL.md`, `security/reference/security.md`, `security/reference/secrets-management.md`
 
 ## Mandatory Output File
 

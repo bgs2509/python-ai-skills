@@ -200,7 +200,7 @@ test -f docs/development-plan.xml || { echo "ERROR: missing development-plan.xml
 command -v codex >/dev/null || { echo "ERROR: codex CLI not installed"; exit 1; }
 # Pre-commit is a load-bearing gate — hard ERROR, not WARN.
 test -f .pre-commit-config.yaml -o -x .git/hooks/pre-commit || { echo "ERROR: pre-commit hooks missing — install before audit-loop"; exit 1; }
-for s in grace-fix grace-refactor grace-refresh best-questions _code-quality _adr; do
+for s in grace-fix grace-refactor grace-refresh best-questions code-quality adr; do
   test -d ~/.claude/skills/$s || { echo "ERROR: missing skill $s"; exit 1; }
 done
 git diff --quiet HEAD || { echo "WARN: working tree dirty — commit or stash before audit-loop"; }
@@ -243,7 +243,7 @@ SPEC=$(jq -c '.models[.roles["cross-auditor"].models[0]]' "$REG")
 CODEX_MODEL_ARGS="-m $(jq -r '.model_arg' <<<"$SPEC") -c model_reasoning_effort=$(jq -r '.effort' <<<"$SPEC")"
 ```
 
-Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Set `PRINCIPLES="$(cat ~/.claude/skills/_code-quality/principles.md)"` first — codex does not read `~/.claude`, so the file content goes into the prompt — then pass it via heredoc to `codex exec -s read-only --cd "$PWD" $CODEX_MODEL_ARGS`. Save exit code, stderr, log path to `state.json.rounds[N]`.
+Full prompt (security clauses, inputs, output schema): `reference/codex-prompt.md`. Set `PRINCIPLES="$(cat ~/.claude/skills/code-quality/principles.md)"` first — codex does not read `~/.claude`, so the file content goes into the prompt — then pass it via heredoc to `codex exec -s read-only --cd "$PWD" $CODEX_MODEL_ARGS`. Save exit code, stderr, log path to `state.json.rounds[N]`.
 
 ### Step 3. Codex output validation + parse
 
@@ -375,7 +375,7 @@ Write `docs/reports/YYYYMMDD_audit-loop.md` per template in `reference/final-rep
 
 ## Principles (gate, not aspiration)
 
-Blocking for any decision in the cycle: the principles in `~/.claude/skills/_code-quality/principles.md`
+Blocking for any decision in the cycle: the principles in `~/.claude/skills/code-quality/principles.md`
 (the single source of truth — read it, do not restate it). KISS and YAGNI first; any violation of that
 file, including its excess-code check, is `critical`. A fix that adds code where deleting code would do
 violates it too.

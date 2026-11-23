@@ -1,6 +1,6 @@
 """Tests for principles-inject.sh — PreToolUse(Skill) hook that delivers the code principles.
 
-The principles live in one file (_code-quality/principles.md). Skills that write,
+The principles live in one file (code-quality/principles.md). Skills that write,
 plan or review code must see it, including superpowers skills this repo cannot
 edit. The hook injects the file as additionalContext for listed skills only, and
 never fails a call: an unlisted skill, a missing file or odd input means silence.

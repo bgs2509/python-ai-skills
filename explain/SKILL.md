@@ -23,7 +23,7 @@ description: >
   comparing concrete data instances (vacancies, bank statements, recruiters) — data
   analysis, not explanation; «какой вариант лучше / что тут бест практис» → best-approach;
   «исправь / почини / почему падает» about concrete code or tests → debugging;
-  «сделай отчёт» → _report; web-research task wording («Find on the internet: what is…»);
+  «сделай отчёт» → report; web-research task wording («Find on the internet: what is…»);
   plain in-answer explanation covered by the global Explanation Protocol.
 argument-hint: "[что объяснить и для кого; --preset child|junior|senior|business, --audience, --detail full|partial|none, --search auto|local|web|none, --structure five|difference|summary-first|direct|brief, --lang ru|en, --no-sources]"
 ---
