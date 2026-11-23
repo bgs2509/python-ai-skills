@@ -98,10 +98,10 @@ In another project, apply the same test: which document now states something the
 no longer does. In a GRACE project whose module boundaries changed, say in the report
 that `grace-refresh` is due — this skill does not run it (no auto-transition).
 
-**Verify every counter against the filesystem, never against the old number:**
+**Verify every counter against the filesystem, never against the old number.** In `python-ai-skills`, use the same depth as the installer; in another repository, use its own discovery rule:
 
 ```bash
-find . -maxdepth 2 -name SKILL.md -not -path './.git/*' | wc -l
+find Skills -mindepth 3 -maxdepth 3 -type f -name SKILL.md | wc -l
 ```
 
 ### 1.3 Bring the session's plans up to date
