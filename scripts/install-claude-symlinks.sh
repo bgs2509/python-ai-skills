@@ -161,6 +161,7 @@ link "$REPO/claude-home/rtk/config.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/rtk/
 #   voiceEnabled    — by the voice toggle
 # All are carried over from the live file into each render and masked in the
 # drift guard, so a UI-side change is neither flagged as a hand edit nor reverted.
+# Orca also appends local hook groups, which must survive template upgrades.
 echo "[settings.json] (rendered from template; machine-specific paths)"
 tmpl="$REPO/claude-home/settings.json.template"
 if [ -f "$tmpl" ]; then
@@ -174,48 +175,73 @@ if [ -f "$tmpl" ]; then
   sed -e "s|{{CLAUDE_HOME}}|$CLAUDE_HOME|g" -e "s|{{MODEL}}|$model|g" "$tmpl" > "$new"
   python3 -m json.tool "$new" >/dev/null \
     || { echo "  ERROR: template renders invalid JSON — nothing overwritten" >&2; rm -f "$new"; exit 1; }
-  # Carry the runtime-owned keys over (see RUNTIME-OWNED KEYS above): the template
-  # does not declare them, but the runtime keeps them here.
-  if [ -f "$live" ]; then
-    python3 - "$new" "$live" <<'PY' || true
-import json, sys
-new_p, live_p = sys.argv[1], sys.argv[2]
-try:
-    live = json.load(open(live_p, encoding="utf-8"))
-except Exception:
-    sys.exit(0)
-RUNTIME_KEYS = ("enabledPlugins", "autoMode", "modelSettings", "voiceEnabled")
-carried = {k: live[k] for k in RUNTIME_KEYS if k in live}
-if not carried:
-    sys.exit(0)
-new = json.load(open(new_p, encoding="utf-8"))
-new.update(carried)
-with open(new_p, "w", encoding="utf-8") as f:
-    json.dump(new, f, indent=2, ensure_ascii=False)
-    f.write("\n")
-PY
-  fi
-  # Drift guard: refuse to destroy hand edits made to the live file since the
-  # last render. Baseline = previous render if we have it, else the fresh one.
-  # Runtime-owned keys are stripped on both sides before comparing (see above).
+  # Protect hand edits while allowing the known runtime-owned settings.
   base="$stamp"; [ -f "$base" ] || base="$new"
-  strip_runtime() {  # canonical JSON without the keys Claude itself writes
-    python3 -c 'import json,sys
-d = json.load(open(sys.argv[1], encoding="utf-8"))
-for k in ("model", "enabledPlugins", "autoMode", "modelSettings", "voiceEnabled"):
-    d.pop(k, None)
-print(json.dumps(d, indent=2, sort_keys=True, ensure_ascii=False))' "$1" 2>/dev/null
-  }
-  if [ -f "$live" ] && ! diff -q <(strip_runtime "$base") <(strip_runtime "$live") >/dev/null 2>&1; then
-    if [ "$FORCE" = "1" ]; then
-      echo "  WARN: overwriting hand-edited $live (--force); backup: settings.json.bak" >&2
-    else
-      echo "  DRIFT: $live was edited by hand since the last render." >&2
-      echo "  Backport the edits into claude-home/settings.json.template first," >&2
-      echo "  or re-run with --force to overwrite them. Diff (baseline -> live):" >&2
-      diff <(strip_runtime "$base") <(strip_runtime "$live") | sed 's/^/    /' >&2 || true
-      rm -f "$new"; exit 1
-    fi
+  if [ -f "$live" ] && ! python3 - "$new" "$live" "$base" "$FORCE" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+new_p, live_p, base_p = map(Path, sys.argv[1:4])
+force = sys.argv[4] == "1"
+runtime_keys = ("model", "enabledPlugins", "autoMode", "modelSettings", "voiceEnabled")
+
+
+def is_orca_handler(handler):
+    command = handler.get("command", "")
+    return (
+        handler.get("type") == "command"
+        and isinstance(command, str)
+        and ".orca/agent-hooks/claude-hook.sh" in command
+        and ("ORCA_AGENT_HOOK_PORT" in command or "ORCA_HOOK_AGENT_PID" in command)
+    )
+
+
+def separate_runtime(config):
+    runtime = {key: config.pop(key) for key in runtime_keys if key in config}
+    orca = {}
+    hooks = config.get("hooks", {})
+    for event, groups in list(hooks.items()):
+        local = [group for group in groups if group.get("hooks") and all(
+            is_orca_handler(h) for h in group["hooks"]
+        )]
+        if local:
+            orca[event] = local
+            shared = [group for group in groups if group not in local]
+            if shared:
+                hooks[event] = shared
+            else:
+                del hooks[event]
+    return runtime, orca
+
+
+try:
+    new, live, base = (json.loads(p.read_text(encoding="utf-8")) for p in (new_p, live_p, base_p))
+    runtime, orca = separate_runtime(live)
+    separate_runtime(base)
+except (OSError, ValueError, AttributeError, TypeError) as error:
+    print(f"  ERROR: cannot compare existing Claude settings: {error}", file=sys.stderr)
+    sys.exit(1)
+
+if base != live:
+    keys = ", ".join(sorted(k for k in base.keys() | live.keys() if k not in base or k not in live or base[k] != live[k]))
+    if not force:
+        print(f"  DRIFT: {live_p} differs from the last render (keys: {keys}).", file=sys.stderr)
+        print("  Reconcile the shared settings before re-running; --force overwrites changes.", file=sys.stderr)
+        sys.exit(1)
+    print(f"  WARN: overwriting hand-edited settings (keys: {keys}); backup: settings.json.bak", file=sys.stderr)
+
+new.update(runtime)
+for event, groups in orca.items():
+    handlers = new.setdefault("hooks", {}).setdefault(event, [])
+    for group in groups:
+        if group not in handlers:
+            handlers.append(group)
+new_p.write_text(json.dumps(new, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+PY
+  then
+    rm -f "$new"
+    exit 1
   fi
   [ -f "$live" ] && cp "$live" "$live.bak"
   mv "$new" "$live"

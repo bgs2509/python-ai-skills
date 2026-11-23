@@ -106,9 +106,9 @@ A collection of 50 skills (Python development and documentation, GRACE, `best-*`
    for category boundaries and rollback.
 
    The render refuses to overwrite a hand-edited `settings.json`. Keys Claude
-   writes itself (`model`, `enabledPlugins`) are carried over, not treated as
-   hand edits — change them through `/model` and `claude plugin enable`, not by
-   editing files.
+   writes itself (`model`, `enabledPlugins`) and known Orca-managed hook groups
+   are carried over, not treated as hand edits. Change Claude-owned values
+   through `/model` and `claude plugin enable`, not by editing files.
 
    On a machine where Claude Code already wrote its own `settings.json` (no
    previous render to compare against), the drift guard stops the first run.

@@ -189,6 +189,45 @@ def test_discovers_only_one_category_level(tmp_path, sample_installer):
     assert sorted(p.name for p in (home / "skills").iterdir()) == ["sample"]
 
 
+def test_orca_managed_hooks_survive_rerender(tmp_path, skill_homes):
+    home = skill_homes[0]
+    assert run_installer(tmp_path, home).returncode == 0
+    live = home / "settings.json"
+    before = json.loads(live.read_text())
+    orca_groups = {
+        "PostCompact": {
+            "hooks": [{"type": "command", "command": 'ORCA_HOOK_AGENT_PID=$$ "$HOME/.orca/agent-hooks/claude-hook.sh"'}],
+        },
+        "SessionStart": {
+            "hooks": [{"type": "command", "command": 'test -n "$ORCA_AGENT_HOOK_PORT" && "$HOME/.orca/agent-hooks/claude-hook.sh"'}],
+        },
+    }
+    for event, group in orca_groups.items():
+        before["hooks"].setdefault(event, []).append(group)
+    before["voiceEnabled"] = True
+    live.write_text(json.dumps(before), encoding="utf-8")
+    for _ in range(2):
+        result = run_installer(tmp_path, home)
+        assert result.returncode == 0, result.stderr
+        assert json.loads(live.read_text()) == before
+
+
+def test_unmanaged_hook_drift_does_not_switch_skills(tmp_path, skill_homes):
+    home = skill_homes[0]
+    assert run_installer(tmp_path, home).returncode == 0
+    live = home / "settings.json"
+    edited = json.loads(live.read_text())
+    edited["hooks"]["PostCompact"] = [{"hooks": [{"type": "command", "command": "echo custom"}]}]
+    live.write_text(json.dumps(edited), encoding="utf-8")
+    target = home / "skills" / "testing"
+    target.unlink()
+    result = run_installer(tmp_path, home)
+    assert result.returncode != 0
+    assert "DRIFT" in result.stderr and "keys: hooks" in result.stderr
+    assert json.loads(live.read_text()) == edited
+    assert not target.exists()
+
+
 def test_pi_block_is_opt_out(tmp_path):
     result = run_installer(tmp_path, tmp_path / "claude home", {"PI_HOME": "/dev/null"})
     assert result.returncode == 0, result.stderr
