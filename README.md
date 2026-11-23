@@ -98,6 +98,10 @@ A collection of 50 skills (Python development and documentation, GRACE, `best-*`
    `claude-home/settings.json.template` and installs the `pre-commit` bootstrap
    hook (into `~/.git-template` for new repos and into this checkout).
 
+   For Pi, this installs skills, not the shared global instructions or an
+   isolation profile. See the [Pi sandbox acceptance report](docs/research/pi-sandbox-acceptance.md)
+   for the tested prototype and remaining integration work.
+
    Re-running updates symlinks owned by this checkout. On upgrade from the
    underscore-prefixed names, the installer removes old links only if they
    point back to this checkout. An unmanaged entry with a conflicting new name
