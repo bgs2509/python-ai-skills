@@ -66,6 +66,12 @@ project_type: dev
 
 ## Required Workflow
 
+### GRACE lint scope
+
+This skills repository is not a GRACE-managed project. Its generated requirements and technology XML summarize feature specs; they are not a full GRACE artifact set. The commit gate remains the checks in `.pre-commit-config.yaml`.
+
+For optional GRACE diagnostics from the repository root, run `grace lint --allowMissingDocs`. The root `.grace-lint.json` excludes directories named `fixture`; the `audit-loop` smoke-test fixture is a standalone sample project, not part of the repository's own GRACE markup. Projects that use GRACE should still run `grace lint` from their own root without `--allowMissingDocs`.
+
 ### Verify Before Act (BEFORE every code change)
 
 | Action | Check BEFORE executing |
