@@ -1,20 +1,13 @@
 ---
 name: progress-watch
 description: >
-  Watch a long-running process that nobody is staring at — a background Bash job,
-  a subagent, a `claude -p` run, a training run, a CI build — and report its
-  progress on a fixed interval (default 10 minutes) in exactly four short lines:
-  check time, progress since start, estimated remainder, expected result. Owns its
-  own schedule (CronCreate) and stops itself when the process finishes, crashes, or
-  the probe itself breaks. Strictly read-only: it never touches, throttles, signals,
-  or restarts what it watches.
-  TRIGGER when: user asks to check on a running process every N minutes, says
-  "каждые 10 минут проверяй прогресс", "следи за фоновым процессом", "check the
-  build every 5 min", or a long job was just started in the background and the user
-  wants periodic short updates.
-  SKIP when: the user wants a single notification the moment something happens (use
-  the Monitor tool or a background Bash `until` loop), the job is expected to finish
-  within a minute, or the request is to change/stop the process rather than observe it.
+  Monitor a long-running process read-only at a fixed interval (default 10 minutes). Give a
+  four-line report: check time, progress since start, estimated remainder, expected result.
+  Manage the schedule and stop monitoring on completion, crash, or repeated probe failure.
+  TRIGGER: "каждые 10 минут проверяй прогресс", "следи за фоновым процессом", "check the build
+  every 5 min", or equivalent periodic checks of Bash jobs, subagents, Claude runs, training, or
+  CI. SKIP: a single completion notification, jobs expected to finish within a minute, requests
+  to change or stop the watched process, or a plan progress page.
 argument-hint: "[target: file | pid | task id | command] [--every 10m] [--once] [--stop]"
 ---
 

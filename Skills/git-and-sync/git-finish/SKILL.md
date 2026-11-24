@@ -1,19 +1,14 @@
 ---
 name: git-finish
 description: >
-  Close the work of the CURRENT SESSION. First, unconditionally and in any repository
-  state, update the documentation the session invalidated and bring the session's plans
-  up to date (plan files, bd issues, the harness task list). Then, depending on where
-  HEAD is: on a work branch — merge into the base branch locally (resolving conflicts),
-  delete the branch and its worktree, and push last; on the base branch — push; outside
-  git — nothing. Always end with an uppercase verdict line stating whether the session's
-  work is finished. TRIGGER when: user calls /git-finish, says "закрой сессию",
-  "заверши работу в сессии", "слей ветку", "заверши ветку", "merge and push",
-  "finish this branch", "wrap up the session", "git finish", "гит финиш", or asks for
-  this sequence in any wording. Supersedes superpowers:finishing-a-development-branch in
-  every repository — never invoke that skill for these requests. SKIP when: only committing uncommitted files (use /git-commit), triaging ALL branches
-  in the repo rather than closing this session (use /git-branch), syncing a repo across
-  machines (use /project-sync), syncing bd issues (use /beads-sync).
+  Close the current session: always update its docs and plans first, then merge the work branch
+  locally, remove the branch and its worktree, and push last. On the base branch, only push
+  after updating docs and plans; outside Git, update docs and plans only. End with an uppercase
+  verdict even on a stop. TRIGGER: /git-finish, "закрой сессию", "заверши работу в сессии",
+  "слей ветку", "заверши ветку", "merge and push", "finish this branch", "wrap up the session",
+  "git finish", "гит финиш", or equivalent. Supersedes
+  superpowers:finishing-a-development-branch. SKIP: commit only (git-commit), audit all branches
+  (git-branch), repo sync (project-sync), or issue sync (beads-sync).
 argument-hint: "[--base <branch> to override detection] [--no-push to stop after cleanup] [--keep-branch to merge without deleting]"
 ---
 

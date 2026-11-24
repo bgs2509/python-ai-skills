@@ -1,30 +1,15 @@
 ---
 name: explain
 description: >
-  Multi-dimensional explanation generator: explains a concept, theory, term, document,
-  project, codebase, difference pair or LLM output for a chosen audience, with a fixed
-  term register and source grounding. Eight axes (search source, object, audience,
-  detail, register, structure, language, sources) plus presets; full explanations follow
-  a per-object anatomy matrix (five for concept/document, four for project plus an auto
-  "done this time" section for artifacts, five for codebase); difference questions get
-  a three-section structure; bare term questions get a brief three-block decode; a lost
-  user gets rescue mode with the object taken from the dialog. Extends the global
-  Explanation Protocol.
-  TRIGGER when: user calls /explain (Pi: /skill:explain); asks to explain something
-  «как джуну / ребёнку / сеньору / бизнесу», «начиная с базы / с нуля», «простыми словами»;
-  asks a bare term question — «что такое X», «что значит X», «что означает X», «расшифруй X»,
-  «объясни X», «explain X» — auto brief mode; asks a difference question — «чем отличается X
-  от Y», «в чём разница между X и Y» — auto difference mode; asks «как работает / как устроен X»;
-  asks to walk through a project or code — «прочитай проект… и объясни», «разбери X»,
-  «объясни, что ты сделал»; is lost mid-task — «ничего не понимаю», «запутался» + explain
-  intent — rescue mode (object from the dialog, no clarifying question); wants controlled
-  detail, decoded terms or a fixed vocabulary.
-  SKIP when: short factual answer or work report; recommendation delivery (best-recommend);
-  comparing concrete data instances (vacancies, bank statements, recruiters) — data
-  analysis, not explanation; «какой вариант лучше / что тут бест практис» → best-approach;
-  «исправь / почини / почему падает» about concrete code or tests → debugging;
-  «сделай отчёт» → report; web-research task wording («Find on the internet: what is…»);
-  plain in-answer explanation covered by the global Explanation Protocol.
+  Explain a concept, term, document, project, codebase, or LLM output for a chosen audience and
+  detail level, with consistent terminology and cited sources. TRIGGER: /explain,
+  /skill:explain, "что такое", "что значит", "что означает", "расшифруй", "объясни", "чем
+  отличается", "в чём разница", "как работает", "как устроен", "разбери" a project or code,
+  "explain X", or requests to explain what was done. Also use for "простыми словами", "с нуля",
+  "начиная с базы", "как джуну / ребёнку / сеньору / бизнесу", or "запутался" / "ничего не
+  понимаю" with a request to explain. SKIP: short factual answers, work reports,
+  recommendations, comparing data records, debugging, explicit web research, or ordinary
+  explanations within another answer.
 argument-hint: "[что объяснить и для кого; --preset child|junior|senior|business, --audience, --detail full|partial|none, --search auto|local|web|none, --structure five|difference|summary-first|direct|brief, --lang ru|en, --no-sources]"
 ---
 

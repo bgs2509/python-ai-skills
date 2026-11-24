@@ -1,22 +1,14 @@
 ---
 name: plan-progress-page
 description: >
-  Build and keep updated a one-page HTML progress view of a multi-stage project
-  plan, published as a private claude.ai Artifact: a vertical bar where each stage's
-  height is its share of plan hours, green = done, red = left, a big blue "now"
-  arrow, percent and hour ticks with fact/forecast timestamps, a forecast finish,
-  and every stage's sub-stages in a scrollable box beside its bar segment; above it a
-  burn-up chart (done hours over calendar time, forecast to finish) and a Gantt chart
-  (stages on the calendar against their plan-hour length). Works
-  for any project (dev or life) and any number of stages. Plan start and actual
-  hours come from Claude Code session logs via a bundled script, never from memory.
-  TRIGGER when: user asks where they are in a big plan, wants "ход плана", "прогресс
-  плана в процентах и часах", "страница прогресса", "сколько сделано и сколько
-  осталось", "когда закончим", a progress page/chart/dashboard of a plan, release
-  or epic, or asks to refresh such a page after a stage or sub-stage finished.
-  SKIP when: watching a running process on an interval (use progress-watch),
-  designing the plan itself (grace-plan, writing-plans), or a one-line status answer
-  without a page.
+  Build or refresh an HTML progress page for a multi-stage plan, release, or epic. Show
+  completed and remaining plan hours, stage and sub-stage status, burn-up and Gantt charts, and
+  the forecast finish. Use Claude Code session logs for actual hours and plan start. Always
+  report the absolute HTML path; publish a private claude.ai Artifact when available. TRIGGER:
+  "ход плана", "прогресс плана в процентах и часах", "страница прогресса", "сколько сделано и
+  сколько осталось", "когда закончим", or requests for a plan dashboard or its update. SKIP:
+  periodic process monitoring (progress-watch), designing the plan, or a one-line status without
+  a page.
 argument-hint: "[plan path | epic id] [--update <artifact url>]"
 ---
 
