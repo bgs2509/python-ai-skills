@@ -138,8 +138,15 @@ fields (`done`, `state`, `end`, `fact`, `detail`, `subs`) and `finish` in the JS
 to the **same** HTML path, publish the same `file_path` again without `icon`, with a short
 `label` (what changed). Sizes and colors are never touched.
 
-After publishing, one line to the owner: link, what changed, «сделано X% / осталось Y%»,
-forecast finish.
+After every render or update, always show the **full absolute path** to the rendered
+`.html` file that contains the burn-up chart, Gantt chart, and «сейчас» arrow. Use the
+actual path to the copy the owner should open (`realpath <out.html>`); print it in a
+code span without `~`, `$TMPDIR`, or relative segments. A clickable link or an Artifact
+URL does not replace the absolute path. If publishing is unavailable, still show the
+absolute path and state that the page was saved locally.
+
+Also report what changed, «сделано X% / осталось Y%», the forecast finish, and the
+Artifact link if published.
 
 ## Owner corrections baked into the template (do not undo)
 

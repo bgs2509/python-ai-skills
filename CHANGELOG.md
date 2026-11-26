@@ -16,6 +16,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `claude-home/hooks/anti-hallucination.py` / `.sh` and their Stop wiring in `settings.json.template` (bd `python-ai-skills-r1f.2`): the hook never fired — 0 records in `~/.claude/hook-stats/blocks.jsonl` and 0 `hook_blocking_error` records in all session transcripts — because it skipped backticked text, where identifiers are written. The two `claude-home/CLAUDE.md` Anti-Hallucination Protocol rules about this hook are removed; the verification rules (Read/Grep before naming an identifier) stay
 
 ### Changed
+- `plan-progress-page`: always show the absolute path to the rendered HTML, whether or not an Artifact is published.
 - Shorten the `explain`, `git-finish`, `plan-progress-page`, and `progress-watch` descriptions to fit Pi's skill description limit without changing their instructions.
 - Preserve Orca-managed Claude Code hook groups on reinstall (bd `python-ai-skills-9pq`). Other hook changes still stop the settings render before any skill links are switched.
 - Move all 50 skills into seven topics under `Skills/<topic>/<name>/` (ADR-004; bd `python-ai-skills-9pq`). The installer validates the inventory once and keeps the same flat skill paths for Claude Code, Codex, and Pi. Nested examples are not installed.
